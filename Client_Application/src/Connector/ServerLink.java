@@ -4,15 +4,20 @@
  * and open the template in the editor.
  */
 package Connector;
+ 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 
-import java.net.*;
-import java.io.*;
 
 /**
  *
  * @author Dipu
  */
-public class ServerPC 
+public final class ServerLink 
 {
     public static int PromptLogin(String serverName, int port, String userName, String password) 
     {
@@ -26,7 +31,7 @@ public class ServerPC
                 DataOutputStream out = new DataOutputStream(outToServer);
                 
                 //send login info
-                out.writeUTF("Login\\" + userName + "\\" + password);
+                out.writeUTF("LOGIN " + userName + " " + password);
                 
                 //get response
                 InputStream inFromServer = client.getInputStream();

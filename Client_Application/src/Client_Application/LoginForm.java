@@ -19,7 +19,7 @@ public class LoginForm extends javax.swing.JFrame {
     /**
      * Creates new form LoginForm
      */
-    public LoginForm() {
+    public LoginForm() {        
         initComponents();
     }
 
@@ -80,7 +80,7 @@ public class LoginForm extends javax.swing.JFrame {
         jLabel3.setText("Port :");
 
         jLabel4.setLabelFor(userNameText);
-        jLabel4.setText("Registration No :");
+        jLabel4.setText("Username :");
 
         userNameText.setToolTipText("Registration number of the student");
 
@@ -149,7 +149,7 @@ public class LoginForm extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(IPAddressText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2))
@@ -174,35 +174,36 @@ public class LoginForm extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void LoginCompleted()
-    {
-        this.setVisible(false);
+    private void LoginCompleted() {
+        MainForm mf = new MainForm();
+        mf.setLocationRelativeTo(null);
+        mf.setVisible(true);
+        
+        this.dispose();        
     }
     
     private void LoginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LoginButtonActionPerformed
         // collect data        
         int result = 2;
-        try 
-        {
+        try {
             String serverName = IPAddressText.getText();
             String userName = userNameText.getText();
             String password = Arrays.toString(PasswordField.getPassword());
             int port = Integer.parseInt(PortText.getText());
-            if(port < 0 || 9999 < port) throw new NumberFormatException();
-        
+            if (port < 1000 || 9999 < port) {
+                throw new NumberFormatException();
+            }
+
             //attempt to login
-            result = Connector.ServerPC.PromptLogin(serverName, port, userName, password);
-        }
-        catch (NumberFormatException ex)
-        {
+            result = Connector.ServerLink.PromptLogin(serverName, port, userName, password);
+        } catch (NumberFormatException ex) {
             result = 2;
         }
-                
+
         //process result
-        switch(result)
-        {
-            case 1: 
-                LoginCompleted(); 
+        switch (result) {
+            case 1:                
+                LoginCompleted();                
                 break;
             case 0:
                 JOptionPane.showMessageDialog(this, "Failed to connect");
@@ -211,7 +212,7 @@ public class LoginForm extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "Check registration no and password again");
                 break;
             case 2:
-                JOptionPane.showMessageDialog(this, "Port must be a 4 digit number");
+                JOptionPane.showMessageDialog(this, "Port must be a 4 digit number between 1000 and 9999");
                 break;
             default:
                 JOptionPane.showMessageDialog(this, "Check your input again.");

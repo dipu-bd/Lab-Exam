@@ -42,6 +42,6 @@ public class Program {
         LoginForm lf = new LoginForm();
         lf.setLocationRelativeTo(null);
         lf.setVisible(true);        
-    }
+    }    
     
 }
