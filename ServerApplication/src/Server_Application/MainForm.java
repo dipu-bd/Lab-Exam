@@ -19,6 +19,8 @@ package Server_Application;
 import ExtraClass.CurrentExam;
 import ExtraClass.Examination;
 import java.awt.HeadlessException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -127,7 +129,6 @@ public class MainForm extends javax.swing.JFrame {
     }
  
     private void newSessionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newSessionButtonActionPerformed
-        // TODO add your handling code here:
         try {
             JFileChooser saveFile = new JFileChooser();
             saveFile.setFileFilter(new FileNameExtensionFilter("Lab Exam File", Program.defExtension));
@@ -147,7 +148,7 @@ public class MainForm extends javax.swing.JFrame {
     }//GEN-LAST:event_newSessionButtonActionPerformed
 
     private void openSessionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openSessionButtonActionPerformed
-        // TODO add your handling code here:
+        // TODO add your handling code here:                 
         try {
             JFileChooser openFile = new JFileChooser();
             openFile.setFileFilter(new FileNameExtensionFilter("Lab Exam File", Program.defExtension));

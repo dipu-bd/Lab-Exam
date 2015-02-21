@@ -16,14 +16,20 @@
  */
 package Server_Application;
 
-import ExtraClass.CurrentExam;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import ExtraClass.CurrentExam;
+import ExtraClass.Examinee;
+import ExtraClass.TimeAndDate;
+import java.util.ArrayList;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -31,15 +37,49 @@ import javax.swing.JOptionPane;
  */
 public class SessionViewer extends javax.swing.JFrame {
 
-    private final Timer timer = new Timer();
+    private final Timer timer;
+    private final Logger logger;
+    public DefaultTableModel tableModel;
 
     /**
      * Creates new form SessionViewer
      */
     public SessionViewer() {
-        initComponents();
-        LoadValues();
+        this.timer = new Timer();
+        this.logger = Logger.getLogger("LabExam");
 
+        initComponents();
+        initiateOthers();
+
+        LoadValues();
+    }
+
+    /**
+     * Initialize this frame. It loads all data needed for examination server.
+     * It creates a new server socket and waits for examinee to connect. Also
+     * various other initialization task is performed from here.
+     */
+    private void initiateOthers() {
+        //initialize logger        
+        logger.addHandler(new Handler() {
+            @Override
+            public void publish(LogRecord lr) {
+                String msg = (new Date(lr.getMillis())).toString() + " : ";
+                msg += lr.getLevel().getName() + " : ";
+                msg += lr.getMessage() + "\n";
+                statusBox.append(msg);
+            }
+
+            @Override
+            public void flush() {
+            }
+
+            @Override
+            public void close() throws SecurityException {
+            }
+        });
+
+        //initialize timer
         TimerTask tt = new TimerTask() {
             @Override
             public void run() {
@@ -47,6 +87,13 @@ public class SessionViewer extends javax.swing.JFrame {
             }
         };
         timer.scheduleAtFixedRate(tt, 0, 500);
+
+        //initialize server
+        LabExamServer.initialize();
+
+        //initialize examinee table        
+        tableModel = (DefaultTableModel) examineeData.getModel();
+        loadExamineeList();
     }
 
     /**
@@ -61,20 +108,29 @@ public class SessionViewer extends javax.swing.JFrame {
         jPanel9 = new javax.swing.JPanel();
         editorButton = new javax.swing.JButton();
         endExamButton = new javax.swing.JButton();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        statusBox = new javax.swing.JTextArea();
+        jPanel2 = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        examineeData = new javax.swing.JTable();
+        jPanel6 = new javax.swing.JPanel();
+        refreshExamineeButton = new javax.swing.JButton();
+        randomizePassButton = new javax.swing.JButton();
+        saveToTextButton = new javax.swing.JButton();
+        jPanel3 = new javax.swing.JPanel();
+        jPanel4 = new javax.swing.JPanel();
+        jPanel5 = new javax.swing.JPanel();
         titleBox = new javax.swing.JLabel();
+        totalMarkBox = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         quesCountBox = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
-        totalMarkBox = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
         startTimeBox = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
         add10minButton = new javax.swing.JButton();
         remainingTimeBox = new javax.swing.JLabel();
-        jTabbedPane1 = new javax.swing.JTabbedPane();
-        jPanel1 = new javax.swing.JPanel();
-        jPanel2 = new javax.swing.JPanel();
-        jPanel3 = new javax.swing.JPanel();
-        jPanel4 = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Lab Exam Session");
@@ -122,75 +178,104 @@ public class SessionViewer extends javax.swing.JFrame {
                 .addGap(5, 5, 5))
         );
 
-        titleBox.setFont(new java.awt.Font("Segoe UI Semibold", 0, 18)); // NOI18N
-        titleBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        titleBox.setText("Title");
-        titleBox.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-
-        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel2.setText("Question Count :");
-
-        quesCountBox.setBackground(new java.awt.Color(247, 248, 251));
-        quesCountBox.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
-        quesCountBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        quesCountBox.setText("10");
-        quesCountBox.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-
-        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel4.setText("Total Marks :");
-
-        totalMarkBox.setBackground(new java.awt.Color(236, 244, 251));
-        totalMarkBox.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
-        totalMarkBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        totalMarkBox.setText("10");
-        totalMarkBox.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-
-        jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel6.setText("Start Time :");
-
-        startTimeBox.setBackground(new java.awt.Color(247, 248, 251));
-        startTimeBox.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        startTimeBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        startTimeBox.setText("2/18/15 12:12 PM");
-        startTimeBox.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-
-        add10minButton.setText("Add Extra 10 Minutes");
-        add10minButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                add10minButtonActionPerformed(evt);
-            }
-        });
-
-        remainingTimeBox.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        remainingTimeBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        remainingTimeBox.setText("Exam will start in X minutes");
-        remainingTimeBox.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        statusBox.setEditable(false);
+        statusBox.setBackground(new java.awt.Color(0, 51, 51));
+        statusBox.setColumns(20);
+        statusBox.setForeground(new java.awt.Color(204, 255, 204));
+        statusBox.setLineWrap(true);
+        statusBox.setRows(5);
+        statusBox.setText("Welcome to LAB Exam. \n\n");
+        jScrollPane1.setViewportView(statusBox);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 745, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 745, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 225, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 277, Short.MAX_VALUE)
         );
 
         jTabbedPane1.addTab("Exam Status", jPanel1);
+
+        examineeData.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Examinee", "Password", "Status", "IP Address"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane2.setViewportView(examineeData);
+
+        refreshExamineeButton.setText("Refresh");
+        refreshExamineeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                refreshExamineeButtonActionPerformed(evt);
+            }
+        });
+
+        randomizePassButton.setText("Randomize Password");
+
+        saveToTextButton.setText("Save to Text File");
+
+        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
+        jPanel6.setLayout(jPanel6Layout);
+        jPanel6Layout.setHorizontalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(refreshExamineeButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(randomizePassButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(saveToTextButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+        jPanel6Layout.setVerticalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(refreshExamineeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(randomizePassButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 153, Short.MAX_VALUE)
+                .addComponent(saveToTextButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 745, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 595, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 225, Short.MAX_VALUE)
+            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+            .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
-        jTabbedPane1.addTab("Connected Users", jPanel2);
+        jTabbedPane1.addTab("Examinees", jPanel2);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -200,7 +285,7 @@ public class SessionViewer extends javax.swing.JFrame {
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 225, Short.MAX_VALUE)
+            .addGap(0, 277, Short.MAX_VALUE)
         );
 
         jTabbedPane1.addTab("Last Submissions", jPanel3);
@@ -213,67 +298,125 @@ public class SessionViewer extends javax.swing.JFrame {
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 225, Short.MAX_VALUE)
+            .addGap(0, 277, Short.MAX_VALUE)
         );
 
         jTabbedPane1.addTab("Announcements", jPanel4);
+
+        titleBox.setFont(new java.awt.Font("Segoe UI Semibold", 0, 18)); // NOI18N
+        titleBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        titleBox.setText("Title");
+        titleBox.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+
+        totalMarkBox.setBackground(new java.awt.Color(236, 244, 251));
+        totalMarkBox.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
+        totalMarkBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        totalMarkBox.setText("10");
+        totalMarkBox.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        totalMarkBox.setPreferredSize(new java.awt.Dimension(100, 23));
+
+        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel2.setText("Question Count :");
+
+        quesCountBox.setBackground(new java.awt.Color(247, 248, 251));
+        quesCountBox.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
+        quesCountBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        quesCountBox.setText("10");
+        quesCountBox.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        quesCountBox.setPreferredSize(new java.awt.Dimension(20, 23));
+
+        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel4.setText("Total Marks :");
+
+        startTimeBox.setBackground(new java.awt.Color(247, 248, 251));
+        startTimeBox.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        startTimeBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        startTimeBox.setText("2/18/15 12:12 PM");
+        startTimeBox.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        startTimeBox.setPreferredSize(new java.awt.Dimension(120, 23));
+
+        jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel6.setText("Start Time :");
+
+        add10minButton.setText("Extend 10 minutes");
+        add10minButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                add10minButtonActionPerformed(evt);
+            }
+        });
+
+        remainingTimeBox.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        remainingTimeBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        remainingTimeBox.setText("Exam will start in X minutes");
+        remainingTimeBox.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(titleBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel5Layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(quesCountBox, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(totalMarkBox, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel6)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(startTimeBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(remainingTimeBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(add10minButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(titleBox)
+                .addGap(3, 3, 3)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(quesCountBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4)
+                    .addComponent(totalMarkBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel6)
+                    .addComponent(startTimeBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(3, 3, 3)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(remainingTimeBox)
+                    .addComponent(add10minButton))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        totalMarkBox.getAccessibleContext().setAccessibleName("100");
+        quesCountBox.getAccessibleContext().setAccessibleName("100");
+        remainingTimeBox.getAccessibleContext().setAccessibleDescription("");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(104, 104, 104)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(remainingTimeBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(titleBox, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(quesCountBox, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(totalMarkBox, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(startTimeBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(add10minButton, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(105, 105, 105))
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
-                .addContainerGap())
+            .addComponent(jTabbedPane1)
+            .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(5, 5, 5)
-                .addComponent(titleBox)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(quesCountBox, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(totalMarkBox, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(startTimeBox, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(add10minButton, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(remainingTimeBox, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
                 .addComponent(jTabbedPane1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(0, 0, 0)
                 .addComponent(jPanel9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
-
-        remainingTimeBox.getAccessibleContext().setAccessibleDescription("");
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -281,59 +424,8 @@ public class SessionViewer extends javax.swing.JFrame {
     public final void LoadValues() {
         titleBox.setText(CurrentExam.curExam.ExamTitle);
         totalMarkBox.setText(Integer.toString(CurrentExam.curExam.getTotalMarks()));
-        quesCountBox.setText(Integer.toString(CurrentExam.curExam.AllQuestion.size()));
+        quesCountBox.setText(Integer.toString(CurrentExam.curExam.allQuestion.size()));
         startTimeBox.setText(CurrentExam.curExam.StartTime.toString());
-
-    }
-
-    private static String formatTimeSpan(long time) {
-        //day, hour | min | sec
-        long sec = time / 1000;
-        long min = sec / 60;
-        long hour = min / 60;
-        long day = hour / 24;
-        sec -= min * 60;
-        min -= hour * 60;
-        hour -= day * 24;
-
-        String out = "";
-        if (day > 0) {
-            out += String.format("%d day", day);
-            if (day > 1) {
-                out += "s";
-            }
-        }
-        if (hour > 0) {
-            if (out.length() > 0) {
-                out += " ";
-            }
-            out += String.format("%d hour", hour);
-            if (hour > 1) {
-                out += "s";
-            }
-        }
-        if (day == 0) {
-            if (min > 0) {
-                if (out.length() > 0) {
-                    out += " ";
-                }
-                out += String.format("%d minute", min);
-                if (min > 1) {
-                    out += "s";
-                }
-            }
-            if (hour == 0 && sec > 0) {
-                if (out.length() > 0) {
-                    out += " ";
-                }
-                out += String.format("%d second", sec);
-                if (sec > 1) {
-                    out += "s";
-                }
-            }
-        }
-
-        return out;
     }
 
     private void SetRemainingTime() {
@@ -345,32 +437,52 @@ public class SessionViewer extends javax.swing.JFrame {
             String msg = "";
             if (now > past) {
                 msg = "Exam is finished.";
-                add10minButton.setEnabled(false);
                 remainingTimeBox.setText(msg);
-            } else if (now > start && now <= past) { 
+            } else if (now > start && now <= past) {
                 msg = "Exam is running... ";
-                msg += formatTimeSpan(past - now);
+                msg += TimeAndDate.formatTimeSpan(past - now);
                 msg += "remaining.";
-                add10minButton.setEnabled(false);
                 remainingTimeBox.setText(msg);
             } else if (start > now) {
                 msg = "Exam will start in ";
-                msg += formatTimeSpan(start - now);
-                add10minButton.setEnabled(true);
+                msg += TimeAndDate.formatTimeSpan(start - now);
                 remainingTimeBox.setText(msg);
             }
         } catch (Exception ex) {
+            Logger.getLogger(SessionViewer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     private void ShowExitPrompt() {
         String ObjButtons[] = {"Yes", "No"};
-        int PromptResult = JOptionPane.showOptionDialog(null, "Are you sure you want to exit?", "Online Examination System", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
+        int PromptResult = JOptionPane.showOptionDialog(null,
+                "Are you sure you want to exit?", "Online Examination System", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
         if (PromptResult == JOptionPane.YES_OPTION) {
             Program.sessionCreator.dispose();
             timer.cancel();
             System.exit(0);
         }
+    }
+
+    private void loadExamineeList() {
+        //clear up previous data
+        int rows = tableModel.getRowCount();
+        for (int i = 0; i < rows; ++i) {
+            tableModel.removeRow(i);
+        }
+        
+        //show list
+        ArrayList<String> user = CurrentExam.curExam.userList;
+        for (String s : user) {            
+            String ip = "";
+            String stat = "Disconnected";                        
+            Examinee exmin = CurrentExam.allUsers.get(s);            
+            if (exmin.client != null && exmin.client.isBound()) {
+                stat = "Connected";
+                ip = exmin.client.getInetAddress().toString();
+            }            
+            tableModel.addRow(new Object[]{s, exmin.password, stat, ip});            
+            }
     }
 
     private void editorButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editorButtonActionPerformed
@@ -392,21 +504,27 @@ public class SessionViewer extends javax.swing.JFrame {
             long time = CurrentExam.curExam.StartTime.getTime();
             long now = System.currentTimeMillis();
             if (now > time) {
-                return; //if contest is running
+                CurrentExam.curExam.Duration += 10;
+            } else {
+                time += 10 * 60 * 1000; //10 min in milis
+                CurrentExam.curExam.StartTime.setTime(time);
+                startTimeBox.setText(CurrentExam.curExam.StartTime.toString());
             }
-            time += 600000; //add extra 10 min
-            CurrentExam.curExam.StartTime.setTime(time);
-            startTimeBox.setText(CurrentExam.curExam.StartTime.toString());
             CurrentExam.Save();
         } catch (IOException ex) {
             Logger.getLogger(SessionViewer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_add10minButtonActionPerformed
 
+    private void refreshExamineeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshExamineeButtonActionPerformed
+
+    }//GEN-LAST:event_refreshExamineeButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton add10minButton;
     private javax.swing.JButton editorButton;
     private javax.swing.JButton endExamButton;
+    private javax.swing.JTable examineeData;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel6;
@@ -414,11 +532,19 @@ public class SessionViewer extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel9;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel quesCountBox;
+    private javax.swing.JButton randomizePassButton;
+    private javax.swing.JButton refreshExamineeButton;
     private javax.swing.JLabel remainingTimeBox;
+    private javax.swing.JButton saveToTextButton;
     private javax.swing.JLabel startTimeBox;
+    private javax.swing.JTextArea statusBox;
     private javax.swing.JLabel titleBox;
     private javax.swing.JLabel totalMarkBox;
     // End of variables declaration//GEN-END:variables

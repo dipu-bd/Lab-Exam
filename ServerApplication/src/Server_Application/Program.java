@@ -16,13 +16,17 @@
  */
 package Server_Application;
 
-import javax.swing.JOptionPane;
+import ExtraClass.CurrentExam;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  * Main class of the project
- *
  * @author Dipu
  */
 public class Program {
@@ -31,7 +35,7 @@ public class Program {
 
     public static MainForm mainForm;
     public static SessionCreator sessionCreator;
-    public static SessionViewer sessionViewer;
+    public static SessionViewer sessionViewer; 
 
     public static void main(String[] args) {
         /* Set the Nimbus look and feel */
@@ -59,14 +63,16 @@ public class Program {
             java.util.logging.Logger.getLogger(Program.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
 
-        //</editor-fold> 
-        
-        /* First create listening port */
-        Connector.ClientListener.initialize();
-
+        //</editor-fold>
+                                 
         /* Create and display the form */
-        mainForm = new MainForm();
-        mainForm.setLocationRelativeTo(null);
-        mainForm.setVisible(true);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                mainForm = new MainForm();
+                mainForm.setLocationRelativeTo(null);
+                mainForm.setVisible(true);
+            }
+        });        
     }
 }

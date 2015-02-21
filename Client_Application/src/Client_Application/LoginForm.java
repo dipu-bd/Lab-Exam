@@ -195,20 +195,20 @@ public class LoginForm extends javax.swing.JFrame {
             }
 
             //attempt to login
-            result = Connector.ServerLink.PromptLogin(serverName, port, userName, password);
+            result = Client_Application.ServerLink.PromptLogin(serverName, port, userName, password);
         } catch (NumberFormatException ex) {
             result = 2;
         }
 
         //process result
         switch (result) {
-            case 1:                
+            case 0:                
                 LoginCompleted();                
                 break;
-            case 0:
+            case -1:
                 JOptionPane.showMessageDialog(this, "Failed to connect");
                 break;
-            case -1:
+            case 1:
                 JOptionPane.showMessageDialog(this, "Check registration no and password again");
                 break;
             case 2:

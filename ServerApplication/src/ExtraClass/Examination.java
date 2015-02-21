@@ -26,6 +26,7 @@ import java.util.HashMap;
 
 /**
  * Examination session object
+ *
  * @author Dipu
  */
 public class Examination implements Serializable {
@@ -45,12 +46,12 @@ public class Examination implements Serializable {
      * Name of the exam
      */
     public String ExamTitle;
-    
+
     /**
      * Path where the answers will be saved
      */
     public File ExamPath;
-    
+
     /**
      * Start time of the exam
      */
@@ -64,13 +65,13 @@ public class Examination implements Serializable {
     /**
      * All questions of the exam
      */
-    public HashMap<Integer, Question> AllQuestion = new HashMap<>();
+    public HashMap<Integer, Question> allQuestion = new HashMap<>();
     public int LastProbID = 1;
-    
+
     /**
      * Registered usernames for the exam
      */
-    public HashMap<String, String> userToPass = new HashMap<>();
+    public ArrayList<String> userList = new ArrayList<>();
 
     /**
      * gets the total marks for the exam
@@ -79,36 +80,47 @@ public class Examination implements Serializable {
      */
     public int getTotalMarks() {
         int marks = 0;
-        for (Question q : AllQuestion.values()) {
+        for (Question q : allQuestion.values()) {
             marks += q.Mark;
         }
         return marks;
     }
-    
-    public void addQuestion()
-    {
-        AllQuestion.put(LastProbID, new Question(LastProbID));
+
+    /**
+     * Add a new empty question to the list
+     */
+    public void addQuestion() {
+        allQuestion.put(LastProbID, new Question(LastProbID));
         ++LastProbID;
-    }
-    
-    public void deleteQuestion(int id)
-    {
-        if(!AllQuestion.containsKey(id)) return;
-        AllQuestion.remove(id);
     }
 
     /**
-     * Get all usernames in sorted order
+     * Delete a question by id
      *
-     * @return ArrayList containing names
+     * @param id ID of the question to delete
      */
-    public ArrayList<String> getUsers() {
-        ArrayList<String> keys = new ArrayList<>();
-        for (String s : userToPass.keySet()) {
-            keys.add(s);
+    public void deleteQuestion(int id) {
+        if (!allQuestion.containsKey(id)) {
+            return;
         }
-        Collections.sort(keys, new CustomComparator());
-        return keys;
+        allQuestion.remove(id);
+    }
+
+    /**
+     * Set the list to userList It will automatically ignore empty strings. Also
+     * the array will be sorted
+     *
+     * @param list List of users to set
+     */
+    public void addUsers(String[] list) {
+        userList.clear();
+        for (String s : list) {
+            String t = s.trim();
+            if (t.length() > 0) {
+                userList.add(t);
+            }
+        }
+        Collections.sort(userList, new CustomComparator());
     }
 
     /**
@@ -125,12 +137,11 @@ public class Examination implements Serializable {
             }
         }
     }
-    
+
     @Override
-    public String toString()
-    {
-        return String.format("%s [%d questions; %d participants]", 
-                ExamTitle, AllQuestion.size(), userToPass.size());
+    public String toString() {
+        return String.format("%s [%d questions; %d participants]",
+                ExamTitle, allQuestion.size(), userList.size());
     }
 
 }
