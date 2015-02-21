@@ -34,57 +34,84 @@ import java.util.logging.Logger;
  */
 public final class LabExamServer {
 
+    private static boolean stopListening = false;
     private static ServerSocket serverSocket;
 
-    public static String getIPAddress() {
-        try {
+    public static String getIPAddress()
+    {
+        try
+        {
             InetAddress IP = InetAddress.getLocalHost();
             return IP.getHostAddress();
-        } catch (UnknownHostException ex) {
+        }
+        catch (UnknownHostException ex)
+        {
             return "127.0.0.1";
         }
     }
 
-    public static int getPort() {
-        if (serverSocket == null || !serverSocket.isBound()) {
+    public static int getPort()
+    {
+        if (serverSocket == null || !serverSocket.isBound())
+        {
             return 0;
         }
         return serverSocket.getLocalPort();
     }
 
-    public static void initialize() {
-        try {
-            int siz = CurrentExam.allUsers.size();
+    public static void initialize() throws IOException
+    {
+        int siz = CurrentExam.curExam.allCandidate.size();
 
-            if (serverSocket != null && !serverSocket.isClosed()) {
-                serverSocket.close();
-            }
-
-            serverSocket = new ServerSocket(0, siz + 10);
-            serverSocket.setReuseAddress(true);
-
-            Thread t = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    LabExamServer.BeginListen();
-                }
-            });
-            t.start();
-
-            Logger.getLogger("LabExam").log(
-                    Level.INFO, "Waiting for users to connect...");
-
-        } catch (IOException ex) {
-            Logger.getLogger("LabExam").log(Level.SEVERE,
-                    "Error when attempted to initialize connection. " + ex.getMessage());
+        if (serverSocket != null && !serverSocket.isClosed())
+        {
+            serverSocket.close();
         }
+
+        try
+        {
+            serverSocket = new ServerSocket(1993, siz + 10);
+        }
+        catch (Exception ex)
+        {
+            serverSocket = new ServerSocket(0, siz + 10);
+        }
+
+        stopListening = false;
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run()
+            {
+                LabExamServer.BeginListen();
+            }
+        });
+        t.start();
+
+        Logger.getLogger("LabExam").log(
+                Level.INFO, "Waiting for users to connect...");
     }
 
-    public static void BeginListen() {
+    public static void BeginListen() 
+    {
         // Waiting for clients in port -> serverSocket.getLocalPort()          
-        while (true) {
-            Logger.getLogger("LabExam").log(Level.INFO, "Waiting on port " + serverSocket.getLocalPort());
-            try (Socket client = serverSocket.accept()) {
+        String curip = getIPAddress();
+        while (true)
+        {
+            Socket client = null;
+            try
+            {
+                if (stopListening)
+                {
+                    stopListening = false;
+                    serverSocket.close();
+                    Logger.getLogger("LabExam").log(Level.INFO, "Server Stopped.");
+                    return;
+                }
+
+                Logger.getLogger("LabExam").log(Level.INFO,
+                        "Waiting at " + curip + " on port " + serverSocket.getLocalPort());
+
+                client = serverSocket.accept();
                 String ip = client.getRemoteSocketAddress().toString();
 
                 // Just connected
@@ -96,21 +123,35 @@ public final class LabExamServer {
                 String[] data = ((String) in.readObject()).split(" ");
                 String user = data[0].trim();
                 String pass = data[1].trim();
-                if (CurrentExam.matchUser(user, pass)) {
+                
+                System.out.println(user + " " + pass);
+
+                if (CurrentExam.matchUser(user, pass))
+                {
                     CurrentExam.assignUser(user, client);
                     out.writeObject(true);
-                    out.flush();                    
-                } else {
+                    out.flush();
+                }
+                else
+                {
                     out.writeObject(false);
                     out.flush();
                     client.close();
                     Logger.getLogger("LabExam").log(Level.WARNING,
                             user + " tried to connect but failed.");
-                }
-            } catch (Exception ex) {
+                } 
+            }
+            catch (IOException | ClassNotFoundException ex)
+            {
+                try { client.close(); } catch (IOException exx) {} 
                 Logger.getLogger("LabExam").log(Level.SEVERE,
                         "Error while listening to the socket.", ex);
             }
         }
+    }
+
+    static void StopListening()
+    {
+        stopListening = true;
     }
 }

@@ -16,17 +16,13 @@
  */
 package Server_Application;
 
-import ExtraClass.CurrentExam;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  * Main class of the project
+ *
  * @author Dipu
  */
 public class Program {
@@ -35,44 +31,54 @@ public class Program {
 
     public static MainForm mainForm;
     public static SessionCreator sessionCreator;
-    public static SessionViewer sessionViewer; 
+    public static SessionViewer sessionViewer;
 
-    public static void main(String[] args) {
+    public static void main(String[] args)
+    {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
-        try {
+        try
+        {
             String win = null;
             String nimbus = null;
-            for (LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Windows".equals(info.getName())) {
+            for (LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels())
+            {
+                if ("Windows".equals(info.getName()))
+                {
                     win = info.getClassName();
                 }
-                if ("Nimbus".equals(info.getName())) {
+                if ("Nimbus".equals(info.getName()))
+                {
                     nimbus = info.getClassName();
                 }
             }
-            if (win != null) {
+            if (win != null)
+            {
                 javax.swing.UIManager.setLookAndFeel(win);
-            } else if (nimbus != null) {
+            }
+            else if (nimbus != null)
+            {
                 javax.swing.UIManager.setLookAndFeel(nimbus);
             }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+        }
+        catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex)
+        {
             java.util.logging.Logger.getLogger(Program.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
 
         //</editor-fold>
-                                 
         /* Create and display the form */
         SwingUtilities.invokeLater(new Runnable() {
             @Override
-            public void run() {
+            public void run()
+            {
                 mainForm = new MainForm();
                 mainForm.setLocationRelativeTo(null);
                 mainForm.setVisible(true);
             }
-        });        
+        });
     }
 }

@@ -26,9 +26,16 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import ExtraClass.CurrentExam;
-import ExtraClass.Examinee;
+import ExtraClass.Candidate;
 import ExtraClass.TimeAndDate;
-import java.util.ArrayList;
+import ExtraClass.UserChangeEvent;
+import ExtraClass.UserChangedHandler;
+import java.awt.HeadlessException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.net.Socket;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -44,7 +51,8 @@ public class SessionViewer extends javax.swing.JFrame {
     /**
      * Creates new form SessionViewer
      */
-    public SessionViewer() {
+    public SessionViewer()
+    {
         this.timer = new Timer();
         this.logger = Logger.getLogger("LabExam");
 
@@ -59,11 +67,13 @@ public class SessionViewer extends javax.swing.JFrame {
      * It creates a new server socket and waits for examinee to connect. Also
      * various other initialization task is performed from here.
      */
-    private void initiateOthers() {
+    private void initiateOthers()
+    {
         //initialize logger        
         logger.addHandler(new Handler() {
             @Override
-            public void publish(LogRecord lr) {
+            public void publish(LogRecord lr)
+            {
                 String msg = (new Date(lr.getMillis())).toString() + " : ";
                 msg += lr.getLevel().getName() + " : ";
                 msg += lr.getMessage() + "\n";
@@ -71,29 +81,45 @@ public class SessionViewer extends javax.swing.JFrame {
             }
 
             @Override
-            public void flush() {
+            public void flush()
+            {
             }
 
             @Override
-            public void close() throws SecurityException {
+            public void close() throws SecurityException
+            {
             }
         });
 
         //initialize timer
         TimerTask tt = new TimerTask() {
             @Override
-            public void run() {
+            public void run()
+            {
                 SetRemainingTime();
             }
         };
         timer.scheduleAtFixedRate(tt, 0, 500);
 
         //initialize server
-        LabExamServer.initialize();
+        try
+        {
+            LabExamServer.initialize();
+        }
+        catch (IOException ex)
+        {
+        }
 
         //initialize examinee table        
-        tableModel = (DefaultTableModel) examineeData.getModel();
-        loadExamineeList();
+        tableModel = (DefaultTableModel) candidateTable.getModel();
+        loadCandidateList();
+        CurrentExam.addUserChangedHandler(new UserChangedHandler() {
+            @Override
+            public void userChanged(UserChangeEvent ae)
+            {
+                loadCandidateList();
+            }
+        });
     }
 
     /**
@@ -103,7 +129,8 @@ public class SessionViewer extends javax.swing.JFrame {
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    private void initComponents()
+    {
 
         jPanel9 = new javax.swing.JPanel();
         editorButton = new javax.swing.JButton();
@@ -114,10 +141,9 @@ public class SessionViewer extends javax.swing.JFrame {
         statusBox = new javax.swing.JTextArea();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        examineeData = new javax.swing.JTable();
+        candidateTable = new javax.swing.JTable();
         jPanel6 = new javax.swing.JPanel();
         refreshExamineeButton = new javax.swing.JButton();
-        randomizePassButton = new javax.swing.JButton();
         saveToTextButton = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jPanel4 = new javax.swing.JPanel();
@@ -134,8 +160,10 @@ public class SessionViewer extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Lab Exam Session");
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosing(java.awt.event.WindowEvent evt)
+            {
                 formWindowClosing(evt);
             }
         });
@@ -144,15 +172,19 @@ public class SessionViewer extends javax.swing.JFrame {
         jPanel9.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED, new java.awt.Color(204, 204, 204), new java.awt.Color(204, 255, 255), new java.awt.Color(0, 255, 255), new java.awt.Color(51, 255, 255)));
 
         editorButton.setText("Editor");
-        editorButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        editorButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 editorButtonActionPerformed(evt);
             }
         });
 
         endExamButton.setText("Exit");
-        endExamButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        endExamButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 endExamButtonActionPerformed(evt);
             }
         });
@@ -200,41 +232,55 @@ public class SessionViewer extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Exam Status", jPanel1);
 
-        examineeData.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
+        candidateTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][]
+            {
 
             },
-            new String [] {
-                "Examinee", "Password", "Status", "IP Address"
+            new String []
+            {
+                "ID", "Candidate", "Registration No", "Password", "Status", "IP Address"
             }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+        )
+        {
+            Class[] types = new Class []
+            {
+                java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false
+            boolean[] canEdit = new boolean []
+            {
+                false, false, false, false, false, false
             };
 
-            public Class getColumnClass(int columnIndex) {
+            public Class getColumnClass(int columnIndex)
+            {
                 return types [columnIndex];
             }
 
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
+            public boolean isCellEditable(int rowIndex, int columnIndex)
+            {
                 return canEdit [columnIndex];
             }
         });
-        jScrollPane2.setViewportView(examineeData);
+        jScrollPane2.setViewportView(candidateTable);
 
         refreshExamineeButton.setText("Refresh");
-        refreshExamineeButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        refreshExamineeButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 refreshExamineeButtonActionPerformed(evt);
             }
         });
 
-        randomizePassButton.setText("Randomize Password");
-
         saveToTextButton.setText("Save to Text File");
+        saveToTextButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                saveToTextButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
@@ -244,8 +290,7 @@ public class SessionViewer extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(refreshExamineeButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(randomizePassButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(saveToTextButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(saveToTextButton, javax.swing.GroupLayout.DEFAULT_SIZE, 130, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(
@@ -253,9 +298,7 @@ public class SessionViewer extends javax.swing.JFrame {
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(refreshExamineeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(randomizePassButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 153, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 191, Short.MAX_VALUE)
                 .addComponent(saveToTextButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -265,7 +308,7 @@ public class SessionViewer extends javax.swing.JFrame {
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 595, Short.MAX_VALUE))
         );
@@ -339,8 +382,10 @@ public class SessionViewer extends javax.swing.JFrame {
         jLabel6.setText("Start Time :");
 
         add10minButton.setText("Extend 10 minutes");
-        add10minButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        add10minButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 add10minButtonActionPerformed(evt);
             }
         });
@@ -421,110 +466,178 @@ public class SessionViewer extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    public final void LoadValues() {
+    public final void LoadValues()
+    {
         titleBox.setText(CurrentExam.curExam.ExamTitle);
         totalMarkBox.setText(Integer.toString(CurrentExam.curExam.getTotalMarks()));
         quesCountBox.setText(Integer.toString(CurrentExam.curExam.allQuestion.size()));
         startTimeBox.setText(CurrentExam.curExam.StartTime.toString());
     }
 
-    private void SetRemainingTime() {
-        try {
+    private void SetRemainingTime()
+    {
+        try
+        {
             long start = CurrentExam.curExam.StartTime.getTime();
             long now = System.currentTimeMillis();
             long past = start + CurrentExam.curExam.Duration * 60000;
 
             String msg = "";
-            if (now > past) {
+            if (now > past)
+            {
                 msg = "Exam is finished.";
                 remainingTimeBox.setText(msg);
-            } else if (now > start && now <= past) {
+                endExamButton.setText("Exit");
+            }
+            else if (now > start && now <= past)
+            {
                 msg = "Exam is running... ";
                 msg += TimeAndDate.formatTimeSpan(past - now);
-                msg += "remaining.";
+                msg += " remaining.";
                 remainingTimeBox.setText(msg);
-            } else if (start > now) {
+                endExamButton.setText("Stop Exam");
+            }
+            else if (start > now)
+            {
                 msg = "Exam will start in ";
                 msg += TimeAndDate.formatTimeSpan(start - now);
                 remainingTimeBox.setText(msg);
+                endExamButton.setText("Close");
             }
-        } catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             Logger.getLogger(SessionViewer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void ShowExitPrompt() {
-        String ObjButtons[] = {"Yes", "No"};
-        int PromptResult = JOptionPane.showOptionDialog(null,
-                "Are you sure you want to exit?", "Online Examination System", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
-        if (PromptResult == JOptionPane.YES_OPTION) {
+    /**
+     * Displays the candidate list in candidate table
+     */
+    private void loadCandidateList()
+    {
+        //clear up previous data
+        tableModel.setRowCount(0);
+        //show list 
+        for (Candidate cd : CurrentExam.curExam.allCandidate)
+        {
+            String ip = "-";
+            String stat = "Disconnected";
+            if (CurrentExam.clients.containsKey(cd.uid))
+            {
+                Socket soc = CurrentExam.clients.get(cd.uid);
+                if (!soc.isClosed())
+                {
+                    stat = "Connected";
+                    ip = soc.getRemoteSocketAddress().toString();
+                }
+            }
+            tableModel.addRow(new Object[]
+            {
+                cd.uid, cd.name, cd.regno, cd.password, stat, ip
+            });
+        }
+    }
+
+    private void saveToTextFile()
+    {
+        try
+        {
+            JFileChooser saveFile = new JFileChooser();
+            saveFile.setMultiSelectionEnabled(false);
+            saveFile.setAcceptAllFileFilterUsed(false);
+            saveFile.setSelectedFile(new File("examinee.txt"));
+            saveFile.setFileFilter(new FileNameExtensionFilter("Text File", "txt"));
+            if (saveFile.showSaveDialog(this) == JFileChooser.APPROVE_OPTION)
+            {
+                String data = CurrentExam.printUsers();
+                File file = saveFile.getSelectedFile();
+                FileOutputStream fos = new FileOutputStream(file);
+                fos.write(data.getBytes());
+                fos.close();
+            }
+        }
+        catch (HeadlessException | IOException ex)
+        {
+            Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE,
+                    "Error while saving passwords", ex);
+        }
+    }
+
+    private void exitApplication(boolean showprompt)
+    {
+        int PromptResult = JOptionPane.YES_OPTION;
+        if (showprompt)
+        {
+            String ObjButtons[] =
+            {
+                "Yes", "No"
+            };
+            PromptResult = JOptionPane.showOptionDialog(null,
+                    "Are you sure you want to exit?", "Online Examination System",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+                    null, ObjButtons, ObjButtons[1]);
+        }
+        if (PromptResult == JOptionPane.YES_OPTION)
+        {
             Program.sessionCreator.dispose();
             timer.cancel();
             System.exit(0);
         }
     }
 
-    private void loadExamineeList() {
-        //clear up previous data
-        int rows = tableModel.getRowCount();
-        for (int i = 0; i < rows; ++i) {
-            tableModel.removeRow(i);
-        }
-        
-        //show list
-        ArrayList<String> user = CurrentExam.curExam.userList;
-        for (String s : user) {            
-            String ip = "";
-            String stat = "Disconnected";                        
-            Examinee exmin = CurrentExam.allUsers.get(s);            
-            if (exmin.client != null && exmin.client.isBound()) {
-                stat = "Connected";
-                ip = exmin.client.getInetAddress().toString();
-            }            
-            tableModel.addRow(new Object[]{s, exmin.password, stat, ip});            
-            }
-    }
-
     private void editorButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editorButtonActionPerformed
         Program.sessionCreator.setVisible(true);
         Program.sessionCreator.LoadValues();
+        LabExamServer.StopListening();
         this.setVisible(false);
     }//GEN-LAST:event_editorButtonActionPerformed
 
     private void endExamButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_endExamButtonActionPerformed
-        ShowExitPrompt();
+        exitApplication(true);
     }//GEN-LAST:event_endExamButtonActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        ShowExitPrompt();
+        exitApplication(true);
     }//GEN-LAST:event_formWindowClosing
 
     private void add10minButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add10minButtonActionPerformed
-        try {
+        try
+        {
             long time = CurrentExam.curExam.StartTime.getTime();
             long now = System.currentTimeMillis();
-            if (now > time) {
+            if (now > time)
+            {
                 CurrentExam.curExam.Duration += 10;
-            } else {
+            }
+            else
+            {
                 time += 10 * 60 * 1000; //10 min in milis
                 CurrentExam.curExam.StartTime.setTime(time);
                 startTimeBox.setText(CurrentExam.curExam.StartTime.toString());
             }
             CurrentExam.Save();
-        } catch (IOException ex) {
-            Logger.getLogger(SessionViewer.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.INFO, "Added extra 10 minutes");
+        }
+        catch (IOException ex)
+        {
+            logger.log(Level.SEVERE, "Failed to save data", ex);
         }
     }//GEN-LAST:event_add10minButtonActionPerformed
 
     private void refreshExamineeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshExamineeButtonActionPerformed
-
+        loadCandidateList();
     }//GEN-LAST:event_refreshExamineeButtonActionPerformed
+
+    private void saveToTextButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveToTextButtonActionPerformed
+        saveToTextFile();
+    }//GEN-LAST:event_saveToTextButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton add10minButton;
+    private javax.swing.JTable candidateTable;
     private javax.swing.JButton editorButton;
     private javax.swing.JButton endExamButton;
-    private javax.swing.JTable examineeData;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel6;
@@ -539,7 +652,6 @@ public class SessionViewer extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel quesCountBox;
-    private javax.swing.JButton randomizePassButton;
     private javax.swing.JButton refreshExamineeButton;
     private javax.swing.JLabel remainingTimeBox;
     private javax.swing.JButton saveToTextButton;

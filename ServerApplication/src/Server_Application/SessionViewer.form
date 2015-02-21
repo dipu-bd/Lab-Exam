@@ -171,7 +171,7 @@
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="1" attributes="0">
-                      <Component id="jPanel6" min="-2" pref="150" max="-2" attributes="0"/>
+                      <Component id="jPanel6" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
                       <Component id="jScrollPane2" pref="595" max="32767" attributes="0"/>
                   </Group>
@@ -192,11 +192,13 @@
 
               <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
               <SubComponents>
-                <Component class="javax.swing.JTable" name="examineeData">
+                <Component class="javax.swing.JTable" name="candidateTable">
                   <Properties>
                     <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
-                      <Table columnCount="4" rowCount="0">
-                        <Column editable="false" title="Examinee" type="java.lang.String"/>
+                      <Table columnCount="6" rowCount="0">
+                        <Column editable="false" title="ID" type="java.lang.Integer"/>
+                        <Column editable="false" title="Candidate" type="java.lang.String"/>
+                        <Column editable="false" title="Registration No" type="java.lang.String"/>
                         <Column editable="false" title="Password" type="java.lang.String"/>
                         <Column editable="false" title="Status" type="java.lang.String"/>
                         <Column editable="false" title="IP Address" type="java.lang.String"/>
@@ -242,8 +244,7 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Component id="refreshExamineeButton" alignment="0" max="32767" attributes="0"/>
-                              <Component id="randomizePassButton" alignment="0" max="32767" attributes="0"/>
-                              <Component id="saveToTextButton" alignment="0" max="32767" attributes="0"/>
+                              <Component id="saveToTextButton" alignment="0" pref="130" max="32767" attributes="0"/>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
                       </Group>
@@ -254,9 +255,7 @@
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="refreshExamineeButton" min="-2" pref="32" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Component id="randomizePassButton" min="-2" pref="32" max="-2" attributes="0"/>
-                          <EmptySpace pref="153" max="32767" attributes="0"/>
+                          <EmptySpace pref="191" max="32767" attributes="0"/>
                           <Component id="saveToTextButton" min="-2" pref="32" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                       </Group>
@@ -272,15 +271,13 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="refreshExamineeButtonActionPerformed"/>
                   </Events>
                 </Component>
-                <Component class="javax.swing.JButton" name="randomizePassButton">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="Randomize Password"/>
-                  </Properties>
-                </Component>
                 <Component class="javax.swing.JButton" name="saveToTextButton">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Save to Text File"/>
                   </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="saveToTextButtonActionPerformed"/>
+                  </Events>
                 </Component>
               </SubComponents>
             </Container>

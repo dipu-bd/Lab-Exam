@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
@@ -37,7 +38,8 @@ public class MainForm extends javax.swing.JFrame {
     /**
      * Creates new form MainForm
      */
-    public MainForm() {
+    public MainForm()
+    {
         initComponents();
     }
 
@@ -119,49 +121,57 @@ public class MainForm extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void ShowCreator() {
-        if (Program.sessionCreator == null) {
+    private void ShowCreator()
+    {
+        if (Program.sessionCreator == null)
+        {
             Program.sessionCreator = new SessionCreator();
         }
         Program.sessionCreator.setLocationRelativeTo(null);
         Program.sessionCreator.setVisible(true);
         this.setVisible(false);
     }
- 
+
     private void newSessionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newSessionButtonActionPerformed
-        try {
+        try
+        {
             JFileChooser saveFile = new JFileChooser();
             saveFile.setFileFilter(new FileNameExtensionFilter("Lab Exam File", Program.defExtension));
             saveFile.setAcceptAllFileFilterUsed(false);
             saveFile.setMultiSelectionEnabled(false);
             saveFile.setSelectedFile(new File("exam." + Program.defExtension));
-            if (saveFile.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            if (saveFile.showSaveDialog(this) == JFileChooser.APPROVE_OPTION)
+            {
                 CurrentExam.curExam = new Examination();
                 CurrentExam.examFile = saveFile.getSelectedFile();
                 CurrentExam.Save();
                 this.ShowCreator();
             }
-        } catch (HeadlessException | IOException ex) {
-            Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE,
-                    "Error while saving passwords", ex);
+        }
+        catch (HeadlessException | IOException ex)
+        {
+            JOptionPane.showMessageDialog(this, "Error while saving file");
         }
     }//GEN-LAST:event_newSessionButtonActionPerformed
 
     private void openSessionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openSessionButtonActionPerformed
         // TODO add your handling code here:                 
-        try {
+        try
+        {
             JFileChooser openFile = new JFileChooser();
             openFile.setFileFilter(new FileNameExtensionFilter("Lab Exam File", Program.defExtension));
             openFile.setAcceptAllFileFilterUsed(false);
             openFile.setMultiSelectionEnabled(false);
             openFile.setSelectedFile(new File("exam." + Program.defExtension));
-            if (openFile.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            if (openFile.showOpenDialog(this) == JFileChooser.APPROVE_OPTION)
+            {
                 CurrentExam.Open(openFile.getSelectedFile());
                 this.ShowCreator();
             }
-        } catch (HeadlessException | IOException | ClassNotFoundException ex) {
-            Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE,
-                    "Error while saving passwords", ex);
+        }
+        catch (HeadlessException | IOException | ClassNotFoundException ex)
+        {
+            JOptionPane.showMessageDialog(this, "Error while opening file");
         }
     }//GEN-LAST:event_openSessionButtonActionPerformed
 

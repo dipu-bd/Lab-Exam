@@ -24,30 +24,35 @@ import java.security.SecureRandom;
  *
  * @author Dipu
  */
-public final class Examinee implements Serializable {
+public final class Candidate implements Serializable {
 
     /**
      * Secured random number class to generate password and other uses
      */
     public final static SecureRandom random = new SecureRandom();
 
-    public Examinee(String user) {
-        name = user;
-        client = null;
+    public Candidate(int id)
+    {
+        uid = id;
+        name = "";
+        regno = "";
         randomizePassword();
     }
 
+    public int uid;
     public String name;
-    public Socket client;
+    public String regno;
     public String password;
 
     /**
      * Generate a random password and set it to password field
      */
-    public void randomizePassword() {
+    public void randomizePassword()
+    {
         this.password = "";
-        for (int i = 0; i < 6; ++i) {
-            char ch = (char) (Examinee.random.nextInt(26) + 'a');
+        for (int i = 0; i < 6; ++i)
+        {
+            char ch = (char) (Candidate.random.nextInt(26) + 'a');
             this.password += Character.toString(ch);
         }
     }

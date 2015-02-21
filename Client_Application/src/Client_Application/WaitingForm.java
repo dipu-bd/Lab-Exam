@@ -5,19 +5,16 @@
  */
 package Client_Application;
 
-import sun.misc.JavaxSecurityAuthKerberosAccess;
-
 /**
  *
  * @author Dipu
  */
-public class MainForm extends javax.swing.JFrame
-{
+public class WaitingForm extends javax.swing.JFrame {
 
     /**
-     * Creates new form MainForm
+     * Creates new form WaitingForm
      */
-    public MainForm()
+    public WaitingForm()
     {
         initComponents();
     }
@@ -32,34 +29,23 @@ public class MainForm extends javax.swing.JFrame
     private void initComponents()
     {
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosed(java.awt.event.WindowEvent evt)
-            {
-                formWindowClosed(evt);
-            }
-        });
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 675, Short.MAX_VALUE)
+            .addGap(0, 473, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 375, Short.MAX_VALUE)
+            .addGap(0, 256, Short.MAX_VALUE)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    private void formWindowClosed(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosed
-    {//GEN-HEADEREND:event_formWindowClosed
-        Program.loginForm.setVisible(true);
-    }//GEN-LAST:event_formWindowClosed
  
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
 }

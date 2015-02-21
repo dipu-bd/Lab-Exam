@@ -22,7 +22,8 @@ package ExtraClass;
  */
 public final class TimeAndDate {
 
-    public static String formatTimeSpan(long time) {
+    public static String formatTimeSpan(long time)
+    {
         //day, hour | min | sec
         long sec = time / 1000;
         long min = sec / 60;
@@ -33,37 +34,49 @@ public final class TimeAndDate {
         hour -= day * 24;
 
         String out = "";
-        if (day > 0) {
+        if (day > 0)
+        {
             out += String.format("%d day", day);
-            if (day > 1) {
+            if (day > 1)
+            {
                 out += "s";
             }
         }
-        if (hour > 0) {
-            if (out.length() > 0) {
+        if (hour > 0)
+        {
+            if (out.length() > 0)
+            {
                 out += " ";
             }
             out += String.format("%d hour", hour);
-            if (hour > 1) {
+            if (hour > 1)
+            {
                 out += "s";
             }
         }
-        if (day == 0) {
-            if (min > 0) {
-                if (out.length() > 0) {
+        if (day == 0)
+        {
+            if (min > 0)
+            {
+                if (out.length() > 0)
+                {
                     out += " ";
                 }
                 out += String.format("%d minute", min);
-                if (min > 1) {
+                if (min > 1)
+                {
                     out += "s";
                 }
             }
-            if (hour == 0 && sec > 0) {
-                if (out.length() > 0) {
+            if (hour == 0 && sec > 0)
+            {
+                if (out.length() > 0)
+                {
                     out += " ";
                 }
                 out += String.format("%d second", sec);
-                if (sec > 1) {
+                if (sec > 1)
+                {
                     out += "s";
                 }
             }

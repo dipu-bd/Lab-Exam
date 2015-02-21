@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 
 /**
  * Examination session object
@@ -34,12 +33,20 @@ public class Examination implements Serializable {
     /**
      * Constructor of examination
      */
-    public Examination() {
+    public Examination()
+    {
         ExamTitle = "Lab Exam";
         StartTime = new Date(System.currentTimeMillis());
         Duration = 120;
         LastProbID = 1;
         ExamPath = new File(ExamTitle);
+    }
+
+    @Override
+    public String toString()
+    {
+        return String.format("%s [%d questions; %d participants]",
+                ExamTitle, allQuestion.size(), allCandidate.size());
     }
 
     /**
@@ -65,83 +72,143 @@ public class Examination implements Serializable {
     /**
      * All questions of the exam
      */
-    public HashMap<Integer, Question> allQuestion = new HashMap<>();
+    public ArrayList<Question> allQuestion = new ArrayList<>();
     public int LastProbID = 1;
 
     /**
      * Registered usernames for the exam
      */
-    public ArrayList<String> userList = new ArrayList<>();
+    public ArrayList<Candidate> allCandidate = new ArrayList<>(); 
+    public int LastUserID = 1;
 
     /**
      * gets the total marks for the exam
      *
      * @return integer value with total marks
      */
-    public int getTotalMarks() {
+    public int getTotalMarks()
+    {
         int marks = 0;
-        for (Question q : allQuestion.values()) {
+        for (Question q : allQuestion)
+        {
             marks += q.Mark;
         }
         return marks;
     }
 
     /**
+     * Add new candidate
+     *
+     * @param name Name of the candidate
+     * @param reg Registration Number
+     */
+    public void addCandidate(String name, String reg)
+    {
+        Candidate em = new Candidate(LastUserID);
+        em.name = name;
+        em.regno = reg;
+        allCandidate.add(em); 
+        ++LastUserID;
+    }
+
+    public int getCandidateIndex(int uid)
+    {
+        return Collections.binarySearch(allCandidate,
+                new Candidate(uid), new UserComparator());
+    }
+
+    public boolean candidateExist(int uid)
+    {
+        if (allCandidate.isEmpty()) return false;
+        return (getCandidateIndex(uid) >= 0);
+    }
+
+    public Candidate getCandidate(int uid)
+    {
+        if (allCandidate.isEmpty()) return null;
+        int pos = getCandidateIndex(uid);
+        if (pos >= 0) return allCandidate.get(pos);
+        return null;
+    }
+
+    public void deleteCandidate(int uid)
+    {
+        if (allCandidate.isEmpty()) return;
+        int pos = getCandidateIndex(uid);
+        if (pos >= 0) allCandidate.remove(pos);
+    }
+
+    public int getCandidateID(String user)
+    {
+        for (Candidate cd : allCandidate)
+            if (cd.regno.equals(user))
+                return cd.uid;
+        return -1;
+    }
+
+    /**
      * Add a new empty question to the list
      */
-    public void addQuestion() {
-        allQuestion.put(LastProbID, new Question(LastProbID));
+    public void addQuestion()
+    {
+        allQuestion.add(new Question(LastProbID));
         ++LastProbID;
+    }
+
+    public int getQuestionIndex(int qid)
+    {
+        return Collections.binarySearch(allQuestion,
+                new Question(qid), new QuestionComparator());
+    }
+
+    public Question getQuestion(int qid)
+    {
+        if (allQuestion.isEmpty()) return null;
+        int pos = getQuestionIndex(qid);
+        if (pos >= 0) return allQuestion.get(pos);
+        return null;
+    }
+
+    public boolean questionExist(int qid)
+    {
+        if (allQuestion.isEmpty()) return false;
+        int pos = getQuestionIndex(qid);
+        return (pos >= 0);
     }
 
     /**
      * Delete a question by id
      *
-     * @param id ID of the question to delete
+     * @param qid ID of the question to delete
      */
-    public void deleteQuestion(int id) {
-        if (!allQuestion.containsKey(id)) {
-            return;
-        }
-        allQuestion.remove(id);
-    }
-
-    /**
-     * Set the list to userList It will automatically ignore empty strings. Also
-     * the array will be sorted
-     *
-     * @param list List of users to set
-     */
-    public void addUsers(String[] list) {
-        userList.clear();
-        for (String s : list) {
-            String t = s.trim();
-            if (t.length() > 0) {
-                userList.add(t);
-            }
-        }
-        Collections.sort(userList, new CustomComparator());
+    public void deleteQuestion(int qid)
+    {
+        if (allQuestion.isEmpty()) return;
+        int pos = getQuestionIndex(qid);
+        if (pos >= 0) allQuestion.remove(pos);
     }
 
     /**
      * Comparator for getNames() method
      */
-    private class CustomComparator implements Comparator<String> {
+    private class QuestionComparator implements Comparator<Question> {
 
         @Override
-        public int compare(String s1, String s2) {
-            try {
-                return (int) (Long.parseLong(s1) - Long.parseLong(s2));
-            } catch (Exception ex) {
-                return s1.compareTo(s2);
-            }
+        public int compare(Question q1, Question q2)
+        {
+            return q1.ID - q2.ID;
         }
     }
 
-    @Override
-    public String toString() {
-        return String.format("%s [%d questions; %d participants]",
-                ExamTitle, allQuestion.size(), userList.size());
-    }
+    /**
+     * Comparator for getNames() method
+     */
+    private class UserComparator implements Comparator<Candidate> {
 
+        @Override
+        public int compare(Candidate u1, Candidate u2)
+        {
+            return u1.uid - u2.uid;
+        }
+    }
 }

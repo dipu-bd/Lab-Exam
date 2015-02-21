@@ -5,11 +5,6 @@
  */
 package Client_Application;
 
-import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
-import java.util.Arrays;
-import javax.swing.JOptionPane;
-import org.ietf.jgss.MessageProp;
-
 /**
  *
  * @author Dipu
@@ -19,8 +14,19 @@ public class LoginForm extends javax.swing.JFrame {
     /**
      * Creates new form LoginForm
      */
-    public LoginForm() {        
+    public LoginForm()
+    {
         initComponents();
+
+        try
+        {
+            ServerLink.inFromServer.close();
+            ServerLink.outToServer.close();
+            ServerLink.server.close();
+        }
+        catch (Exception ex)
+        {
+        }
     }
 
     /**
@@ -30,7 +36,8 @@ public class LoginForm extends javax.swing.JFrame {
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    private void initComponents()
+    {
 
         jPanel1 = new javax.swing.JPanel();
         IPAddressText = new javax.swing.JTextField();
@@ -56,7 +63,6 @@ public class LoginForm extends javax.swing.JFrame {
             .addGap(0, 100, Short.MAX_VALUE)
         );
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Lab Exam");
         setAlwaysOnTop(true);
         setName("LoginForm"); // NOI18N
@@ -73,19 +79,31 @@ public class LoginForm extends javax.swing.JFrame {
         jLabel1.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new java.awt.Color(102, 0, 0)));
         jLabel1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
+        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel2.setLabelFor(IPAddressText);
         jLabel2.setText("IP Address :");
 
+        jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel3.setLabelFor(PortText);
         jLabel3.setText("Port :");
 
+        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel4.setLabelFor(userNameText);
-        jLabel4.setText("Username :");
+        jLabel4.setText("Registration No:");
 
         userNameText.setToolTipText("Registration number of the student");
 
+        jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel5.setLabelFor(PasswordField);
         jLabel5.setText("Password :");
+
+        PasswordField.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                PasswordFieldActionPerformed(evt);
+            }
+        });
 
         jPanel2.setBorder(javax.swing.BorderFactory.createMatteBorder(1, 0, 0, 0, new java.awt.Color(0, 102, 102)));
 
@@ -93,8 +111,10 @@ public class LoginForm extends javax.swing.JFrame {
         LoginButton.setLabel("Login");
         LoginButton.setMargin(new java.awt.Insets(2, 3, 2, 3));
         LoginButton.setPreferredSize(new java.awt.Dimension(80, 28));
-        LoginButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        LoginButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 LoginButtonActionPerformed(evt);
             }
         });
@@ -124,24 +144,26 @@ public class LoginForm extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(35, Short.MAX_VALUE)
+                .addGap(35, 35, 35)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jLabel4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(userNameText, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jLabel3)
-                            .addComponent(jLabel2))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, 78, Short.MAX_VALUE)
+                            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(IPAddressText, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(PortText, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jLabel5)
+                            .addComponent(IPAddressText)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(PortText, javax.swing.GroupLayout.DEFAULT_SIZE, 159, Short.MAX_VALUE)
+                                .addGap(100, 100, 100))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(PasswordField, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(PasswordField))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(userNameText)))
                 .addGap(35, 35, 35))
             .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
@@ -149,7 +171,7 @@ public class LoginForm extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 29, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(IPAddressText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2))
@@ -165,7 +187,7 @@ public class LoginForm extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
                     .addComponent(PasswordField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, 23, Short.MAX_VALUE)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
@@ -174,51 +196,59 @@ public class LoginForm extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void LoginCompleted() {
+    private void loginCompleted()
+    {
         MainForm mf = new MainForm();
         mf.setLocationRelativeTo(null);
         mf.setVisible(true);
-        
-        this.dispose();        
+        this.setVisible(false);
     }
-    
-    private void LoginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LoginButtonActionPerformed
+
+    private void attemptLogin()
+    {
         // collect data        
         int result = 2;
-        try {
-            String serverName = IPAddressText.getText();
-            String userName = userNameText.getText();
-            String password = Arrays.toString(PasswordField.getPassword());
+        try
+        {
+            String serverName = IPAddressText.getText().trim();
+            String userName = userNameText.getText().trim();
+            String password = new String(PasswordField.getPassword());
             int port = Integer.parseInt(PortText.getText());
-            if (port < 1000 || 9999 < port) {
-                throw new NumberFormatException();
-            }
-
             //attempt to login
-            result = Client_Application.ServerLink.PromptLogin(serverName, port, userName, password);
-        } catch (NumberFormatException ex) {
+            result = Client_Application.ServerLink.PromptLogin(
+                    serverName, port, userName, password);
+        }
+        catch (NumberFormatException ex)
+        {
             result = 2;
         }
-
         //process result
-        switch (result) {
-            case 0:                
-                LoginCompleted();                
+        String message = "";
+        switch (result)
+        {
+            case 0:
+                loginCompleted();
                 break;
             case -1:
-                JOptionPane.showMessageDialog(this, "Failed to connect");
+                message = "Failed to connect.";
                 break;
             case 1:
-                JOptionPane.showMessageDialog(this, "Check registration no and password again");
-                break;
-            case 2:
-                JOptionPane.showMessageDialog(this, "Port must be a 4 digit number between 1000 and 9999");
+                message = "Password mismatch.";
                 break;
             default:
-                JOptionPane.showMessageDialog(this, "Check your input again.");
+                message = "Check your input again.";
                 break;
         }
+        javax.swing.JOptionPane.showMessageDialog(this, message);
+    }
+
+    private void LoginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LoginButtonActionPerformed
+        attemptLogin();
     }//GEN-LAST:event_LoginButtonActionPerformed
+
+    private void PasswordFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_PasswordFieldActionPerformed
+        attemptLogin();
+    }//GEN-LAST:event_PasswordFieldActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField IPAddressText;

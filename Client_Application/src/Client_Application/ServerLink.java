@@ -20,17 +20,21 @@ import java.util.logging.Logger;
  *
  * @author Dipu
  */
-public final class ServerLink {
+public final class ServerLink
+{
 
     public static Socket server;
     public static ObjectOutputStream outToServer;
     public static ObjectInputStream inFromServer;
 
-    public static int PromptLogin(String serverName, int port, String userName, String password) {
+    public static int PromptLogin(String serverName, int port, String userName, String password)
+    {
         int result;
-        try {
+        try
+        {
             //connecting to serverName using port                
             server = new Socket(serverName, port);
+            server.setKeepAlive(true);
 
             //now connected to serverName 
             outToServer = new ObjectOutputStream(server.getOutputStream());
@@ -41,16 +45,21 @@ public final class ServerLink {
 
             //get response
             inFromServer = new ObjectInputStream(server.getInputStream());
-            if (!(boolean) inFromServer.readObject()) { 
+            if (!(boolean) inFromServer.readObject())
+            {
                 Logger.getLogger("LabExam").log(Level.WARNING,
                         "Password mismatch.");
-                result = -1;
-            } else {
+                result = 1;
+            }
+            else
+            {
                 Logger.getLogger("LabExam").log(Level.INFO,
                         "Connected to the server.");
                 result = 0;
             }
-        } catch (IOException | ClassNotFoundException ex) {
+        }
+        catch (IOException | ClassNotFoundException ex)
+        {
             Logger.getLogger("LabExam").log(Level.SEVERE,
                     "Error while connecting to the server. " + ex.getMessage());
             result = -1;

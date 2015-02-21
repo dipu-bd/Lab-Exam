@@ -23,15 +23,15 @@ import java.net.Socket;
  *
  * @author Dipu
  */
-
 public class UserChangeEvent extends AWTEvent {
 
-    public String user;
+    public int uid;
     public Socket client;
 
-    public UserChangeEvent(String user, Socket client) {
+    public UserChangeEvent(int id, Socket client)
+    {
         super(client, client.getPort());
-        this.user = user;
+        this.uid = uid;
         this.client = client;
     }
 }

@@ -20,12 +20,14 @@ import java.io.Serializable;
 
 /**
  * Question description
+ *
  * @author Dipu
  */
 public class Question implements Serializable {
-    
+
     /**
      * Constructor
+     *
      * @param id Question id for this object
      */
     public Question(int id)
@@ -33,9 +35,9 @@ public class Question implements Serializable {
         ID = id;
         Title = "Question " + Integer.toString(id);
         Body = "";
-        Mark = 0; 
+        Mark = 0;
     }
-        
+
     /**
      * ID of this question
      */
@@ -46,13 +48,13 @@ public class Question implements Serializable {
     public String Title;
     /**
      * Mark for this question
-     */    
-    public int Mark; 
+     */
+    public int Mark;
     /**
      * Full question description
      */
     public String Body;
-    
+
     @Override
     public String toString()
     {
