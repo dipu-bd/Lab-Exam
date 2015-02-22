@@ -16,7 +16,11 @@
  */
 package Server_Application;
 
+import java.awt.Color;
+import java.awt.Insets;
 import javax.swing.SwingUtilities;
+import javax.swing.UIDefaults;
+import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -29,53 +33,43 @@ public class Program {
 
     public static final String defExtension = "labex";
 
-    public static MainForm mainForm;
-    public static SessionCreator sessionCreator;
-    public static SessionViewer sessionViewer;
-
     public static void main(String[] args)
     {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
+        /* Set the look and feel */
         try
         {
+            //try to set windows theme, if not found then set nibus theme, otherwise default
             String win = null;
             String nimbus = null;
-            for (LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels())
+            for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels())
             {
                 if ("Windows".equals(info.getName()))
-                {
                     win = info.getClassName();
-                }
                 if ("Nimbus".equals(info.getName()))
-                {
                     nimbus = info.getClassName();
-                }
             }
             if (win != null)
-            {
-                javax.swing.UIManager.setLookAndFeel(win);
-            }
+                UIManager.setLookAndFeel(win);
             else if (nimbus != null)
-            {
-                javax.swing.UIManager.setLookAndFeel(nimbus);
-            }
+                UIManager.setLookAndFeel(nimbus);
+
+            //set look and feel for other controls
+            UIDefaults uidef = UIManager.getDefaults();
+            uidef.put("TabbedPane.tabInsets", new Insets(5, 25, 5, 25));
+            uidef.put("TabbedPane.tabBorderInsets", new Insets(0, 0, 0, 0));
+
         }
         catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex)
         {
             java.util.logging.Logger.getLogger(Program.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
 
-        //</editor-fold>
         /* Create and display the form */
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run()
             {
-                mainForm = new MainForm();
+                MainForm mainForm = new MainForm();
                 mainForm.setLocationRelativeTo(null);
                 mainForm.setVisible(true);
             }

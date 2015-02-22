@@ -1,6 +1,12 @@
 /*
  * Copyright (C) 2015 Dipu
  *
+ 
+ @Override
+ public boolean verify(JComponent jc)
+ {
+ throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+ }
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,11 +26,13 @@ import ExtraClass.Candidate;
 import ExtraClass.CurrentExam;
 import ExtraClass.Question;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -33,16 +41,16 @@ import javax.swing.table.DefaultTableModel;
  */
 public class SessionCreator extends javax.swing.JFrame {
 
+    public JFrame ParentForm;
     private DefaultTableModel model;
 
     /**
      * Creates new form SessionCreator
      */
     public SessionCreator()
-    {
+    { 
         initComponents();
         model = (DefaultTableModel) candidateTable.getModel();
-
         LoadValues();
     }
 
@@ -82,13 +90,10 @@ public class SessionCreator extends javax.swing.JFrame {
         jPanel3 = new javax.swing.JPanel();
         jSplitPane1 = new javax.swing.JSplitPane();
         jPanel5 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        questionSpinner = new javax.swing.JSpinner();
         setQuestionButton = new javax.swing.JButton();
         jLabel10 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
         questionList = new javax.swing.JList();
-        refreshButton = new javax.swing.JButton();
         refreshButton1 = new javax.swing.JButton();
         jPanel6 = new javax.swing.JPanel();
         jLabel11 = new javax.swing.JLabel();
@@ -108,6 +113,7 @@ public class SessionCreator extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Edit Lab Exam Session");
+        setIconImages(null);
         addWindowListener(new java.awt.event.WindowAdapter()
         {
             public void windowClosed(java.awt.event.WindowEvent evt)
@@ -116,7 +122,8 @@ public class SessionCreator extends javax.swing.JFrame {
             }
         });
 
-        tabbedPane.setBackground(new java.awt.Color(153, 255, 255));
+        tabbedPane.setBackground(new java.awt.Color(193, 239, 239));
+        tabbedPane.setOpaque(true);
         tabbedPane.addChangeListener(new javax.swing.event.ChangeListener()
         {
             public void stateChanged(javax.swing.event.ChangeEvent evt)
@@ -127,6 +134,7 @@ public class SessionCreator extends javax.swing.JFrame {
 
         jPanel2.setBackground(new java.awt.Color(252, 250, 255));
 
+        jPanel11.setBackground(new java.awt.Color(179, 244, 244));
         jPanel11.setBorder(javax.swing.BorderFactory.createTitledBorder("General Information"));
 
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
@@ -137,12 +145,15 @@ public class SessionCreator extends javax.swing.JFrame {
         jLabel13.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel13.setText("Exam Path :");
 
+        examPath.setEditable(false);
+        examPath.setBackground(new java.awt.Color(239, 239, 227));
+
         jLabel3.setBackground(new java.awt.Color(255, 255, 255));
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel3.setText("Start Time :");
 
         startTimeSpinner.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        startTimeSpinner.setModel(new javax.swing.SpinnerDateModel(new java.util.Date(), null, null, java.util.Calendar.HOUR));
+        startTimeSpinner.setModel(new javax.swing.SpinnerDateModel(new java.util.Date(), null, null, java.util.Calendar.AM_PM));
 
         pathBrowseButton.setText("Browse");
         pathBrowseButton.setToolTipText("Browse for path");
@@ -166,7 +177,8 @@ public class SessionCreator extends javax.swing.JFrame {
         jLabel9.setText("Total Marks :");
 
         totalMarksBox.setEditable(false);
-        totalMarksBox.setBackground(new java.awt.Color(153, 255, 255));
+        totalMarksBox.setBackground(new java.awt.Color(246, 255, 231));
+        totalMarksBox.setHorizontalAlignment(javax.swing.JTextField.CENTER);
 
         javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
         jPanel11.setLayout(jPanel11Layout);
@@ -185,19 +197,19 @@ public class SessionCreator extends javax.swing.JFrame {
                     .addGroup(jPanel11Layout.createSequentialGroup()
                         .addComponent(examPath)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(pathBrowseButton, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(pathBrowseButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel11Layout.createSequentialGroup()
-                        .addComponent(startTimeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(startTimeSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 153, Short.MAX_VALUE)
                         .addGap(18, 18, 18)
                         .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(durationSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(durationSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 105, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(totalMarksBox, javax.swing.GroupLayout.DEFAULT_SIZE, 105, Short.MAX_VALUE)))
+                        .addComponent(totalMarksBox, javax.swing.GroupLayout.DEFAULT_SIZE, 157, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel11Layout.setVerticalGroup(
@@ -226,9 +238,11 @@ public class SessionCreator extends javax.swing.JFrame {
 
         examPath.setEditable(false);
 
-        jPanel10.setBackground(new java.awt.Color(246, 238, 235));
+        jPanel10.setBackground(new java.awt.Color(182, 229, 230));
         jPanel10.setBorder(javax.swing.BorderFactory.createTitledBorder("List of candidates"));
 
+        candidateTable.setAutoCreateRowSorter(true);
+        candidateTable.setBackground(new java.awt.Color(245, 250, 255));
         candidateTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][]
             {
@@ -259,9 +273,17 @@ public class SessionCreator extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
+        candidateTable.setCellSelectionEnabled(true);
+        candidateTable.setFillsViewportHeight(true);
+        candidateTable.setGridColor(java.awt.Color.cyan);
+        candidateTable.setNextFocusableComponent(addCandidateButton);
+        candidateTable.setRowHeight(23);
+        candidateTable.setSelectionBackground(java.awt.Color.cyan);
+        candidateTable.setSelectionForeground(new java.awt.Color(0, 0, 51));
+        candidateTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(candidateTable);
 
-        jPanel1.setBackground(new java.awt.Color(246, 249, 241));
+        jPanel1.setBackground(new java.awt.Color(222, 234, 238));
 
         randomizePassButton.setText("Randomize Password");
         randomizePassButton.addActionListener(new java.awt.event.ActionListener()
@@ -324,7 +346,7 @@ public class SessionCreator extends javax.swing.JFrame {
         jPanel10Layout.setVerticalGroup(
             jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel10Layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 287, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 210, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0))
@@ -364,11 +386,7 @@ public class SessionCreator extends javax.swing.JFrame {
         jSplitPane1.setDividerLocation(220);
         jSplitPane1.setResizeWeight(0.35);
 
-        jPanel5.setBackground(new java.awt.Color(204, 255, 255));
-
-        jLabel1.setText("Add New Questions :");
-
-        questionSpinner.setModel(new javax.swing.SpinnerNumberModel(1, 1, 200, 1));
+        jPanel5.setBackground(new java.awt.Color(244, 239, 244));
 
         setQuestionButton.setText("Add");
         setQuestionButton.addActionListener(new java.awt.event.ActionListener()
@@ -381,6 +399,7 @@ public class SessionCreator extends javax.swing.JFrame {
 
         jLabel10.setText("List of questions :");
 
+        questionList.setBackground(new java.awt.Color(234, 255, 255));
         questionList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         questionList.addListSelectionListener(new javax.swing.event.ListSelectionListener()
         {
@@ -390,15 +409,6 @@ public class SessionCreator extends javax.swing.JFrame {
             }
         });
         jScrollPane2.setViewportView(questionList);
-
-        refreshButton.setText("Refresh");
-        refreshButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                refreshButtonActionPerformed(evt);
-            }
-        });
 
         refreshButton1.setText("Delete");
         refreshButton1.addActionListener(new java.awt.event.ActionListener()
@@ -414,48 +424,33 @@ public class SessionCreator extends javax.swing.JFrame {
         jPanel5Layout.setHorizontalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel5Layout.createSequentialGroup()
-                .addGap(5, 5, 5)
+                .addContainerGap()
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
-                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(76, 76, 76))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
-                        .addComponent(refreshButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, Short.MAX_VALUE)
-                        .addComponent(refreshButton, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addComponent(questionSpinner)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(setQuestionButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addGap(5, 5, 5))
+                        .addComponent(setQuestionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, Short.MAX_VALUE)
+                        .addComponent(refreshButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
         );
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel5Layout.createSequentialGroup()
-                .addGap(5, 5, 5)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(questionSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(setQuestionButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addContainerGap()
                 .addComponent(jLabel10)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(refreshButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(refreshButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(5, 5, 5))
+                    .addComponent(refreshButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(setQuestionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(11, 11, 11))
         );
 
         jSplitPane1.setLeftComponent(jPanel5);
 
-        jPanel6.setBackground(new java.awt.Color(246, 245, 251));
+        jPanel6.setBackground(new java.awt.Color(172, 234, 234));
 
         jLabel11.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel11.setText("Question Title :");
@@ -495,8 +490,11 @@ public class SessionCreator extends javax.swing.JFrame {
         });
         jScrollPane4.setViewportView(questionBody);
 
+        jLabel15.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         jLabel15.setText("ID :");
 
+        idLabel.setBackground(new java.awt.Color(204, 255, 204));
+        idLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         idLabel.setText("0");
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
@@ -508,19 +506,24 @@ public class SessionCreator extends javax.swing.JFrame {
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane4)
                     .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jLabel14, javax.swing.GroupLayout.DEFAULT_SIZE, 85, Short.MAX_VALUE)
-                            .addComponent(jLabel12, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel11, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel6Layout.createSequentialGroup()
-                                .addComponent(markSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 76, Short.MAX_VALUE)
+                                .addComponent(jLabel14)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(jPanel6Layout.createSequentialGroup()
+                                .addComponent(jLabel11)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(questionTitle, javax.swing.GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
                                 .addComponent(jLabel15)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(idLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(questionTitle))))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
+                                .addComponent(jLabel12)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(markSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(
@@ -529,18 +532,16 @@ public class SessionCreator extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel11)
-                    .addComponent(questionTitle, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel12)
+                    .addComponent(questionTitle, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(markSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel15)
-                        .addComponent(idLabel)))
+                    .addComponent(jLabel12))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel14)
+                    .addComponent(jLabel15)
+                    .addComponent(idLabel))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel14)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 359, Short.MAX_VALUE)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 303, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -552,7 +553,7 @@ public class SessionCreator extends javax.swing.JFrame {
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(jSplitPane1)
+                .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 745, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
         jPanel3Layout.setVerticalGroup(
@@ -565,8 +566,7 @@ public class SessionCreator extends javax.swing.JFrame {
 
         tabbedPane.addTab("Edit Questions", jPanel3);
 
-        jPanel8.setBackground(new java.awt.Color(204, 255, 255));
-        jPanel8.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED, new java.awt.Color(204, 204, 204), new java.awt.Color(204, 255, 255), new java.awt.Color(0, 255, 255), new java.awt.Color(51, 255, 255)));
+        jPanel8.setBackground(new java.awt.Color(5, 225, 225));
 
         saveButton.setText("Save");
         saveButton.addActionListener(new java.awt.event.ActionListener()
@@ -638,17 +638,16 @@ public class SessionCreator extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(5, 5, 5)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(0, 0, 0)
                 .addComponent(tabbedPane)
-                .addGap(5, 5, 5))
+                .addGap(0, 0, 0))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(5, 5, 5)
                 .addComponent(tabbedPane)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(0, 0, 0)
                 .addComponent(jPanel8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
@@ -725,7 +724,8 @@ public class SessionCreator extends javax.swing.JFrame {
             cd.regno = ((String) model.getValueAt(i, 2)).trim();
         }
     }
- 
+
+    @SuppressWarnings("unchecked")
     private void LoadQuestionList()
     {
         totalMarksBox.setText(Integer.toString(CurrentExam.curExam.getTotalMarks()));
@@ -749,7 +749,7 @@ public class SessionCreator extends javax.swing.JFrame {
             markSpinner.setValue(ques.Mark);
         }
     }
-
+ 
     private void SaveQuestion()
     {
         int id = Integer.parseInt(idLabel.getText());
@@ -761,18 +761,8 @@ public class SessionCreator extends javax.swing.JFrame {
     }
 
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
-        Program.mainForm.setVisible(true);
+        ParentForm.setVisible(true);
     }//GEN-LAST:event_formWindowClosed
-
-    private void showSessionViewer()
-    {
-        if (Program.sessionViewer == null)
-            Program.sessionViewer = new SessionViewer();
-        Program.sessionViewer.setLocationRelativeTo(null);
-        Program.sessionViewer.setVisible(true);
-        Program.sessionViewer.LoadValues();
-        this.setVisible(false);
-    }
 
     private void nextButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nextButtonActionPerformed
 
@@ -787,7 +777,7 @@ public class SessionCreator extends javax.swing.JFrame {
         }
         else
         {
-            showSessionViewer();
+            this.dispose();
         }
 
     }//GEN-LAST:event_nextButtonActionPerformed
@@ -805,21 +795,13 @@ public class SessionCreator extends javax.swing.JFrame {
     }//GEN-LAST:event_questionListValueChanged
 
     private void setQuestionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setQuestionButtonActionPerformed
-        int cnt = (int) questionSpinner.getValue();
-        for (int i = 0; i < cnt; ++i)
-        {
-            CurrentExam.curExam.addQuestion();
-        } 
+        CurrentExam.curExam.addQuestion();        
         LoadQuestionList();
     }//GEN-LAST:event_setQuestionButtonActionPerformed
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
         LoadValues();
     }//GEN-LAST:event_cancelButtonActionPerformed
-
-    private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
-        LoadQuestionList();
-    }//GEN-LAST:event_refreshButtonActionPerformed
 
     private void markSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_markSpinnerStateChanged
         SaveQuestion();
@@ -919,7 +901,6 @@ public class SessionCreator extends javax.swing.JFrame {
     private javax.swing.JTextField examPath;
     private javax.swing.JTextField examTitle;
     private javax.swing.JLabel idLabel;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
@@ -949,10 +930,8 @@ public class SessionCreator extends javax.swing.JFrame {
     private javax.swing.JButton pathBrowseButton;
     private javax.swing.JTextArea questionBody;
     private javax.swing.JList questionList;
-    private javax.swing.JSpinner questionSpinner;
     private javax.swing.JTextField questionTitle;
     private javax.swing.JButton randomizePassButton;
-    private javax.swing.JButton refreshButton;
     private javax.swing.JButton refreshButton1;
     private javax.swing.JButton saveButton;
     private javax.swing.JButton setQuestionButton;

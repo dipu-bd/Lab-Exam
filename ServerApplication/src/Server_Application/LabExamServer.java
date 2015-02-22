@@ -23,6 +23,7 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,39 +60,41 @@ public final class LabExamServer {
         return serverSocket.getLocalPort();
     }
 
-    public static void initialize() throws IOException
+    public static void initialize()
     {
         int siz = CurrentExam.curExam.allCandidate.size();
-
-        if (serverSocket != null && !serverSocket.isClosed())
-        {
-            serverSocket.close();
-        }
-
-        try
-        {
-            serverSocket = new ServerSocket(1993, siz + 10);
-        }
-        catch (Exception ex)
-        {
-            serverSocket = new ServerSocket(0, siz + 10);
-        }
+        if (!createSocket(1993, siz + 10))
+            createSocket(0, siz + 10);
 
         stopListening = false;
-        Thread t = new Thread(new Runnable() {
+        (new Thread(new Runnable() {
             @Override
             public void run()
             {
                 LabExamServer.BeginListen();
             }
-        });
-        t.start();
+        })).start();
 
         Logger.getLogger("LabExam").log(
                 Level.INFO, "Waiting for users to connect...");
     }
 
-    public static void BeginListen() 
+    public static boolean createSocket(int port, int siz)
+    {
+        try
+        {
+            if (serverSocket != null) serverSocket.close();
+            serverSocket = new ServerSocket(port, siz);
+            serverSocket.setReuseAddress(true);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+
+    public static void BeginListen()
     {
         // Waiting for clients in port -> serverSocket.getLocalPort()          
         String curip = getIPAddress();
@@ -100,14 +103,6 @@ public final class LabExamServer {
             Socket client = null;
             try
             {
-                if (stopListening)
-                {
-                    stopListening = false;
-                    serverSocket.close();
-                    Logger.getLogger("LabExam").log(Level.INFO, "Server Stopped.");
-                    return;
-                }
-
                 Logger.getLogger("LabExam").log(Level.INFO,
                         "Waiting at " + curip + " on port " + serverSocket.getLocalPort());
 
@@ -123,7 +118,7 @@ public final class LabExamServer {
                 String[] data = ((String) in.readObject()).split(" ");
                 String user = data[0].trim();
                 String pass = data[1].trim();
-                
+
                 System.out.println(user + " " + pass);
 
                 if (CurrentExam.matchUser(user, pass))
@@ -139,19 +134,35 @@ public final class LabExamServer {
                     client.close();
                     Logger.getLogger("LabExam").log(Level.WARNING,
                             user + " tried to connect but failed.");
-                } 
+                }
             }
             catch (IOException | ClassNotFoundException ex)
             {
-                try { client.close(); } catch (IOException exx) {} 
-                Logger.getLogger("LabExam").log(Level.SEVERE,
-                        "Error while listening to the socket.", ex);
+                if (stopListening)
+                {
+                    Logger.getLogger("LabExam").log(Level.INFO, "Server Stopped.");
+                    return;
+                }
+                else
+                {
+                    Logger.getLogger("LabExam").log(Level.SEVERE,
+                            "Error while listening to the socket.", ex);
+                    break;
+                }
             }
         }
     }
 
     static void StopListening()
     {
-        stopListening = true;
+        try
+        {
+            stopListening = true;
+            serverSocket.close();
+        }
+        catch (IOException ex)
+        {
+            Logger.getLogger(LabExamServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

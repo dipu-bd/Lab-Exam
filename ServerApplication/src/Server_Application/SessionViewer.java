@@ -31,12 +31,16 @@ import ExtraClass.TimeAndDate;
 import ExtraClass.UserChangeEvent;
 import ExtraClass.UserChangedHandler;
 import java.awt.HeadlessException;
+import java.awt.Insets;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.Socket;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.DefaultCaret;
 
 /**
  *
@@ -44,6 +48,7 @@ import javax.swing.table.DefaultTableModel;
  */
 public class SessionViewer extends javax.swing.JFrame {
 
+    public JFrame ParentForm;
     private final Timer timer;
     private final Logger logger;
     public DefaultTableModel tableModel;
@@ -64,8 +69,9 @@ public class SessionViewer extends javax.swing.JFrame {
 
     /**
      * Initialize this frame. It loads all data needed for examination server.
-     * It creates a new server socket and waits for examinee to connect. Also
-     * various other initialization task is performed from here.
+     * It creates a new server socket and waits for candidates to connect.
+     *
+     * Also various other initialization task is performed from here.
      */
     private void initiateOthers()
     {
@@ -101,14 +107,8 @@ public class SessionViewer extends javax.swing.JFrame {
         };
         timer.scheduleAtFixedRate(tt, 0, 500);
 
-        //initialize server
-        try
-        {
-            LabExamServer.initialize();
-        }
-        catch (IOException ex)
-        {
-        }
+        //initialize server 
+        LabExamServer.initialize();
 
         //initialize examinee table        
         tableModel = (DefaultTableModel) candidateTable.getModel();
@@ -145,8 +145,17 @@ public class SessionViewer extends javax.swing.JFrame {
         jPanel6 = new javax.swing.JPanel();
         refreshExamineeButton = new javax.swing.JButton();
         saveToTextButton = new javax.swing.JButton();
+        candidateCount = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         jPanel4 = new javax.swing.JPanel();
+        jPanel7 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        announceBox = new javax.swing.JTextArea();
+        announceButton = new javax.swing.JButton();
+        jPanel8 = new javax.swing.JPanel();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        jList1 = new javax.swing.JList();
         jPanel5 = new javax.swing.JPanel();
         titleBox = new javax.swing.JLabel();
         totalMarkBox = new javax.swing.JLabel();
@@ -218,6 +227,7 @@ public class SessionViewer extends javax.swing.JFrame {
         statusBox.setRows(5);
         statusBox.setText("Welcome to LAB Exam. \n\n");
         jScrollPane1.setViewportView(statusBox);
+        ((DefaultCaret)statusBox.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -227,11 +237,12 @@ public class SessionViewer extends javax.swing.JFrame {
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 277, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 354, Short.MAX_VALUE)
         );
 
         jTabbedPane1.addTab("Exam Status", jPanel1);
 
+        candidateTable.setAutoCreateRowSorter(true);
         candidateTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][]
             {
@@ -262,6 +273,14 @@ public class SessionViewer extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
+        candidateTable.setCellSelectionEnabled(true);
+        candidateTable.setFillsViewportHeight(true);
+        candidateTable.setGridColor(java.awt.Color.cyan);
+        candidateTable.setIntercellSpacing(new java.awt.Dimension(3, 3));
+        candidateTable.setRowHeight(20);
+        candidateTable.setSelectionBackground(java.awt.Color.cyan);
+        candidateTable.setSelectionForeground(new java.awt.Color(0, 0, 51));
+        candidateTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane2.setViewportView(candidateTable);
 
         refreshExamineeButton.setText("Refresh");
@@ -282,43 +301,49 @@ public class SessionViewer extends javax.swing.JFrame {
             }
         });
 
+        candidateCount.setText(" ");
+
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel6Layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(refreshExamineeButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(saveToTextButton, javax.swing.GroupLayout.DEFAULT_SIZE, 130, Short.MAX_VALUE))
+                .addComponent(candidateCount, javax.swing.GroupLayout.DEFAULT_SIZE, 401, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addComponent(refreshExamineeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(saveToTextButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel6Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(refreshExamineeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 191, Short.MAX_VALUE)
-                .addComponent(saveToTextButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addGap(3, 3, 3)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(saveToTextButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(refreshExamineeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(candidateCount, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(3, 3, 3))
         );
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 595, Short.MAX_VALUE))
+            .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 745, Short.MAX_VALUE)
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-            .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                .addGap(0, 0, 0))
         );
 
-        jTabbedPane1.addTab("Examinees", jPanel2);
+        jTabbedPane1.addTab("Candidates", jPanel2);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -328,23 +353,90 @@ public class SessionViewer extends javax.swing.JFrame {
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 277, Short.MAX_VALUE)
+            .addGap(0, 354, Short.MAX_VALUE)
         );
 
-        jTabbedPane1.addTab("Last Submissions", jPanel3);
+        jTabbedPane1.addTab("Candidate Status", jPanel3);
+
+        jPanel7.setBorder(javax.swing.BorderFactory.createTitledBorder("Announcement Message :"));
+
+        jLabel1.setText("Write your message here :");
+
+        announceBox.setColumns(20);
+        announceBox.setLineWrap(true);
+        announceBox.setRows(1);
+        announceBox.setTabSize(4);
+        jScrollPane3.setViewportView(announceBox);
+
+        announceButton.setText("Announce");
+
+        javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
+        jPanel7.setLayout(jPanel7Layout);
+        jPanel7Layout.setHorizontalGroup(
+            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
+                .addGap(3, 3, 3)
+                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel7Layout.createSequentialGroup()
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 607, Short.MAX_VALUE)
+                        .addGap(3, 3, 3)
+                        .addComponent(announceButton, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel7Layout.createSequentialGroup()
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))))
+        );
+        jPanel7Layout.setVerticalGroup(
+            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel7Layout.createSequentialGroup()
+                .addGap(3, 3, 3)
+                .addComponent(jLabel1)
+                .addGap(3, 3, 3)
+                .addComponent(jScrollPane3))
+            .addGroup(jPanel7Layout.createSequentialGroup()
+                .addContainerGap(72, Short.MAX_VALUE)
+                .addComponent(announceButton, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+
+        jPanel8.setBorder(javax.swing.BorderFactory.createTitledBorder("Past Announcement"));
+
+        jScrollPane4.setViewportView(jList1);
+
+        javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
+        jPanel8.setLayout(jPanel8Layout);
+        jPanel8Layout.setHorizontalGroup(
+            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel8Layout.createSequentialGroup()
+                .addGap(3, 3, 3)
+                .addComponent(jScrollPane4)
+                .addGap(3, 3, 3))
+        );
+        jPanel8Layout.setVerticalGroup(
+            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel8Layout.createSequentialGroup()
+                .addGap(5, 5, 5)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 187, Short.MAX_VALUE)
+                .addGap(3, 3, 3))
+        );
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 745, Short.MAX_VALUE)
+            .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 277, Short.MAX_VALUE)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(0, 0, 0))
         );
 
         jTabbedPane1.addTab("Announcements", jPanel4);
+
+        jPanel5.setBackground(new java.awt.Color(245, 245, 250));
 
         titleBox.setFont(new java.awt.Font("Segoe UI Semibold", 0, 18)); // NOI18N
         titleBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -424,7 +516,7 @@ public class SessionViewer extends javax.swing.JFrame {
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel5Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(3, 3, 3)
                 .addComponent(titleBox)
                 .addGap(3, 3, 3)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -438,7 +530,7 @@ public class SessionViewer extends javax.swing.JFrame {
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(remainingTimeBox)
                     .addComponent(add10minButton))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(3, 3, 3))
         );
 
         totalMarkBox.getAccessibleContext().setAccessibleName("100");
@@ -456,7 +548,7 @@ public class SessionViewer extends javax.swing.JFrame {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
                 .addComponent(jTabbedPane1)
                 .addGap(0, 0, 0)
@@ -468,10 +560,16 @@ public class SessionViewer extends javax.swing.JFrame {
 
     public final void LoadValues()
     {
-        titleBox.setText(CurrentExam.curExam.ExamTitle);
         totalMarkBox.setText(Integer.toString(CurrentExam.curExam.getTotalMarks()));
         quesCountBox.setText(Integer.toString(CurrentExam.curExam.allQuestion.size()));
         startTimeBox.setText(CurrentExam.curExam.StartTime.toString());
+
+        String title = CurrentExam.curExam.ExamTitle;
+        title += " (IP Address = " + LabExamServer.getIPAddress() + ":" + LabExamServer.getPort() + ")";
+        titleBox.setText(title);
+
+        String candidate = "Total number of candidates : " + CurrentExam.curExam.allCandidate.size();
+        candidateCount.setText(candidate);
     }
 
     private void SetRemainingTime()
@@ -483,26 +581,26 @@ public class SessionViewer extends javax.swing.JFrame {
             long past = start + CurrentExam.curExam.Duration * 60000;
 
             String msg = "";
-            if (now > past)
+            if (now < start) //exam waiting
+            {
+                msg = "Exam will start in ";
+                msg += TimeAndDate.formatTimeSpan(start - now);
+                remainingTimeBox.setText(msg);
+                endExamButton.setText("Close");
+            }
+            if (now > past) //exam finished
             {
                 msg = "Exam is finished.";
                 remainingTimeBox.setText(msg);
                 endExamButton.setText("Exit");
             }
-            else if (now > start && now <= past)
+            else //exam is running
             {
                 msg = "Exam is running... ";
                 msg += TimeAndDate.formatTimeSpan(past - now);
                 msg += " remaining.";
                 remainingTimeBox.setText(msg);
                 endExamButton.setText("Stop Exam");
-            }
-            else if (start > now)
-            {
-                msg = "Exam will start in ";
-                msg += TimeAndDate.formatTimeSpan(start - now);
-                remainingTimeBox.setText(msg);
-                endExamButton.setText("Close");
             }
         }
         catch (Exception ex)
@@ -564,41 +662,41 @@ public class SessionViewer extends javax.swing.JFrame {
         }
     }
 
-    private void exitApplication(boolean showprompt)
+    private void exitApplication(boolean edit)
     {
-        int PromptResult = JOptionPane.YES_OPTION;
-        if (showprompt)
+        int result = JOptionPane.YES_OPTION;
+        if (CurrentExam.curExam.isRunning())
         {
-            String ObjButtons[] =
-            {
-                "Yes", "No"
-            };
-            PromptResult = JOptionPane.showOptionDialog(null,
-                    "Are you sure you want to exit?", "Online Examination System",
-                    JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
-                    null, ObjButtons, ObjButtons[1]);
+            result = JOptionPane.showConfirmDialog(this,
+                    "Are you going to stop the current examination?",
+                    "Exit Application", JOptionPane.YES_NO_OPTION);
         }
-        if (PromptResult == JOptionPane.YES_OPTION)
+        if (result == JOptionPane.YES_OPTION)
         {
-            Program.sessionCreator.dispose();
-            timer.cancel();
-            System.exit(0);
+            LabExamServer.StopListening();
+            this.dispose();
+            if (edit)
+            {
+                ((SessionCreator) ParentForm).LoadValues();
+                ParentForm.setVisible(true);
+            }
+            else
+            {
+                ParentForm.dispose();
+            }
         }
     }
 
     private void editorButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editorButtonActionPerformed
-        Program.sessionCreator.setVisible(true);
-        Program.sessionCreator.LoadValues();
-        LabExamServer.StopListening();
-        this.setVisible(false);
+        exitApplication(true);
     }//GEN-LAST:event_editorButtonActionPerformed
 
     private void endExamButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_endExamButtonActionPerformed
-        exitApplication(true);
+        exitApplication(false);
     }//GEN-LAST:event_endExamButtonActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        exitApplication(true);
+        exitApplication(false);
     }//GEN-LAST:event_formWindowClosing
 
     private void add10minButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add10minButtonActionPerformed
@@ -635,21 +733,30 @@ public class SessionViewer extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton add10minButton;
+    private javax.swing.JTextArea announceBox;
+    private javax.swing.JButton announceButton;
+    private javax.swing.JLabel candidateCount;
     private javax.swing.JTable candidateTable;
     private javax.swing.JButton editorButton;
     private javax.swing.JButton endExamButton;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JList jList1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
+    private javax.swing.JPanel jPanel8;
     private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel quesCountBox;
     private javax.swing.JButton refreshExamineeButton;

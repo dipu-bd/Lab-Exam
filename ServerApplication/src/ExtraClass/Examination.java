@@ -80,6 +80,28 @@ public class Examination implements Serializable {
      */
     public ArrayList<Candidate> allCandidate = new ArrayList<>(); 
     public int LastUserID = 1;
+    
+    /**
+     * Reduce LastProbID and LastUserID as minimum as possible.
+     * It will replace all question id sequentially and store minimum possible value in LastProbID.
+     * It will replace all candidate id sequentially and store minimum possible value in LastUserID.
+     */
+    public void recycleLastID()
+    {
+        LastProbID = 1;
+        for(Question qs : allQuestion)
+        {
+            qs.ID = LastProbID;
+            LastProbID++;
+        }
+        
+        LastUserID = 1;
+        for(Candidate cd : allCandidate)
+        {
+            cd.uid = LastUserID;
+            LastUserID++;
+        }
+    }
 
     /**
      * gets the total marks for the exam
@@ -94,6 +116,41 @@ public class Examination implements Serializable {
             marks += q.Mark;
         }
         return marks;
+    }
+    
+    /**
+     * Checks if the exam is running
+     * @return True if exam is running
+     */
+    public boolean isRunning()
+    {
+        long now = System.currentTimeMillis();
+        long start = StartTime.getTime();
+        long stop = start + Duration * 60000;
+        return start <= now && now <= stop;
+    }
+    
+    /**
+     * Checks if the exam is waiting to started ( Not yet started)
+     * @return True if exam is waiting to be started
+     */
+    public boolean isWaiting()
+    {
+        long now = System.currentTimeMillis();
+        long start = StartTime.getTime();
+        return now < start;
+    }
+    
+    /**
+     * Checks if the exam is over (Past the duration)
+     * @return True if the exam is over
+     */
+    public boolean isOver()
+    {
+        long now = System.currentTimeMillis();
+        long start = StartTime.getTime();
+        long stop = start + Duration * 60000;
+        return now > stop;
     }
 
     /**
@@ -111,18 +168,33 @@ public class Examination implements Serializable {
         ++LastUserID;
     }
 
+    /**
+     * Get the index of candidate by candidate id
+     * @param uid ID of the candidate
+     * @return Negative value if not found, otherwise a 0 based index of the candidate
+     */
     public int getCandidateIndex(int uid)
     {
         return Collections.binarySearch(allCandidate,
                 new Candidate(uid), new UserComparator());
     }
 
+    /**
+     * Checks if a candidate is in the list by their id
+     * @param uid ID of the candidate
+     * @return True if exist, False otherwise
+     */
     public boolean candidateExist(int uid)
     {
         if (allCandidate.isEmpty()) return false;
         return (getCandidateIndex(uid) >= 0);
     }
 
+    /**
+     * Get the Candidate object by candidate id
+     * @param uid ID of the candidate
+     * @return A Candidate object if found, otherwise a null value.
+     */
     public Candidate getCandidate(int uid)
     {
         if (allCandidate.isEmpty()) return null;
@@ -131,23 +203,32 @@ public class Examination implements Serializable {
         return null;
     }
 
+    /**
+     * Delete a candidate from the list by ID
+     * @param uid ID of the candidate
+     */
     public void deleteCandidate(int uid)
     {
         if (allCandidate.isEmpty()) return;
         int pos = getCandidateIndex(uid);
         if (pos >= 0) allCandidate.remove(pos);
     }
-
-    public int getCandidateID(String user)
+    
+    /**
+     * Get candidate ID by registration number.
+     * @param regno Registration number of the candidate.
+     * @return ID of the candidate if found, -1 otherwise.
+     */
+    public int getCandidateID(String regno)
     {
         for (Candidate cd : allCandidate)
-            if (cd.regno.equals(user))
+            if (cd.regno.equals(regno))
                 return cd.uid;
         return -1;
     }
 
     /**
-     * Add a new empty question to the list
+     * Add a new empty question to the list.
      */
     public void addQuestion()
     {
@@ -155,12 +236,22 @@ public class Examination implements Serializable {
         ++LastProbID;
     }
 
+    /**
+     * Get the index of the question by its ID.
+     * @param qid ID of the question.
+     * @return Negative value if not found, otherwise a 0 based index of the question.
+     */
     public int getQuestionIndex(int qid)
     {
         return Collections.binarySearch(allQuestion,
                 new Question(qid), new QuestionComparator());
     }
 
+    /**
+     * Get the Question object from question id.
+     * @param qid ID of the question.
+     * @return Null if not found, otherwise a Question object.
+     */
     public Question getQuestion(int qid)
     {
         if (allQuestion.isEmpty()) return null;
@@ -169,6 +260,11 @@ public class Examination implements Serializable {
         return null;
     }
 
+    /**
+     * Checks if the question exists in the list by id.
+     * @param qid ID of the question.
+     * @return True if exists, False otherwise.
+     */
     public boolean questionExist(int qid)
     {
         if (allQuestion.isEmpty()) return false;
@@ -177,38 +273,14 @@ public class Examination implements Serializable {
     }
 
     /**
-     * Delete a question by id
+     * Delete a question by id.
      *
-     * @param qid ID of the question to delete
+     * @param qid ID of the question to delete.
      */
     public void deleteQuestion(int qid)
     {
         if (allQuestion.isEmpty()) return;
         int pos = getQuestionIndex(qid);
         if (pos >= 0) allQuestion.remove(pos);
-    }
-
-    /**
-     * Comparator for getNames() method
-     */
-    private class QuestionComparator implements Comparator<Question> {
-
-        @Override
-        public int compare(Question q1, Question q2)
-        {
-            return q1.ID - q2.ID;
-        }
-    }
-
-    /**
-     * Comparator for getNames() method
-     */
-    private class UserComparator implements Comparator<Candidate> {
-
-        @Override
-        public int compare(Candidate u1, Candidate u2)
-        {
-            return u1.uid - u2.uid;
-        }
     }
 }

@@ -26,6 +26,8 @@ import java.security.SecureRandom;
  */
 public final class Candidate implements Serializable {
 
+    private final static int PASS_LENGTH = 8;
+    
     /**
      * Secured random number class to generate password and other uses
      */
@@ -50,7 +52,7 @@ public final class Candidate implements Serializable {
     public void randomizePassword()
     {
         this.password = "";
-        for (int i = 0; i < 6; ++i)
+        for (int i = 0; i < PASS_LENGTH; ++i)
         {
             char ch = (char) (Candidate.random.nextInt(26) + 'a');
             this.password += Character.toString(ch);

@@ -123,12 +123,10 @@ public class MainForm extends javax.swing.JFrame {
 
     private void ShowCreator()
     {
-        if (Program.sessionCreator == null)
-        {
-            Program.sessionCreator = new SessionCreator();
-        }
-        Program.sessionCreator.setLocationRelativeTo(null);
-        Program.sessionCreator.setVisible(true);
+        SessionCreator sc = new SessionCreator();
+        sc.ParentForm = this;
+        sc.setLocationRelativeTo(null);
+        sc.setVisible(true);
         this.setVisible(false);
     }
 
