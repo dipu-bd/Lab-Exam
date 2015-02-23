@@ -16,6 +16,7 @@
  */
 package ExtraClass;
 
+import Server_Application.LabExamServer;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -27,6 +28,7 @@ import java.net.Socket;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -46,10 +48,16 @@ public final class CurrentExam {
      */
     public static Examination curExam = new Examination();
     /**
-     * Sockets for clients
+     * List of logged in clients
      */
-    public final static HashMap<Integer, Socket> clients = new HashMap<>();
+    public final static HashSet<Integer> logins = new HashSet<>();
+    /**
+     * Announcement messages by id
+     */
+    public final static HashMap<Integer, String> announcement = new HashMap<>();
+    public static int curAnnounceID = 0;
 
+    // <editor-fold defaultstate="collapsed" desc="Open Save and Print password list">     
     /**
      * Read a file and extract Examination class information stored in it
      *
@@ -61,12 +69,15 @@ public final class CurrentExam {
      */
     public static void Open(File file) throws FileNotFoundException, IOException, ClassNotFoundException
     {
-        clients.clear();
+        logins.clear();
         examFile = file;
+        announcement.clear();
+        curAnnounceID = 0;
         try (FileInputStream fin = new FileInputStream(examFile);
                 ObjectInputStream ois = new ObjectInputStream(fin))
         {
-            curExam = (Examination) ois.readObject(); 
+            curExam = (Examination) ois.readObject();
+            curExam.recycleLastID();
         }
     }
 
@@ -87,21 +98,6 @@ public final class CurrentExam {
     }
 
     /**
-     * Checks if given user and pass matches existing one.
-     *
-     * @param user Candidate name
-     * @param pass Password
-     * @return True if match found, False otherwise.
-     */
-    public static boolean matchUser(String user, String pass)
-    {
-        int uid = curExam.getCandidateID(user); 
-        if (uid == -1) return false;
-        Candidate cand = curExam.getCandidate(uid);
-        return (cand != null && cand.password.equals(pass));
-    }
-
-    /**
      * Get a list of all users | passwords | IP-address | port
      *
      * @return list of users and passwords
@@ -110,7 +106,7 @@ public final class CurrentExam {
     {
         String output = "";
         String newline = System.lineSeparator();
-        output += " No  \t    IP Address      \t  Port  \t Registration No  \t Passwords " + newline;
+        output += " No  \t IP Address         \t Port   \t Registration No  \t Passwords " + newline;
         output += "-----\t--------------------\t--------\t------------------\t-----------" + newline;
 
         String ip = Server_Application.LabExamServer.getIPAddress();
@@ -120,7 +116,7 @@ public final class CurrentExam {
         for (Candidate c : curExam.allCandidate)
         {
             ++pos;
-            output += String.format("%3d: \t", pos);
+            output += String.format(" %02d: \t", pos);
             output += String.format(" %-18s \t", ip);
             output += String.format(" %-6d \t", port);
             output += String.format(" %-16s \t", c.regno);
@@ -128,6 +124,104 @@ public final class CurrentExam {
         }
 
         return output;
+    }
+    //</editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Add to Remove Users">     
+    /**
+     * Assign a Socket to specific user.
+     *
+     * @param user Registration number of the candidate.
+     * @param pass Password of the user
+     * @param ip IP Address of client.
+     * @return True on success.
+     */
+    public static boolean assignUser(String user, String pass, String ip)
+    {
+        int uid = curExam.getCandidateID(user);
+        if (uid == -1) return false;
+        Candidate cand = curExam.getCandidate(uid);
+        if (cand == null) return false;
+
+        if (!cand.password.equals(pass))
+        {
+            Logger.getLogger("LabExam").log(Level.WARNING,
+                    String.format("%s(%s) tried to login with wrong password.", cand.name, cand.regno));
+            return false;
+        }
+
+        logins.add(uid);
+        invokeUserChanged(new UserChangeEvent(uid, true));
+
+        Logger.getLogger("LabExam").log(Level.INFO,
+                String.format("%s(%s) connected via %s", cand.name, user, ip));
+
+        return true;
+    }
+
+    /**
+     * Delete an user from the connected list.
+     *
+     * @param user Registration number of the candidate.
+     * @param ip IP Address of the client.
+     * @return True if success, False otherwise.
+     */
+    public static boolean removeUser(String user, String ip)
+    {
+        int uid = curExam.getCandidateID(user);
+        if (uid == -1) return false;
+
+        String name = curExam.getCandidate(uid).name;
+        if (!logins.contains(uid))
+        {
+            Logger.getLogger("LabExam").log(Level.WARNING,
+                    String.format("%s(%s) tried to log out but failed.", name, user));
+            return false;
+        }
+
+        logins.remove(uid);
+        invokeUserChanged(new UserChangeEvent(uid, true));
+
+        Logger.getLogger("LabExam").log(Level.WARNING,
+                String.format("%s(%s) logged out from %s", name, user, ip));
+
+        return true;
+    }
+    //</editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="User Changed Event Trigger">     
+    private static final ArrayList<UserChangedHandler> userChangeListener = new ArrayList<>();
+
+    public static boolean addUserChangedHandler(UserChangedHandler handler)
+    {
+        return userChangeListener.add(handler);
+    }
+
+    public static boolean removeUserChangedHandler(UserChangedHandler handler)
+    {
+        return userChangeListener.remove(handler);
+    }
+
+    public static void invokeUserChanged(UserChangeEvent uce)
+    {
+        // Notify everybody who are connected
+        for (UserChangedHandler handler : userChangeListener)
+        {
+            handler.userChanged(uce);
+        }
+    }
+    //</editor-fold>
+
+    /**
+     * Announce a message to all connected clients
+     *
+     * @param message
+     */
+    public static void addAnnouncement(String message)
+    {
+        ++curAnnounceID;
+        announcement.put(curAnnounceID, message);
+        LabExamServer.AnnounceMessage(message);
     }
 
     /**
@@ -143,15 +237,11 @@ public final class CurrentExam {
         {
             Path path = curExam.ExamPath.toPath();
             path = path.resolve(user);
-            path = path.resolve(String.format("Q%d.txt", qid));
-
-            File file = path.toFile();
-            file.createNewFile();
+            path = path.resolve(String.format("Q%02d.txt", qid));
 
             FileOutputStream fos;
-            fos = new FileOutputStream(file);
+            fos = new FileOutputStream(path.toFile());
             fos.write(answer.getBytes());
-            fos.flush();
             fos.close();
 
             Logger.getLogger("Lab Exam").log(Level.INFO,
@@ -162,64 +252,6 @@ public final class CurrentExam {
         {
             Logger.getLogger("Lab Exam").log(Level.SEVERE, String.format(
                     "Failed to receive " + user + "%s's answer for Question " + qid));
-        }
-    }
-
-    /**
-     * Assign a Socket to specific user
-     *
-     * @param user Username to assign
-     * @param client Socket to be assigned
-     */
-    public static void assignUser(String user, Socket client)
-    {
-        try
-        {
-            int uid = curExam.getCandidateID(user);
-            if (uid == -1) return;
-                        
-            if (clients.containsKey(uid))
-            {
-                Socket sock = clients.get(uid);
-                Logger.getLogger("LabExam").log(Level.WARNING,
-                        String.format("Disconnecting %s from %s", 
-                                user, sock.getRemoteSocketAddress()));
-                 sock.close();
-            }
-
-            client.setKeepAlive(true);            
-            clients.put(uid, client);
-            
-            invokeUserChanged(new UserChangeEvent(uid, client));                       
-            
-            Logger.getLogger("LabExam").log(Level.INFO,
-                    user + " connected via " + client.getInetAddress());
-        }
-        catch (IOException ex)
-        {
-            Logger.getLogger("LabExam").log(Level.SEVERE,
-                    "Error while assigning a socket to " + user);
-        }
-    }
-
-    private static final ArrayList<UserChangedHandler> userChangeListener = new ArrayList<>();
-
-    public static boolean addUserChangedHandler(UserChangedHandler handler)
-    {
-        return userChangeListener.add(handler);
-    }
-
-    public static boolean removeUserChangedHandler(UserChangedHandler handler)
-    {
-        return userChangeListener.remove(handler);
-    }
-
-    public static void invokeUserChanged(UserChangeEvent uce)
-    {
-        // Notify everybody that may be interested.
-        for (UserChangedHandler handler : userChangeListener)
-        {
-            handler.userChanged(uce);
         }
     }
 

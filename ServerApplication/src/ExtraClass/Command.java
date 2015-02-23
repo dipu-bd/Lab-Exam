@@ -16,22 +16,35 @@
  */
 package ExtraClass;
 
-import java.awt.AWTEvent; 
-
 /**
+ * Command for passing data
  *
  * @author Dipu
  */
-@SuppressWarnings("serial")
-public class UserChangeEvent extends AWTEvent {
+public enum Command {
 
-    public int uid;
-    public boolean status;
-
-    public UserChangeEvent(int id, boolean login)
-    {
-        super(id, 0);
-        this.uid = id;
-        this.status = login;
-    }
+    /**
+     * Empty command
+     */
+    EMPTY,
+    /**
+     * Login to the server
+     */
+    LOGIN,
+    /**
+     * Logout from the server
+     */
+    LOGOUT,
+    /**
+     * Get the examination start time
+     */
+    START_TIME,
+    /**
+     * Get the examination class object
+     */
+    EXAM_INFO,
+    /**
+     * Submit answer to an specific question
+     */
+    SUBMIT,
 }

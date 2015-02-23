@@ -16,22 +16,18 @@
  */
 package ExtraClass;
 
-import java.awt.AWTEvent; 
+import java.util.Comparator;
 
 /**
+ * Comparator two Question object by their ID
  *
  * @author Dipu
  */
-@SuppressWarnings("serial")
-public class UserChangeEvent extends AWTEvent {
+public class QuestionComparator implements Comparator<Question> {
 
-    public int uid;
-    public boolean status;
-
-    public UserChangeEvent(int id, boolean login)
+    @Override
+    public int compare(Question q1, Question q2)
     {
-        super(id, 0);
-        this.uid = id;
-        this.status = login;
+        return q1.ID - q2.ID;
     }
 }

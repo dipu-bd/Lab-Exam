@@ -31,13 +31,10 @@ import ExtraClass.TimeAndDate;
 import ExtraClass.UserChangeEvent;
 import ExtraClass.UserChangedHandler;
 import java.awt.HeadlessException;
-import java.awt.Insets;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.net.Socket;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.DefaultCaret;
@@ -133,7 +130,6 @@ public class SessionViewer extends javax.swing.JFrame {
     {
 
         jPanel9 = new javax.swing.JPanel();
-        editorButton = new javax.swing.JButton();
         endExamButton = new javax.swing.JButton();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
@@ -155,7 +151,7 @@ public class SessionViewer extends javax.swing.JFrame {
         announceButton = new javax.swing.JButton();
         jPanel8 = new javax.swing.JPanel();
         jScrollPane4 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList();
+        announceList = new javax.swing.JList();
         jPanel5 = new javax.swing.JPanel();
         titleBox = new javax.swing.JLabel();
         totalMarkBox = new javax.swing.JLabel();
@@ -177,17 +173,7 @@ public class SessionViewer extends javax.swing.JFrame {
             }
         });
 
-        jPanel9.setBackground(new java.awt.Color(204, 255, 255));
-        jPanel9.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED, new java.awt.Color(204, 204, 204), new java.awt.Color(204, 255, 255), new java.awt.Color(0, 255, 255), new java.awt.Color(51, 255, 255)));
-
-        editorButton.setText("Editor");
-        editorButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                editorButtonActionPerformed(evt);
-            }
-        });
+        jPanel9.setBackground(new java.awt.Color(5, 236, 236));
 
         endExamButton.setText("Exit");
         endExamButton.addActionListener(new java.awt.event.ActionListener()
@@ -203,21 +189,20 @@ public class SessionViewer extends javax.swing.JFrame {
         jPanel9Layout.setHorizontalGroup(
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel9Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(editorButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(endExamButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         jPanel9Layout.setVerticalGroup(
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel9Layout.createSequentialGroup()
-                .addGap(4, 4, 4)
-                .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(editorButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(endExamButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(3, 3, 3)
+                .addComponent(endExamButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(5, 5, 5))
         );
+
+        jTabbedPane1.setBackground(new java.awt.Color(195, 210, 221));
+        jTabbedPane1.setOpaque(true);
 
         statusBox.setEditable(false);
         statusBox.setBackground(new java.awt.Color(0, 51, 51));
@@ -233,11 +218,11 @@ public class SessionViewer extends javax.swing.JFrame {
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 745, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 795, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 354, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 304, Short.MAX_VALUE)
         );
 
         jTabbedPane1.addTab("Exam Status", jPanel1);
@@ -250,17 +235,17 @@ public class SessionViewer extends javax.swing.JFrame {
             },
             new String []
             {
-                "ID", "Candidate", "Registration No", "Password", "Status", "IP Address"
+                "ID", "Candidate", "Registration No", "Password", "Status"
             }
         )
         {
             Class[] types = new Class []
             {
-                java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+                java.lang.Object.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean []
             {
-                false, false, false, false, false, false
+                false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex)
@@ -273,8 +258,10 @@ public class SessionViewer extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
+        candidateTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_LAST_COLUMN);
         candidateTable.setCellSelectionEnabled(true);
         candidateTable.setFillsViewportHeight(true);
+        candidateTable.setFocusable(false);
         candidateTable.setGridColor(java.awt.Color.cyan);
         candidateTable.setIntercellSpacing(new java.awt.Dimension(3, 3));
         candidateTable.setRowHeight(20);
@@ -282,6 +269,8 @@ public class SessionViewer extends javax.swing.JFrame {
         candidateTable.setSelectionForeground(new java.awt.Color(0, 0, 51));
         candidateTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane2.setViewportView(candidateTable);
+
+        jPanel6.setBackground(new java.awt.Color(186, 242, 242));
 
         refreshExamineeButton.setText("Refresh");
         refreshExamineeButton.addActionListener(new java.awt.event.ActionListener()
@@ -309,7 +298,7 @@ public class SessionViewer extends javax.swing.JFrame {
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(candidateCount, javax.swing.GroupLayout.DEFAULT_SIZE, 401, Short.MAX_VALUE)
+                .addComponent(candidateCount, javax.swing.GroupLayout.DEFAULT_SIZE, 451, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
                 .addComponent(refreshExamineeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -332,7 +321,7 @@ public class SessionViewer extends javax.swing.JFrame {
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 745, Short.MAX_VALUE)
+            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 795, Short.MAX_VALUE)
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -349,19 +338,24 @@ public class SessionViewer extends javax.swing.JFrame {
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 745, Short.MAX_VALUE)
+            .addGap(0, 795, Short.MAX_VALUE)
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 354, Short.MAX_VALUE)
+            .addGap(0, 304, Short.MAX_VALUE)
         );
 
         jTabbedPane1.addTab("Candidate Status", jPanel3);
 
+        jPanel7.setBackground(new java.awt.Color(237, 240, 230));
         jPanel7.setBorder(javax.swing.BorderFactory.createTitledBorder("Announcement Message :"));
 
         jLabel1.setText("Write your message here :");
 
+        jScrollPane3.setBackground(new java.awt.Color(240, 248, 229));
+        jScrollPane3.setOpaque(false);
+
+        announceBox.setBackground(new java.awt.Color(255, 252, 244));
         announceBox.setColumns(20);
         announceBox.setLineWrap(true);
         announceBox.setRows(1);
@@ -369,6 +363,13 @@ public class SessionViewer extends javax.swing.JFrame {
         jScrollPane3.setViewportView(announceBox);
 
         announceButton.setText("Announce");
+        announceButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                announceButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
@@ -378,7 +379,7 @@ public class SessionViewer extends javax.swing.JFrame {
                 .addGap(3, 3, 3)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel7Layout.createSequentialGroup()
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 607, Short.MAX_VALUE)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 657, Short.MAX_VALUE)
                         .addGap(3, 3, 3)
                         .addComponent(announceButton, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel7Layout.createSequentialGroup()
@@ -397,9 +398,11 @@ public class SessionViewer extends javax.swing.JFrame {
                 .addComponent(announceButton, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
+        jPanel8.setBackground(new java.awt.Color(177, 245, 245));
         jPanel8.setBorder(javax.swing.BorderFactory.createTitledBorder("Past Announcement"));
 
-        jScrollPane4.setViewportView(jList1);
+        announceList.setBackground(new java.awt.Color(235, 253, 255));
+        jScrollPane4.setViewportView(announceList);
 
         javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
         jPanel8.setLayout(jPanel8Layout);
@@ -414,7 +417,7 @@ public class SessionViewer extends javax.swing.JFrame {
             jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel8Layout.createSequentialGroup()
                 .addGap(5, 5, 5)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 187, Short.MAX_VALUE)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 137, Short.MAX_VALUE)
                 .addGap(3, 3, 3))
         );
 
@@ -436,20 +439,24 @@ public class SessionViewer extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Announcements", jPanel4);
 
-        jPanel5.setBackground(new java.awt.Color(245, 245, 250));
+        jPanel5.setBackground(new java.awt.Color(163, 236, 239));
 
+        titleBox.setBackground(new java.awt.Color(191, 243, 250));
         titleBox.setFont(new java.awt.Font("Segoe UI Semibold", 0, 18)); // NOI18N
         titleBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         titleBox.setText("Title");
-        titleBox.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        titleBox.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(204, 204, 255), 1, true));
+        titleBox.setOpaque(true);
 
         totalMarkBox.setBackground(new java.awt.Color(236, 244, 251));
         totalMarkBox.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
         totalMarkBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         totalMarkBox.setText("10");
-        totalMarkBox.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        totalMarkBox.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 153, 255)));
+        totalMarkBox.setOpaque(true);
         totalMarkBox.setPreferredSize(new java.awt.Dimension(100, 23));
 
+        jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel2.setText("Question Count :");
 
@@ -457,9 +464,11 @@ public class SessionViewer extends javax.swing.JFrame {
         quesCountBox.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
         quesCountBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         quesCountBox.setText("10");
-        quesCountBox.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        quesCountBox.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 153, 255)));
+        quesCountBox.setOpaque(true);
         quesCountBox.setPreferredSize(new java.awt.Dimension(20, 23));
 
+        jLabel4.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
         jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel4.setText("Total Marks :");
 
@@ -467,13 +476,16 @@ public class SessionViewer extends javax.swing.JFrame {
         startTimeBox.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         startTimeBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         startTimeBox.setText("2/18/15 12:12 PM");
-        startTimeBox.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        startTimeBox.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 153, 255)));
+        startTimeBox.setOpaque(true);
         startTimeBox.setPreferredSize(new java.awt.Dimension(120, 23));
 
+        jLabel6.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
         jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel6.setText("Start Time :");
 
         add10minButton.setText("Extend 10 minutes");
+        add10minButton.setFocusable(false);
         add10minButton.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -482,10 +494,13 @@ public class SessionViewer extends javax.swing.JFrame {
             }
         });
 
-        remainingTimeBox.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        remainingTimeBox.setBackground(new java.awt.Color(204, 255, 204));
+        remainingTimeBox.setFont(new java.awt.Font("Segoe UI Semibold", 2, 14)); // NOI18N
+        remainingTimeBox.setForeground(new java.awt.Color(102, 51, 0));
         remainingTimeBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         remainingTimeBox.setText("Exam will start in X minutes");
-        remainingTimeBox.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        remainingTimeBox.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(204, 204, 204), 1, true));
+        remainingTimeBox.setOpaque(true);
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -528,8 +543,8 @@ public class SessionViewer extends javax.swing.JFrame {
                     .addComponent(startTimeBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(3, 3, 3)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(remainingTimeBox)
-                    .addComponent(add10minButton))
+                    .addComponent(remainingTimeBox, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(add10minButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(3, 3, 3))
         );
 
@@ -556,19 +571,18 @@ public class SessionViewer extends javax.swing.JFrame {
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     public final void LoadValues()
     {
+        titleBox.setText(CurrentExam.curExam.ExamTitle);
         totalMarkBox.setText(Integer.toString(CurrentExam.curExam.getTotalMarks()));
         quesCountBox.setText(Integer.toString(CurrentExam.curExam.allQuestion.size()));
         startTimeBox.setText(CurrentExam.curExam.StartTime.toString());
 
-        String title = CurrentExam.curExam.ExamTitle;
-        title += " (IP Address = " + LabExamServer.getIPAddress() + ":" + LabExamServer.getPort() + ")";
-        titleBox.setText(title);
-
-        String candidate = "Total number of candidates : " + CurrentExam.curExam.allCandidate.size();
+        String candidate = "Total number of candidates : ";
+        candidate += CurrentExam.curExam.allCandidate.size();
         candidateCount.setText(candidate);
     }
 
@@ -576,9 +590,9 @@ public class SessionViewer extends javax.swing.JFrame {
     {
         try
         {
-            long start = CurrentExam.curExam.StartTime.getTime();
             long now = System.currentTimeMillis();
-            long past = start + CurrentExam.curExam.Duration * 60000;
+            long start = CurrentExam.curExam.StartTime.getTime();
+            long stop = start + CurrentExam.curExam.Duration * 60000;
 
             String msg = "";
             if (now < start) //exam waiting
@@ -586,9 +600,9 @@ public class SessionViewer extends javax.swing.JFrame {
                 msg = "Exam will start in ";
                 msg += TimeAndDate.formatTimeSpan(start - now);
                 remainingTimeBox.setText(msg);
-                endExamButton.setText("Close");
+                endExamButton.setText("Exit");
             }
-            if (now > past) //exam finished
+            else if (now > stop) //exam finished
             {
                 msg = "Exam is finished.";
                 remainingTimeBox.setText(msg);
@@ -597,7 +611,7 @@ public class SessionViewer extends javax.swing.JFrame {
             else //exam is running
             {
                 msg = "Exam is running... ";
-                msg += TimeAndDate.formatTimeSpan(past - now);
+                msg += TimeAndDate.formatTimeSpan(stop - now);
                 msg += " remaining.";
                 remainingTimeBox.setText(msg);
                 endExamButton.setText("Stop Exam");
@@ -619,20 +633,14 @@ public class SessionViewer extends javax.swing.JFrame {
         //show list 
         for (Candidate cd : CurrentExam.curExam.allCandidate)
         {
-            String ip = "-";
-            String stat = "Disconnected";
-            if (CurrentExam.clients.containsKey(cd.uid))
+            String status = "Disconnected";
+            if (CurrentExam.logins.contains(cd.uid))
             {
-                Socket soc = CurrentExam.clients.get(cd.uid);
-                if (!soc.isClosed())
-                {
-                    stat = "Connected";
-                    ip = soc.getRemoteSocketAddress().toString();
-                }
+                status = "Connected";
             }
             tableModel.addRow(new Object[]
             {
-                cd.uid, cd.name, cd.regno, cd.password, stat, ip
+                cd.uid, cd.name, cd.regno, cd.password, status
             });
         }
     }
@@ -662,7 +670,7 @@ public class SessionViewer extends javax.swing.JFrame {
         }
     }
 
-    private void exitApplication(boolean edit)
+    private void exitApplication()
     {
         int result = JOptionPane.YES_OPTION;
         if (CurrentExam.curExam.isRunning())
@@ -674,29 +682,18 @@ public class SessionViewer extends javax.swing.JFrame {
         if (result == JOptionPane.YES_OPTION)
         {
             LabExamServer.StopListening();
+            timer.cancel();
             this.dispose();
-            if (edit)
-            {
-                ((SessionCreator) ParentForm).LoadValues();
-                ParentForm.setVisible(true);
-            }
-            else
-            {
-                ParentForm.dispose();
-            }
+            ParentForm.setVisible(true);
         }
     }
 
-    private void editorButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editorButtonActionPerformed
-        exitApplication(true);
-    }//GEN-LAST:event_editorButtonActionPerformed
-
     private void endExamButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_endExamButtonActionPerformed
-        exitApplication(false);
+        exitApplication();
     }//GEN-LAST:event_endExamButtonActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        exitApplication(false);
+        exitApplication();
     }//GEN-LAST:event_formWindowClosing
 
     private void add10minButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add10minButtonActionPerformed
@@ -731,19 +728,26 @@ public class SessionViewer extends javax.swing.JFrame {
         saveToTextFile();
     }//GEN-LAST:event_saveToTextButtonActionPerformed
 
+    @SuppressWarnings("unchecked")
+    private void announceButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_announceButtonActionPerformed
+    {//GEN-HEADEREND:event_announceButtonActionPerformed
+        String message = announceBox.getText();
+        CurrentExam.addAnnouncement(message);
+        announceList.setListData(CurrentExam.announcement.values().toArray());
+    }//GEN-LAST:event_announceButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton add10minButton;
     private javax.swing.JTextArea announceBox;
     private javax.swing.JButton announceButton;
+    private javax.swing.JList announceList;
     private javax.swing.JLabel candidateCount;
     private javax.swing.JTable candidateTable;
-    private javax.swing.JButton editorButton;
     private javax.swing.JButton endExamButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JList jList1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;

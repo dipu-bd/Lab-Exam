@@ -16,6 +16,7 @@
  */
 package Server_Application;
 
+import ExtraClass.Command;
 import ExtraClass.CurrentExam;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -37,6 +38,10 @@ public final class LabExamServer {
 
     private static boolean stopListening = false;
     private static ServerSocket serverSocket;
+    private static Socket clientSocket;
+    private static Command command;
+    private static ObjectInputStream input;
+    private static ObjectOutputStream output;
 
     public static String getIPAddress()
     {
@@ -94,66 +99,58 @@ public final class LabExamServer {
         }
     }
 
+    public static String getClientIP()
+    {
+        String ip = clientSocket.getRemoteSocketAddress().toString();
+        if (ip.startsWith("/")) ip = ip.substring(1);
+        return ip;
+    }
+
     public static void BeginListen()
     {
         // Waiting for clients in port -> serverSocket.getLocalPort()          
         String curip = getIPAddress();
         while (true)
         {
-            Socket client = null;
+            Logger.getLogger("LabExam").log(Level.INFO,
+                    "Waiting at " + curip + " on port " + serverSocket.getLocalPort());
+
             try
             {
-                Logger.getLogger("LabExam").log(Level.INFO,
-                        "Waiting at " + curip + " on port " + serverSocket.getLocalPort());
-
-                client = serverSocket.accept();
-                String ip = client.getRemoteSocketAddress().toString();
+                clientSocket = serverSocket.accept();
 
                 // Just connected
-                Logger.getLogger("LabExam").log(Level.INFO, "Just connected to " + ip);
+                Logger.getLogger("LabExam").log(Level.INFO, "Just connected to " + getClientIP());
 
-                ObjectOutputStream out = new ObjectOutputStream(client.getOutputStream());
-                ObjectInputStream in = new ObjectInputStream(client.getInputStream());
+                //get input-output
+                output = new ObjectOutputStream(clientSocket.getOutputStream());
+                input = new ObjectInputStream(clientSocket.getInputStream());
 
-                String[] data = ((String) in.readObject()).split(" ");
-                String user = data[0].trim();
-                String pass = data[1].trim();
+                command = (Command) input.readObject();
+                ProcessCommand();
 
-                System.out.println(user + " " + pass);
-
-                if (CurrentExam.matchUser(user, pass))
-                {
-                    CurrentExam.assignUser(user, client);
-                    out.writeObject(true);
-                    out.flush();
-                }
-                else
-                {
-                    out.writeObject(false);
-                    out.flush();
-                    client.close();
-                    Logger.getLogger("LabExam").log(Level.WARNING,
-                            user + " tried to connect but failed.");
-                }
+                output.flush();
+                output.close();
+                input.close();
+                clientSocket.close();
             }
             catch (IOException | ClassNotFoundException ex)
             {
                 if (stopListening)
                 {
-                    Logger.getLogger("LabExam").log(Level.INFO, "Server Stopped.");
-                    return;
+                    Logger.getLogger("LabExam").log(Level.INFO, "Exam stopped.");
                 }
                 else
                 {
                     Logger.getLogger("LabExam").log(Level.SEVERE,
                             "Error while listening to the socket.", ex);
-                    break;
                 }
+                break;
             }
         }
     }
 
-    static void StopListening()
+    public static void StopListening()
     {
         try
         {
@@ -163,6 +160,34 @@ public final class LabExamServer {
         catch (IOException ex)
         {
             Logger.getLogger(LabExamServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public static void AnnounceMessage(String message)
+    {
+
+    }
+
+    private static void ProcessCommand() throws IOException, ClassNotFoundException
+    {
+        boolean result;
+        String user, pass;
+
+        switch (command)
+        {
+            case LOGIN:
+                user = (String) input.readObject();
+                pass = (String) input.readObject();
+                result = CurrentExam.assignUser(user, pass, getClientIP());
+                output.writeObject(result);
+                output.flush();
+                break;
+            case LOGOUT:
+                user = (String) input.readObject();
+                output.writeObject(CurrentExam.removeUser(user, getClientIP()));
+                output.flush();
+                break;
+
         }
     }
 }

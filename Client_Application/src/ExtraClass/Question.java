@@ -16,22 +16,48 @@
  */
 package ExtraClass;
 
-import java.awt.AWTEvent; 
+import java.io.Serializable;
 
 /**
+ * Question description
  *
  * @author Dipu
  */
-@SuppressWarnings("serial")
-public class UserChangeEvent extends AWTEvent {
+public class Question implements Serializable {
 
-    public int uid;
-    public boolean status;
-
-    public UserChangeEvent(int id, boolean login)
+    /**
+     * Constructor
+     *
+     * @param id Question id for this object
+     */
+    public Question(int id)
     {
-        super(id, 0);
-        this.uid = id;
-        this.status = login;
+        ID = id;
+        Title = "Question " + Integer.toString(id);
+        Body = "";
+        Mark = 0;
+    }
+
+    /**
+     * ID of this question
+     */
+    public int ID;
+    /**
+     * Title of this question
+     */
+    public String Title;
+    /**
+     * Mark for this question
+     */
+    public int Mark;
+    /**
+     * Full question description
+     */
+    public String Body;
+
+    @Override
+    public String toString()
+    {
+        return String.format("%2d : %s [Mark = %d]", ID, Title, Mark);
     }
 }

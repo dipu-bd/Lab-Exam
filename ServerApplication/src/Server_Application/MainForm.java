@@ -50,45 +50,124 @@ public class MainForm extends javax.swing.JFrame {
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    private void initComponents()
+    {
 
         jLabel1 = new javax.swing.JLabel();
         newSessionButton = new javax.swing.JButton();
         openSessionButton = new javax.swing.JButton();
+        jPanel1 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
+        currentSessionBox = new javax.swing.JTextField();
+        editSessionButton = new javax.swing.JButton();
+        startExamButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Lab Exam");
-        setBackground(new java.awt.Color(243, 238, 245));
+        setAlwaysOnTop(true);
+        setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
         setResizable(false);
 
-        jLabel1.setBackground(new java.awt.Color(153, 255, 255));
+        jLabel1.setBackground(new java.awt.Color(114, 217, 217));
         jLabel1.setFont(new java.awt.Font("Segoe UI Semibold", 0, 18)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(51, 51, 0));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Welcome to Lab Exam Application");
-        jLabel1.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED, new java.awt.Color(255, 255, 255), new java.awt.Color(204, 255, 255), new java.awt.Color(0, 204, 204), new java.awt.Color(204, 255, 255)));
         jLabel1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jLabel1.setOpaque(true);
 
         newSessionButton.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
+        newSessionButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/Files-New-Window-icon.png"))); // NOI18N
         newSessionButton.setText("New Session");
-        newSessionButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        newSessionButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 newSessionButtonActionPerformed(evt);
             }
         });
 
         openSessionButton.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
+        openSessionButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/open-file-icon.png"))); // NOI18N
         openSessionButton.setText("Open Session");
-        openSessionButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        openSessionButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 openSessionButtonActionPerformed(evt);
             }
         });
 
-        jLabel2.setFont(new java.awt.Font("Segoe UI", 2, 12)); // NOI18N
-        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setText("What do you want to do next?");
+        jPanel1.setBackground(new java.awt.Color(145, 225, 225));
+        jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+
+        jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
+        jLabel2.setText("Current Session :");
+
+        currentSessionBox.setEditable(false);
+        currentSessionBox.setBackground(new java.awt.Color(153, 255, 204));
+        currentSessionBox.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
+        currentSessionBox.setFocusable(false);
+
+        editSessionButton.setFont(new java.awt.Font("Segoe UI Semibold", 0, 14)); // NOI18N
+        editSessionButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/edit-file-icon.png"))); // NOI18N
+        editSessionButton.setText("Edit Session");
+        editSessionButton.setEnabled(false);
+        editSessionButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        editSessionButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        editSessionButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                editSessionButtonActionPerformed(evt);
+            }
+        });
+
+        startExamButton.setFont(new java.awt.Font("Segoe UI Semibold", 0, 14)); // NOI18N
+        startExamButton.setForeground(new java.awt.Color(102, 0, 0));
+        startExamButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/start-icon.png"))); // NOI18N
+        startExamButton.setText("Start Exam");
+        startExamButton.setEnabled(false);
+        startExamButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        startExamButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        startExamButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                startExamButtonActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(currentSessionBox))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(editSessionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(startExamButton, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(currentSessionBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(editSessionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(startExamButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -96,37 +175,52 @@ public class MainForm extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(50, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(newSessionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(openSessionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(50, Short.MAX_VALUE))
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(newSessionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(openSessionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 50, Short.MAX_VALUE)
-                .addComponent(jLabel2)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(newSessionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(openSessionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(60, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(newSessionButton, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
+                    .addComponent(openSessionButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void ShowCreator()
+    private void OpenFile()
+    {        
+        editSessionButton.setEnabled(true);
+        startExamButton.setEnabled(true);
+        currentSessionBox.setText(CurrentExam.examFile.getAbsolutePath());
+    }
+
+    private void showSessionCreator()
     {
         SessionCreator sc = new SessionCreator();
-        sc.ParentForm = this;
-        sc.setLocationRelativeTo(null);
         sc.setVisible(true);
+        sc.ParentForm = this;
+        this.setVisible(false);
+    }
+
+    private void showSessionViewer()
+    {
+        SessionViewer sc = new SessionViewer();
+        sc.setVisible(true);
+        sc.ParentForm = this;
         this.setVisible(false);
     }
 
@@ -143,7 +237,7 @@ public class MainForm extends javax.swing.JFrame {
                 CurrentExam.curExam = new Examination();
                 CurrentExam.examFile = saveFile.getSelectedFile();
                 CurrentExam.Save();
-                this.ShowCreator();
+                OpenFile();
             }
         }
         catch (HeadlessException | IOException ex)
@@ -164,7 +258,7 @@ public class MainForm extends javax.swing.JFrame {
             if (openFile.showOpenDialog(this) == JFileChooser.APPROVE_OPTION)
             {
                 CurrentExam.Open(openFile.getSelectedFile());
-                this.ShowCreator();
+                OpenFile();
             }
         }
         catch (HeadlessException | IOException | ClassNotFoundException ex)
@@ -173,10 +267,24 @@ public class MainForm extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_openSessionButtonActionPerformed
 
+    private void editSessionButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_editSessionButtonActionPerformed
+    {//GEN-HEADEREND:event_editSessionButtonActionPerformed
+        showSessionCreator();
+    }//GEN-LAST:event_editSessionButtonActionPerformed
+
+    private void startExamButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_startExamButtonActionPerformed
+    {//GEN-HEADEREND:event_startExamButtonActionPerformed
+        showSessionViewer();
+    }//GEN-LAST:event_startExamButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextField currentSessionBox;
+    private javax.swing.JButton editSessionButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JButton newSessionButton;
     private javax.swing.JButton openSessionButton;
+    private javax.swing.JButton startExamButton;
     // End of variables declaration//GEN-END:variables
 }

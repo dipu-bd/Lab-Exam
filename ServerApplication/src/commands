@@ -29,15 +29,6 @@ SUBMIT <question_id> <answer>
     <answer> : answer of the question
     @returns -> True if success False otherwise
 
-EXAM_NAME
-    get the name of the exam
-
-TOTAL_MARK
-    get the total marks of the exam
-
-DESCRIPTION <question_id>
-    get the question description. e.g. question title, body, mark etc.
-    <question_id> question id
-    @returns -> [title, body, mark]
+EXAM_INFO
 
 
