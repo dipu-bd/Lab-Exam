@@ -29,7 +29,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -70,9 +69,12 @@ public final class CurrentExam {
      */
     public static void Open(File file) throws FileNotFoundException, IOException, ClassNotFoundException
     {
+        //clear some values
         logins.clear();
         examFile = file;
         announcements.clear();
+        
+        //open file
         try (FileInputStream fin = new FileInputStream(examFile);
                 ObjectInputStream ois = new ObjectInputStream(fin))
         {
@@ -212,6 +214,7 @@ public final class CurrentExam {
     }
     //</editor-fold>
 
+    //<editor-fold defaultstate="collapsed" desc="Submit and Announcements">
     /**
      * Submit an answer of a question.
      *
@@ -228,7 +231,8 @@ public final class CurrentExam {
 
             Path path = curExam.ExamPath.toPath();
             path = path.resolve(user);
-            path = path.resolve(String.format("Q%02d.txt", qid));
+            path.toFile().mkdirs();
+            path = path.resolve(String.format("Q%02d.txt", qid));            
 
             FileOutputStream fos;
             fos = new FileOutputStream(path.toFile());
@@ -257,4 +261,12 @@ public final class CurrentExam {
         return nlist;
     }
 
+    public static void addToBlacklist(String user)
+    {
+        if (CurrentExam.curExam.isRunning())
+        {
+            //code to add this user to blacklist
+        }
+    }
+    // </editor-fold>
 }

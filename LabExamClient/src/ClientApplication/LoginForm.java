@@ -149,8 +149,8 @@ public class LoginForm extends javax.swing.JFrame {
 
         jLabel6.setFont(jLabel6.getFont().deriveFont(jLabel6.getFont().getSize()-1f));
         jLabel6.setForeground(new java.awt.Color(102, 102, 102));
-        jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel6.setText("This should be provided by the teacher");
+        jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel6.setText("This should be provided by the teacher.");
 
         jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/logout-icon.png"))); // NOI18N
@@ -214,6 +214,7 @@ public class LoginForm extends javax.swing.JFrame {
         jLabel4.getAccessibleContext().setAccessibleName("");
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void loginCompleted()

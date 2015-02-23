@@ -29,7 +29,9 @@ import UtilityClass.Candidate;
 import UtilityClass.TimeAndDate;
 import UtilityClass.UserChangeEvent;
 import UtilityClass.UserChangedHandler;
+import java.awt.Dimension;
 import java.awt.HeadlessException;
+import java.awt.Toolkit;
 import java.io.File;
 import java.io.FileOutputStream;
 import javax.swing.JFileChooser;
@@ -58,9 +60,18 @@ public class SessionViewer extends javax.swing.JFrame {
         this.logger = Logger.getLogger("LabExam");
 
         initComponents();
+        
+        SetToFullFocus();
         initiateOthers();
-
         LoadValues();
+    }
+
+    public void SetToFullFocus()
+    {
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        this.setSize(screenSize);
+        this.setFocusableWindowState(true);
     }
 
     /**
@@ -116,6 +127,128 @@ public class SessionViewer extends javax.swing.JFrame {
                 loadCandidateList();
             }
         });
+    }
+
+    public final void LoadValues()
+    {
+        titleBox.setText(CurrentExam.curExam.ExamTitle);
+        totalMarkBox.setText(Integer.toString(CurrentExam.curExam.getTotalMarks()));
+        quesCountBox.setText(Integer.toString(CurrentExam.curExam.allQuestion.size()));
+        startTimeBox.setText(CurrentExam.curExam.StartTime.toString());
+
+        String candidate = "Total number of candidates : ";
+        candidate += CurrentExam.curExam.allCandidate.size();
+        candidateCount.setText(candidate);
+    }
+
+    private void SetRemainingTime()
+    {
+        try
+        {
+            long now = System.currentTimeMillis();
+            long start = CurrentExam.curExam.StartTime.getTime();
+            long stop = start + CurrentExam.curExam.Duration * 60000;
+
+            String msg = "";
+            if (now < start) //exam waiting
+            {
+                msg = "Exam will start in ";
+                msg += TimeAndDate.formatTimeSpan(start - now);
+                remainingTimeBox.setText(msg);
+                endExamButton.setText("Exit");
+            }
+            else if (now > stop) //exam finished
+            {
+                msg = "Exam is finished.";
+                remainingTimeBox.setText(msg);
+                endExamButton.setText("Exit");
+            }
+            else //exam is running
+            {
+                msg = "Exam is running... ";
+                msg += TimeAndDate.formatTimeSpan(stop - now);
+                msg += " remaining.";
+                remainingTimeBox.setText(msg);
+                endExamButton.setText("Stop Exam");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger(SessionViewer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    /**
+     * Displays the candidate list in candidate table
+     */
+    private void loadCandidateList()
+    {
+        //set status
+        String cdc = "Status : ";
+        int total = CurrentExam.curExam.allCandidate.size();
+        int connected = CurrentExam.logins.size();
+        cdc += String.format("%d out of %d candidates are connected.", total, connected);
+        candidateCount.setText(cdc);
+
+        //clear up previous data
+        tableModel.setRowCount(0);
+
+        //show list 
+        for (Candidate cd : CurrentExam.curExam.allCandidate)
+        {
+            String status = "Disconnected";
+            if (CurrentExam.logins.contains(cd.uid))
+            {
+                status = "Connected";
+            }
+            tableModel.addRow(new Object[]
+            {
+                cd.uid, cd.name, cd.regno, cd.password, status
+            });
+        }
+    }
+
+    private void saveToTextFile()
+    {
+        try
+        {
+            JFileChooser saveFile = new JFileChooser();
+            saveFile.setMultiSelectionEnabled(false);
+            saveFile.setAcceptAllFileFilterUsed(false);
+            saveFile.setSelectedFile(new File("examinee.txt"));
+            saveFile.setFileFilter(new FileNameExtensionFilter("Text File", "txt"));
+            if (saveFile.showSaveDialog(this) == JFileChooser.APPROVE_OPTION)
+            {
+                String data = CurrentExam.printUsers();
+                File file = saveFile.getSelectedFile();
+                FileOutputStream fos = new FileOutputStream(file);
+                fos.write(data.getBytes());
+                fos.close();
+            }
+        }
+        catch (HeadlessException | IOException ex)
+        {
+            Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE,
+                    "Error while saving passwords", ex);
+        }
+    }
+
+    private void exitApplication()
+    {
+        int result = JOptionPane.YES_OPTION;
+        if (CurrentExam.curExam.isRunning())
+        {
+            result = JOptionPane.showConfirmDialog(this,
+                    "Are you going to stop the current examination?",
+                    "Exit Application", JOptionPane.YES_NO_OPTION);
+        }
+        if (result == JOptionPane.YES_OPTION)
+        {
+            LabExamServer.StopListening();
+            timer.cancel();
+            this.dispose();
+            ParentForm.setVisible(true);
+        }
     }
 
     /**
@@ -580,120 +713,6 @@ public class SessionViewer extends javax.swing.JFrame {
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
-
-    public final void LoadValues()
-    {
-        titleBox.setText(CurrentExam.curExam.ExamTitle);
-        totalMarkBox.setText(Integer.toString(CurrentExam.curExam.getTotalMarks()));
-        quesCountBox.setText(Integer.toString(CurrentExam.curExam.allQuestion.size()));
-        startTimeBox.setText(CurrentExam.curExam.StartTime.toString());
-
-        String candidate = "Total number of candidates : ";
-        candidate += CurrentExam.curExam.allCandidate.size();
-        candidateCount.setText(candidate);
-    }
-
-    private void SetRemainingTime()
-    {
-        try
-        {
-            long now = System.currentTimeMillis();
-            long start = CurrentExam.curExam.StartTime.getTime();
-            long stop = start + CurrentExam.curExam.Duration * 60000;
-
-            String msg = "";
-            if (now < start) //exam waiting
-            {
-                msg = "Exam will start in ";
-                msg += TimeAndDate.formatTimeSpan(start - now);
-                remainingTimeBox.setText(msg);
-                endExamButton.setText("Exit");
-            }
-            else if (now > stop) //exam finished
-            {
-                msg = "Exam is finished.";
-                remainingTimeBox.setText(msg);
-                endExamButton.setText("Exit");
-            }
-            else //exam is running
-            {
-                msg = "Exam is running... ";
-                msg += TimeAndDate.formatTimeSpan(stop - now);
-                msg += " remaining.";
-                remainingTimeBox.setText(msg);
-                endExamButton.setText("Stop Exam");
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.getLogger(SessionViewer.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    /**
-     * Displays the candidate list in candidate table
-     */
-    private void loadCandidateList()
-    {
-        //clear up previous data
-        tableModel.setRowCount(0);
-        //show list 
-        for (Candidate cd : CurrentExam.curExam.allCandidate)
-        {
-            String status = "Disconnected";
-            if (CurrentExam.logins.contains(cd.uid))
-            {
-                status = "Connected";
-            }
-            tableModel.addRow(new Object[]
-            {
-                cd.uid, cd.name, cd.regno, cd.password, status
-            });
-        }
-    }
-
-    private void saveToTextFile()
-    {
-        try
-        {
-            JFileChooser saveFile = new JFileChooser();
-            saveFile.setMultiSelectionEnabled(false);
-            saveFile.setAcceptAllFileFilterUsed(false);
-            saveFile.setSelectedFile(new File("examinee.txt"));
-            saveFile.setFileFilter(new FileNameExtensionFilter("Text File", "txt"));
-            if (saveFile.showSaveDialog(this) == JFileChooser.APPROVE_OPTION)
-            {
-                String data = CurrentExam.printUsers();
-                File file = saveFile.getSelectedFile();
-                FileOutputStream fos = new FileOutputStream(file);
-                fos.write(data.getBytes());
-                fos.close();
-            }
-        }
-        catch (HeadlessException | IOException ex)
-        {
-            Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE,
-                    "Error while saving passwords", ex);
-        }
-    }
-
-    private void exitApplication()
-    {
-        int result = JOptionPane.YES_OPTION;
-        if (CurrentExam.curExam.isRunning())
-        {
-            result = JOptionPane.showConfirmDialog(this,
-                    "Are you going to stop the current examination?",
-                    "Exit Application", JOptionPane.YES_NO_OPTION);
-        }
-        if (result == JOptionPane.YES_OPTION)
-        {
-            LabExamServer.StopListening();
-            timer.cancel();
-            this.dispose();
-            ParentForm.setVisible(true);
-        }
-    }
 
     private void endExamButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_endExamButtonActionPerformed
         exitApplication();

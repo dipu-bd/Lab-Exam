@@ -8,6 +8,7 @@ package ClientApplication;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -46,10 +47,6 @@ public class WaitingForm extends javax.swing.JFrame {
             }
         };
 
-        //run primarily task
-        refreshTask.run();
-        updateTask.run();
-
         //initialize timer                
         this.timer = new Timer();
         timer.scheduleAtFixedRate(refreshTask, 0, 4550);
@@ -61,11 +58,12 @@ public class WaitingForm extends javax.swing.JFrame {
         refreshTask.run();
         long now = System.currentTimeMillis();
         if (now < startTime) return;
-        
+
+        this.dispose();
+
         MainForm mf = new MainForm();
         mf.ParentForm = this.ParentForm;
         mf.setVisible(true);
-        this.dispose();
     }
 
     public void updateValues()
@@ -124,12 +122,12 @@ public class WaitingForm extends javax.swing.JFrame {
 
         jLabel2.setFont(new java.awt.Font("Segoe UI Semilight", 2, 14)); // NOI18N
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setText("Exam is going to be started in");
+        jLabel2.setText("Exam will start in");
 
         intervalToBegin.setBackground(new java.awt.Color(230, 253, 236));
         intervalToBegin.setFont(new java.awt.Font("Segoe UI Semibold", 0, 24)); // NOI18N
         intervalToBegin.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        intervalToBegin.setText("23 minute 44 seconds");
+        intervalToBegin.setText("0 seconds");
         intervalToBegin.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(146, 192, 208), 3, true));
         intervalToBegin.setOpaque(true);
 
@@ -196,8 +194,13 @@ public class WaitingForm extends javax.swing.JFrame {
 
     private void formWindowClosed(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosed
     {//GEN-HEADEREND:event_formWindowClosed
-        ServerLink.logoutUser();
-        ParentForm.setVisible(true);
+        timer.cancel();
+        long now = System.currentTimeMillis();
+        if (startTime == -1 || now < startTime)
+        {
+            ServerLink.logoutUser();
+            ParentForm.setVisible(true);
+        }
     }//GEN-LAST:event_formWindowClosed
 
     private void logoutButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_logoutButtonActionPerformed

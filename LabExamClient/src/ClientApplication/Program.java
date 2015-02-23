@@ -14,9 +14,7 @@ import javax.swing.UnsupportedLookAndFeelException;
  * @author Dipu
  */
 public class Program {
-
-    public static LoginForm loginForm;
-
+ 
     /**
      * @param args the command line arguments
      */
@@ -49,8 +47,7 @@ public class Program {
             @Override
             public void run()
             {
-                loginForm = new LoginForm();
-                loginForm.setLocationRelativeTo(null);
+                LoginForm loginForm = new LoginForm(); 
                 loginForm.setVisible(true);
             }
         }); 

@@ -380,6 +380,8 @@ public class SessionCreator extends javax.swing.JFrame {
 
         jSplitPane1.setDividerLocation(230);
         jSplitPane1.setResizeWeight(0.35);
+        jSplitPane1.setContinuousLayout(true);
+        jSplitPane1.setDoubleBuffered(true);
 
         jPanel5.setBackground(new java.awt.Color(244, 239, 244));
 
@@ -452,6 +454,7 @@ public class SessionCreator extends javax.swing.JFrame {
         jLabel11.setText("Question Title :");
 
         questionTitle.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        questionTitle.setMinimumSize(new java.awt.Dimension(60, 23));
         questionTitle.addKeyListener(new java.awt.event.KeyAdapter()
         {
             public void keyReleased(java.awt.event.KeyEvent evt)

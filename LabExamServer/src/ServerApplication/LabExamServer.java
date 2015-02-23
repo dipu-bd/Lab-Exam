@@ -17,8 +17,6 @@
 package ServerApplication;
 
 import UtilityClass.Command;
-import UtilityClass.Command;
-import UtilityClass.Examination;
 import UtilityClass.Question;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -26,7 +24,6 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -113,17 +110,15 @@ public final class LabExamServer {
     {
         // Waiting for clients in port -> serverSocket.getLocalPort()          
         String curip = getIPAddress();
+        Logger.getLogger("LabExam").log(Level.INFO,
+                "Waiting at " + curip + " on port " + serverSocket.getLocalPort());
+
         while (true)
         {
-            Logger.getLogger("LabExam").log(Level.INFO,
-                    "Waiting at " + curip + " on port " + serverSocket.getLocalPort());
 
             try
             {
                 clientSocket = serverSocket.accept();
-
-                // Just connected
-                Logger.getLogger("LabExam").log(Level.INFO, "Just connected to " + getClientIP());
 
                 //get input-output
                 output = new ObjectOutputStream(clientSocket.getOutputStream());

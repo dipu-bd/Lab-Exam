@@ -92,7 +92,7 @@
           <Font name="Segoe UI Semilight" size="14" style="2"/>
         </Property>
         <Property name="horizontalAlignment" type="int" value="0"/>
-        <Property name="text" type="java.lang.String" value="Exam is going to be started in"/>
+        <Property name="text" type="java.lang.String" value="Exam will start in"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="intervalToBegin">
@@ -104,7 +104,7 @@
           <Font name="Segoe UI Semibold" size="24" style="0"/>
         </Property>
         <Property name="horizontalAlignment" type="int" value="0"/>
-        <Property name="text" type="java.lang.String" value="23 minute 44 seconds"/>
+        <Property name="text" type="java.lang.String" value="0 seconds"/>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.LineBorderInfo">
             <LineBorder roundedCorners="true" thickness="3">

@@ -36,6 +36,7 @@ public class MainForm extends javax.swing.JFrame {
     public MainForm()
     {
         initComponents();
+        getContentPane().setBackground(getBackground());
     }
 
     /**
@@ -60,6 +61,7 @@ public class MainForm extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Lab Exam");
         setAlwaysOnTop(true);
+        setBackground(new java.awt.Color(199, 240, 240));
         setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
         setResizable(false);
 

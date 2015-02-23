@@ -24,6 +24,8 @@ public final class TimeAndDate {
 
     public static String formatTimeSpan(long time)
     {
+        if(time <= 0) return "0 second";
+        
         //day, hour | min | sec
         long sec = time / 1000;
         long min = sec / 60;
@@ -81,7 +83,7 @@ public final class TimeAndDate {
                 }
             }
         }
-
+        
         return out;
     }
 }
