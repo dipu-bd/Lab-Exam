@@ -16,7 +16,6 @@
  */
 package ServerApplication;
 
-import java.awt.Color;
 import java.awt.Insets;
 import javax.swing.SwingUtilities;
 import javax.swing.UIDefaults;

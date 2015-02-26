@@ -81,7 +81,7 @@ public class WaitingForm extends javax.swing.JFrame {
             return;
         }
 
-        String res = UtilityClass.TimeAndDate.formatTimeSpan(startTime - now);
+        String res = UtilityClass.Functions.formatTimeSpan(startTime - now);
         intervalToBegin.setText(res);
     }
 

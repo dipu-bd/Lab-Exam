@@ -56,6 +56,11 @@ public final class CurrentExam {
      * Announcement messages by id
      */
     public final static ArrayList<String> announcements = new ArrayList<>();
+    
+    /**
+     * You can use this admin-password to change settings in the client application
+     */
+    public static String adminPassword = "kajnytuihj";
 
     // <editor-fold defaultstate="collapsed" desc="Open Save and Print password list">     
     /**

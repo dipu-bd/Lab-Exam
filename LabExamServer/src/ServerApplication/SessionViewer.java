@@ -26,12 +26,10 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import UtilityClass.Candidate;
-import UtilityClass.TimeAndDate;
+import UtilityClass.Functions;
 import UtilityClass.UserChangeEvent;
 import UtilityClass.UserChangedHandler;
-import java.awt.Dimension;
 import java.awt.HeadlessException;
-import java.awt.Toolkit;
 import java.io.File;
 import java.io.FileOutputStream;
 import javax.swing.JFileChooser;
@@ -68,9 +66,7 @@ public class SessionViewer extends javax.swing.JFrame {
 
     public void SetToFullFocus()
     {
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        this.setSize(screenSize);
         this.setFocusableWindowState(true);
     }
 
@@ -153,7 +149,7 @@ public class SessionViewer extends javax.swing.JFrame {
             if (now < start) //exam waiting
             {
                 msg = "Exam will start in ";
-                msg += TimeAndDate.formatTimeSpan(start - now);
+                msg += Functions.formatTimeSpan(start - now);
                 remainingTimeBox.setText(msg);
                 endExamButton.setText("Exit");
             }
@@ -166,7 +162,7 @@ public class SessionViewer extends javax.swing.JFrame {
             else //exam is running
             {
                 msg = "Exam is running... ";
-                msg += TimeAndDate.formatTimeSpan(stop - now);
+                msg += Functions.formatTimeSpan(stop - now);
                 msg += " remaining.";
                 remainingTimeBox.setText(msg);
                 endExamButton.setText("Stop Exam");
@@ -338,13 +334,15 @@ public class SessionViewer extends javax.swing.JFrame {
         jTabbedPane1.setOpaque(true);
 
         statusBox.setEditable(false);
-        statusBox.setBackground(new java.awt.Color(0, 51, 51));
+        statusBox.setBackground(new java.awt.Color(0, 40, 50));
         statusBox.setColumns(20);
-        statusBox.setForeground(new java.awt.Color(204, 255, 204));
+        statusBox.setForeground(new java.awt.Color(208, 255, 143));
         statusBox.setLineWrap(true);
         statusBox.setRows(5);
         statusBox.setText("Welcome to LAB Exam. \n\n");
+        statusBox.setCaretColor(new java.awt.Color(208, 255, 143));
         jScrollPane1.setViewportView(statusBox);
+        statusBox.getCaret().setVisible(true);
         ((DefaultCaret)statusBox.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -404,6 +402,11 @@ public class SessionViewer extends javax.swing.JFrame {
         candidateTable.setSelectionForeground(new java.awt.Color(0, 0, 51));
         candidateTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane2.setViewportView(candidateTable);
+        if (candidateTable.getColumnModel().getColumnCount() > 0)
+        {
+            candidateTable.getColumnModel().getColumn(0).setPreferredWidth(80);
+            candidateTable.getColumnModel().getColumn(0).setMaxWidth(100);
+        }
 
         jPanel6.setBackground(new java.awt.Color(186, 242, 242));
 
@@ -592,6 +595,7 @@ public class SessionViewer extends javax.swing.JFrame {
         totalMarkBox.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
         totalMarkBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         totalMarkBox.setText("10");
+        totalMarkBox.setToolTipText("Total marked of all questions");
         totalMarkBox.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 153, 255)));
         totalMarkBox.setOpaque(true);
         totalMarkBox.setPreferredSize(new java.awt.Dimension(100, 23));
@@ -604,6 +608,7 @@ public class SessionViewer extends javax.swing.JFrame {
         quesCountBox.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
         quesCountBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         quesCountBox.setText("10");
+        quesCountBox.setToolTipText("Number of questions");
         quesCountBox.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 153, 255)));
         quesCountBox.setOpaque(true);
         quesCountBox.setPreferredSize(new java.awt.Dimension(20, 23));
@@ -614,8 +619,10 @@ public class SessionViewer extends javax.swing.JFrame {
 
         startTimeBox.setBackground(new java.awt.Color(247, 248, 251));
         startTimeBox.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        startTimeBox.setForeground(new java.awt.Color(51, 51, 255));
         startTimeBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         startTimeBox.setText("2/18/15 12:12 PM");
+        startTimeBox.setToolTipText("Click to edit start time");
         startTimeBox.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 153, 255)));
         startTimeBox.setOpaque(true);
         startTimeBox.setPreferredSize(new java.awt.Dimension(120, 23));

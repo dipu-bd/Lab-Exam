@@ -5,14 +5,36 @@
  */
 package ClientApplication;
 
+import UtilityClass.Functions;
 import UtilityClass.Question;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.text.DefaultCaret;
+import javax.tools.JavaCompiler;
+import javax.tools.JavaCompiler.CompilationTask;
+import javax.tools.JavaFileObject;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
+import jsyntaxpane.DefaultSyntaxKit;
 
 /**
  *
@@ -21,14 +43,17 @@ import javax.swing.JOptionPane;
 @SuppressWarnings("serial")
 public class MainForm extends javax.swing.JFrame {
 
+    //
     public javax.swing.JFrame ParentForm;
+    private javax.swing.JEditorPane codeEditor;
+    private javax.swing.JScrollPane answerScrollPane;
     public final Timer timer;
     public final TimerTask refreshTask;
     public final TimerTask updateTask;
-    public long StopTime = -1;
-    public ArrayList<Question> allQuestion;
-    public int selectedID = -1;
 
+    public long StopTime = -1;
+    public int selectedID = -1;
+    public ArrayList<Question> allQuestion;
     private int curannounceID = 0;
     public ArrayList<String> announcements = new ArrayList<>();
 
@@ -38,10 +63,12 @@ public class MainForm extends javax.swing.JFrame {
     public MainForm()
     {
         initComponents();
+        initAnswerBox();
 
         //set to full screen
         this.SetToFullFocus();
- 
+
+        Program.loadDefaultFolder();
         loadValues();
 
         refreshTask = new TimerTask() {
@@ -65,7 +92,46 @@ public class MainForm extends javax.swing.JFrame {
         timer.scheduleAtFixedRate(refreshTask, 0, 600);
     }
 
-    public void SetToFullFocus()
+    private void initAnswerBox()
+    {
+        //init and configure default syntax kit
+        DefaultSyntaxKit.initKit();
+
+        //create new editor
+        codeEditor = new JEditorPane();
+        answerScrollPane = new JScrollPane(codeEditor);
+
+        answerPanel.setLayout(new BorderLayout());
+        answerPanel.add(answerScrollPane, BorderLayout.CENTER);
+        answerPanel.doLayout();
+
+        codeEditor.setContentType("text/java"); // NOI18N            
+        codeEditor.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
+        codeEditor.setBackground(answerPanel.getBackground());// new java.awt.Color(230, 255, 255));        
+
+        codeEditor.addKeyListener(new KeyListener() {
+
+            @Override
+            public void keyReleased(KeyEvent ke)
+            {
+                if (selectedID != -1) saveAnswer(selectedID);
+            }
+
+            @Override
+            public void keyPressed(KeyEvent ke)
+            {
+                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+
+            @Override
+            public void keyTyped(KeyEvent ke)
+            {
+                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+        });
+    }
+
+    private void SetToFullFocus()
     {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -73,7 +139,7 @@ public class MainForm extends javax.swing.JFrame {
         this.setFocusableWindowState(true);
     }
 
-    public void loadValues()
+    private void loadValues()
     {
         registrationNoLabel.setText("   " + ServerLink.userName + "   ");
         examTitleLabel.setText(ServerLink.getExamTitle());
@@ -102,7 +168,7 @@ public class MainForm extends javax.swing.JFrame {
             return;
         }
 
-        String remain = UtilityClass.TimeAndDate.formatTimeSpan(StopTime - now);
+        String remain = UtilityClass.Functions.formatTimeSpan(StopTime - now);
         remain = "    " + remain + " remaining.    ";
         remainingTimeLabel.setText(remain);
     }
@@ -139,8 +205,8 @@ public class MainForm extends javax.swing.JFrame {
             selectedID = -1;
             questionTitleBox.setText("No Question");
             markValueBox.setText("0");
-            answerBox.setEditable(false);
-            answerBox.setText("");
+            codeEditor.setEditable(false);
+            codeEditor.setText("");
             questionDescBox.setText("");
             return;
         }
@@ -153,9 +219,81 @@ public class MainForm extends javax.swing.JFrame {
         openSavedAnswer(ques.ID);
     }
 
+    public File getAnswerFile(int qid)
+    {
+        return Program.defaultPath.resolve("Answer_" + qid + ".java").toFile();
+    }
+
     public void openSavedAnswer(int qid)
     {
-        answerBox.setEditable(true);
+        //restore general view
+        codeEditor.setEditable(true);
+        //answerSplitterPane.getRightComponent().setVisible(false);
+
+        //try to open file        
+        File file = getAnswerFile(qid);
+        try
+        {
+            StringWriter sw = new StringWriter();
+            FileInputStream fis = new FileInputStream(file);
+            for (int data = fis.read(); data != -1; data = fis.read())
+                sw.write(data);
+
+            codeEditor.setText(sw.toString());
+        }
+        catch (Exception ex)
+        {
+            codeEditor.setText("class Main //don't change the class name\n{\n\t\n}\n");
+        }
+    }
+
+    public boolean saveAnswer(int qid)
+    {
+        try
+        {
+            File file = getAnswerFile(qid);
+            String source = codeEditor.getText();
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(source.getBytes());
+            fos.close();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+
+    public void compileAndRun()
+    {
+        consolePane.setText("");
+        answerSplitterPane.getRightComponent().setVisible(true);
+
+        final File codeFile = getAnswerFile(selectedID);
+
+        try (StringWriter writer = new StringWriter())
+        {
+            boolean result = CompileAndRun.CompileCode(codeFile, writer);
+
+            String status = (result ? "[OK]" : "[Failed]");
+            consolePane.append("Compilation Report : " + status + "\n");
+            consolePane.append(writer.toString());
+
+            writer.close();
+
+            if (!result)
+            {
+                JOptionPane.showMessageDialog(this, "Compilation Failed.");
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+        }
+
+        boolean result = CompileAndRun.RunProgram(codeFile.getParentFile());
+        String status = (result ? "[OK]" : "[Failed]");
+        consolePane.append("\nRun Report : " + status + "\n");
     }
 
     /**
@@ -168,22 +306,21 @@ public class MainForm extends javax.swing.JFrame {
     private void initComponents()
     {
 
-        jPanel1 = new javax.swing.JPanel();
+        topPanel = new javax.swing.JPanel();
         registrationNoLabel = new javax.swing.JLabel();
         logoutButton = new javax.swing.JButton();
         examTitleLabel = new javax.swing.JLabel();
         remainingTimeLabel = new javax.swing.JLabel();
-        jSeparator1 = new javax.swing.JSeparator();
         mainSplitterPane = new javax.swing.JSplitPane();
         jPanel2 = new javax.swing.JPanel();
         jPanel7 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
-        jSplitPane1 = new javax.swing.JSplitPane();
+        questionSplitterPane = new javax.swing.JSplitPane();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        questionDescBox = new javax.swing.JTextArea();
         jPanel9 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         questionList = new javax.swing.JList();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        questionDescBox = new javax.swing.JTextArea();
         jPanel3 = new javax.swing.JPanel();
         jPanel4 = new javax.swing.JPanel();
         questionTitleBox = new javax.swing.JLabel();
@@ -192,16 +329,12 @@ public class MainForm extends javax.swing.JFrame {
         jPanel5 = new javax.swing.JPanel();
         submitAnswerButton = new javax.swing.JButton();
         compileAndRunButton = new javax.swing.JButton();
+        saveCodeButton = new javax.swing.JButton();
         answerSplitterPane = new javax.swing.JSplitPane();
-        jTabbedPane1 = new javax.swing.JTabbedPane();
+        answerPanel = new javax.swing.JPanel();
         jPanel6 = new javax.swing.JPanel();
         jScrollPane4 = new javax.swing.JScrollPane();
-        outputBox = new javax.swing.JTextArea();
-        jPanel10 = new javax.swing.JPanel();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        consoleBox = new javax.swing.JTextArea();
-        jScrollPane5 = new javax.swing.JScrollPane();
-        answerBox = new javax.swing.JTextPane();
+        consolePane = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Lab Exam");
@@ -226,10 +359,11 @@ public class MainForm extends javax.swing.JFrame {
             }
         });
 
-        jPanel1.setBackground(new java.awt.Color(178, 235, 243));
-        jPanel1.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 2, 0, new java.awt.Color(122, 230, 245)));
+        topPanel.setBackground(new java.awt.Color(0, 102, 102));
+        topPanel.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(60, 102, 122), 4, true));
 
         registrationNoLabel.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        registrationNoLabel.setForeground(new java.awt.Color(204, 204, 0));
         registrationNoLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         registrationNoLabel.setText("   Registration No   ");
         registrationNoLabel.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 1, 0, 0, new java.awt.Color(153, 153, 255)));
@@ -245,7 +379,7 @@ public class MainForm extends javax.swing.JFrame {
         });
 
         examTitleLabel.setFont(new java.awt.Font("Segoe UI Semibold", 0, 24)); // NOI18N
-        examTitleLabel.setForeground(new java.awt.Color(122, 0, 0));
+        examTitleLabel.setForeground(new java.awt.Color(153, 255, 255));
         examTitleLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         examTitleLabel.setText("Exam Title");
 
@@ -255,11 +389,11 @@ public class MainForm extends javax.swing.JFrame {
         remainingTimeLabel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(174, 213, 224)));
         remainingTimeLabel.setOpaque(true);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+        javax.swing.GroupLayout topPanelLayout = new javax.swing.GroupLayout(topPanel);
+        topPanel.setLayout(topPanelLayout);
+        topPanelLayout.setHorizontalGroup(
+            topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(topPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(examTitleLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -269,20 +403,17 @@ public class MainForm extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(logoutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
-            .addComponent(jSeparator1)
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+        topPanelLayout.setVerticalGroup(
+            topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(topPanelLayout.createSequentialGroup()
                 .addGap(5, 5, 5)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(registrationNoLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(logoutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(examTitleLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(logoutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(examTitleLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(remainingTimeLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0))
+                .addGap(5, 5, 5))
         );
 
         mainSplitterPane.setBackground(new java.awt.Color(204, 204, 255));
@@ -293,6 +424,7 @@ public class MainForm extends javax.swing.JFrame {
         mainSplitterPane.setContinuousLayout(true);
         mainSplitterPane.setDoubleBuffered(true);
         mainSplitterPane.setOneTouchExpandable(true);
+        mainSplitterPane.setOpaque(false);
 
         jPanel7.setBackground(java.awt.Color.cyan);
         jPanel7.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new java.awt.Color(0, 204, 255)));
@@ -317,14 +449,24 @@ public class MainForm extends javax.swing.JFrame {
                 .addGap(6, 6, 6))
         );
 
-        jSplitPane1.setBorder(null);
-        jSplitPane1.setDividerSize(6);
-        jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        jSplitPane1.setContinuousLayout(true);
-        jSplitPane1.setDoubleBuffered(true);
-        jSplitPane1.setOneTouchExpandable(true);
+        questionSplitterPane.setBorder(null);
+        questionSplitterPane.setDividerLocation(120);
+        questionSplitterPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        questionSplitterPane.setContinuousLayout(true);
+        questionSplitterPane.setDoubleBuffered(true);
+        questionSplitterPane.setOneTouchExpandable(true);
+
+        questionDescBox.setEditable(false);
+        questionDescBox.setBackground(new java.awt.Color(239, 249, 255));
+        questionDescBox.setFont(new java.awt.Font("Candara", 0, 18)); // NOI18N
+        questionDescBox.setLineWrap(true);
+        questionDescBox.setBorder(null);
+        jScrollPane2.setViewportView(questionDescBox);
+
+        questionSplitterPane.setRightComponent(jScrollPane2);
 
         questionList.setBackground(new java.awt.Color(255, 249, 255));
+        questionList.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         questionList.addListSelectionListener(new javax.swing.event.ListSelectionListener()
         {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt)
@@ -340,41 +482,32 @@ public class MainForm extends javax.swing.JFrame {
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel9Layout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
         jPanel9Layout.setVerticalGroup(
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel9Layout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 159, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
 
-        jSplitPane1.setTopComponent(jPanel9);
-
-        questionDescBox.setEditable(false);
-        questionDescBox.setBackground(new java.awt.Color(255, 249, 255));
-        questionDescBox.setColumns(20);
-        questionDescBox.setRows(5);
-        questionDescBox.setBorder(null);
-        jScrollPane2.setViewportView(questionDescBox);
-
-        jSplitPane1.setRightComponent(jScrollPane2);
+        questionSplitterPane.setTopComponent(jPanel9);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jSplitPane1)
+            .addComponent(questionSplitterPane)
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(jSplitPane1)
+                .addComponent(questionSplitterPane)
                 .addGap(0, 0, 0))
         );
 
@@ -430,6 +563,22 @@ public class MainForm extends javax.swing.JFrame {
         });
 
         compileAndRunButton.setText("Compile and Run");
+        compileAndRunButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                compileAndRunButtonActionPerformed(evt);
+            }
+        });
+
+        saveCodeButton.setText("Save");
+        saveCodeButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                saveCodeButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -437,8 +586,10 @@ public class MainForm extends javax.swing.JFrame {
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(submitAnswerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 190, Short.MAX_VALUE)
+                .addComponent(submitAnswerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(saveCodeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(compileAndRunButton, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -448,26 +599,44 @@ public class MainForm extends javax.swing.JFrame {
                 .addGap(5, 5, 5)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(submitAnswerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(compileAndRunButton, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(compileAndRunButton, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(saveCodeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(5, 5, 5))
         );
 
         answerSplitterPane.setBorder(null);
-        answerSplitterPane.setDividerLocation(220);
+        answerSplitterPane.setDividerLocation(200);
         answerSplitterPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         answerSplitterPane.setResizeWeight(0.7);
         answerSplitterPane.setContinuousLayout(true);
 
-        jTabbedPane1.setBackground(new java.awt.Color(51, 255, 204));
-        jTabbedPane1.setOpaque(true);
+        answerPanel.setBackground(new java.awt.Color(221, 251, 251));
 
-        outputBox.setEditable(false);
-        outputBox.setBackground(new java.awt.Color(51, 51, 51));
-        outputBox.setColumns(20);
-        outputBox.setForeground(new java.awt.Color(204, 204, 0));
-        outputBox.setRows(5);
-        outputBox.setText("Test console");
-        jScrollPane4.setViewportView(outputBox);
+        javax.swing.GroupLayout answerPanelLayout = new javax.swing.GroupLayout(answerPanel);
+        answerPanel.setLayout(answerPanelLayout);
+        answerPanelLayout.setHorizontalGroup(
+            answerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 478, Short.MAX_VALUE)
+        );
+        answerPanelLayout.setVerticalGroup(
+            answerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 200, Short.MAX_VALUE)
+        );
+
+        answerSplitterPane.setLeftComponent(answerPanel);
+
+        jPanel6.setBorder(javax.swing.BorderFactory.createTitledBorder("Compile and Run Report"));
+
+        consolePane.setEditable(false);
+        consolePane.setBackground(new java.awt.Color(0, 45, 50));
+        consolePane.setColumns(20);
+        consolePane.setForeground(new java.awt.Color(99, 255, 52));
+        consolePane.setRows(5);
+        consolePane.setText("Test console");
+        consolePane.setCaretColor(new java.awt.Color(99, 255, 52));
+        jScrollPane4.setViewportView(consolePane);
+        (consolePane.getCaret()).setVisible(true);
+        ((DefaultCaret)consolePane.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
@@ -482,46 +651,11 @@ public class MainForm extends javax.swing.JFrame {
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 63, Short.MAX_VALUE)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 99, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
 
-        jTabbedPane1.addTab("Output", jPanel6);
-
-        consoleBox.setEditable(false);
-        consoleBox.setBackground(new java.awt.Color(51, 51, 51));
-        consoleBox.setColumns(20);
-        consoleBox.setForeground(new java.awt.Color(204, 204, 0));
-        consoleBox.setRows(5);
-        consoleBox.setText("Test console");
-        jScrollPane3.setViewportView(consoleBox);
-
-        javax.swing.GroupLayout jPanel10Layout = new javax.swing.GroupLayout(jPanel10);
-        jPanel10.setLayout(jPanel10Layout);
-        jPanel10Layout.setHorizontalGroup(
-            jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel10Layout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addComponent(jScrollPane3)
-                .addGap(0, 0, 0))
-        );
-        jPanel10Layout.setVerticalGroup(
-            jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel10Layout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 63, Short.MAX_VALUE)
-                .addGap(0, 0, 0))
-        );
-
-        jTabbedPane1.addTab("Console", jPanel10);
-
-        answerSplitterPane.setRightComponent(jTabbedPane1);
-
-        answerBox.setEditable(false);
-        answerBox.setBackground(new java.awt.Color(235, 255, 255));
-        jScrollPane5.setViewportView(answerBox);
-
-        answerSplitterPane.setLeftComponent(jScrollPane5);
+        answerSplitterPane.setRightComponent(jPanel6);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -535,10 +669,11 @@ public class MainForm extends javax.swing.JFrame {
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(1, 1, 1)
+                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(answerSplitterPane, javax.swing.GroupLayout.DEFAULT_SIZE, 313, Short.MAX_VALUE)
-                .addGap(0, 0, 0)
-                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(answerSplitterPane)
+                .addGap(0, 0, 0))
         );
 
         mainSplitterPane.setRightComponent(jPanel3);
@@ -547,13 +682,13 @@ public class MainForm extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(topPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(mainSplitterPane)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(topPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
                 .addComponent(mainSplitterPane)
                 .addGap(0, 0, 0))
@@ -596,7 +731,7 @@ public class MainForm extends javax.swing.JFrame {
                 "Submit Answer", JOptionPane.YES_NO_OPTION);
         if (result == JOptionPane.YES_OPTION)
         {
-            boolean res = ServerLink.submitAnswer(selectedID, answerBox.getText());
+            boolean res = ServerLink.submitAnswer(selectedID, codeEditor.getText());
             if (res) JOptionPane.showMessageDialog(this, "Submission Successful.");
             else JOptionPane.showMessageDialog(this, "Submission Failed");
         }
@@ -609,19 +744,27 @@ public class MainForm extends javax.swing.JFrame {
 
     private void formWindowLostFocus(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowLostFocus
     {//GEN-HEADEREND:event_formWindowLostFocus
-        this.SetToFullFocus(); 
+        this.SetToFullFocus();
     }//GEN-LAST:event_formWindowLostFocus
 
+    private void saveCodeButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_saveCodeButtonActionPerformed
+    {//GEN-HEADEREND:event_saveCodeButtonActionPerformed
+        if (selectedID != -1) saveAnswer(selectedID);
+    }//GEN-LAST:event_saveCodeButtonActionPerformed
+
+    private void compileAndRunButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_compileAndRunButtonActionPerformed
+    {//GEN-HEADEREND:event_compileAndRunButtonActionPerformed
+        if (selectedID != -1) compileAndRun();
+    }//GEN-LAST:event_compileAndRunButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextPane answerBox;
+    private javax.swing.JPanel answerPanel;
     private javax.swing.JSplitPane answerSplitterPane;
     private javax.swing.JButton compileAndRunButton;
-    private javax.swing.JTextArea consoleBox;
+    private javax.swing.JTextArea consolePane;
     private javax.swing.JLabel examTitleLabel;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel10;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
@@ -631,21 +774,18 @@ public class MainForm extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JScrollPane jScrollPane5;
-    private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JSplitPane jSplitPane1;
-    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JButton logoutButton;
     private javax.swing.JSplitPane mainSplitterPane;
     private javax.swing.JLabel markValueBox;
-    private javax.swing.JTextArea outputBox;
     private javax.swing.JTextArea questionDescBox;
     private javax.swing.JList questionList;
+    private javax.swing.JSplitPane questionSplitterPane;
     private javax.swing.JLabel questionTitleBox;
     private javax.swing.JLabel registrationNoLabel;
     private javax.swing.JLabel remainingTimeLabel;
+    private javax.swing.JButton saveCodeButton;
     private javax.swing.JButton submitAnswerButton;
+    private javax.swing.JPanel topPanel;
     // End of variables declaration//GEN-END:variables
 }

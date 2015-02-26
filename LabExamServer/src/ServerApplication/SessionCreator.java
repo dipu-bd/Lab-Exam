@@ -21,7 +21,7 @@ import UtilityClass.Question;
 import java.io.File;
 import java.util.Date;
 import java.util.logging.Level;
-import java.util.logging.Logger; 
+import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.table.DefaultTableModel;
@@ -31,6 +31,7 @@ import javax.swing.table.DefaultTableModel;
  * @author Dipu
  */
 public class SessionCreator extends javax.swing.JFrame {
+
     private static final long serialVersionUID = 1L;
 
     public JFrame ParentForm;
@@ -40,7 +41,7 @@ public class SessionCreator extends javax.swing.JFrame {
      * Creates new form SessionCreator
      */
     public SessionCreator()
-    { 
+    {
         initComponents();
         model = (DefaultTableModel) candidateTable.getModel();
         LoadValues();
@@ -251,11 +252,11 @@ public class SessionCreator extends javax.swing.JFrame {
         {
             Class[] types = new Class []
             {
-                java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+                java.lang.Object.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean []
             {
-                false, true, true, false
+                false, true, true, true
             };
 
             public Class getColumnClass(int columnIndex)
@@ -277,6 +278,12 @@ public class SessionCreator extends javax.swing.JFrame {
         candidateTable.setSelectionForeground(new java.awt.Color(0, 0, 51));
         candidateTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(candidateTable);
+        candidateTable.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+        if (candidateTable.getColumnModel().getColumnCount() > 0)
+        {
+            candidateTable.getColumnModel().getColumn(0).setPreferredWidth(80);
+            candidateTable.getColumnModel().getColumn(0).setMaxWidth(100);
+        }
 
         jPanel1.setBackground(new java.awt.Color(222, 234, 238));
 
@@ -676,53 +683,18 @@ public class SessionCreator extends javax.swing.JFrame {
         }
     }
 
-    private boolean SaveValues()
-    {
-        try
-        {
-            CurrentExam.curExam.ExamTitle = examTitle.getText();
-            CurrentExam.curExam.StartTime = (Date) startTimeSpinner.getValue();
-            CurrentExam.curExam.Duration = (int) durationSpinner.getValue();
-
-            SaveCandidates();
-            SaveQuestion();
-
-            CurrentExam.Save();
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Logger.getLogger(SessionCreator.class.getName()).log(Level.SEVERE,
-                    "Error while saving session values", ex);
-            return false;
-        }
-    }
-
     private void LoadCandidateList()
-    { 
+    {
         model.setRowCount(0);
         for (Candidate cd : CurrentExam.curExam.allCandidate)
         {
             model.addRow(new Object[]
             {
                 cd.uid, cd.name, cd.regno, cd.password
-            });            
-        }        
-    }
-
-    private void SaveCandidates()
-    {
-        for (int i = 0; i < model.getRowCount(); ++i)
-        {
-            int uid = (int) model.getValueAt(i, 0);
-            Candidate cd = CurrentExam.curExam.getCandidate(uid);
-            if (cd == null) continue;
-            cd.name = ((String) model.getValueAt(i, 1)).trim();
-            cd.regno = ((String) model.getValueAt(i, 2)).trim();
+            });
         }
-    }
-
-    @SuppressWarnings("unchecked")
+    } 
+    
     private void LoadQuestionList()
     {
         totalMarksBox.setText(Integer.toString(CurrentExam.curExam.getTotalMarks()));
@@ -746,8 +718,43 @@ public class SessionCreator extends javax.swing.JFrame {
             markSpinner.setValue(ques.Mark);
         }
     }
- 
-    private void SaveQuestion()
+
+    private boolean SaveValues()
+    {
+        try
+        {
+            CurrentExam.curExam.ExamTitle = examTitle.getText();
+            CurrentExam.curExam.StartTime = (Date) startTimeSpinner.getValue();
+            CurrentExam.curExam.Duration = (int) durationSpinner.getValue();
+
+            setCandidates();
+            setQuestion();
+
+            CurrentExam.Save();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger(SessionCreator.class.getName()).log(Level.SEVERE,
+                    "Error while saving session values", ex);
+            return false;
+        }
+    }
+
+    private void setCandidates()
+    {
+        for (int i = 0; i < model.getRowCount(); ++i)
+        {
+            int uid = (int) model.getValueAt(i, 0);
+            Candidate cd = CurrentExam.curExam.getCandidate(uid);
+            if (cd == null) continue;
+            cd.name = ((String) model.getValueAt(i, 1)).trim();
+            cd.regno = ((String) model.getValueAt(i, 2)).trim();
+            cd.password = ((String) model.getValueAt(i, 3)).trim();
+        }
+    }
+
+    private void setQuestion()
     {
         int id = Integer.parseInt(idLabel.getText());
         Question ques = CurrentExam.curExam.getQuestion(id);
@@ -755,9 +762,9 @@ public class SessionCreator extends javax.swing.JFrame {
         ques.Body = questionBody.getText();
         ques.Title = questionTitle.getText().trim();
         ques.Mark = (int) markSpinner.getValue();
-        totalMarksBox.setText(Integer.toString(CurrentExam.curExam.getTotalMarks()));        
+        totalMarksBox.setText(Integer.toString(CurrentExam.curExam.getTotalMarks()));
     }
-
+    
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
         ParentForm.setVisible(true);
     }//GEN-LAST:event_formWindowClosed
@@ -784,12 +791,12 @@ public class SessionCreator extends javax.swing.JFrame {
     }//GEN-LAST:event_saveButtonActionPerformed
 
     private void questionListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_questionListValueChanged
-        Question ques = (Question) questionList.getSelectedValue(); 
+        Question ques = (Question) questionList.getSelectedValue();
         if (ques != null) LoadQuestion(ques);
     }//GEN-LAST:event_questionListValueChanged
 
     private void setQuestionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setQuestionButtonActionPerformed
-        CurrentExam.curExam.addQuestion();        
+        CurrentExam.curExam.addQuestion();
         LoadQuestionList();
     }//GEN-LAST:event_setQuestionButtonActionPerformed
 
@@ -798,7 +805,7 @@ public class SessionCreator extends javax.swing.JFrame {
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void markSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_markSpinnerStateChanged
-        SaveQuestion();
+        setQuestion();
     }//GEN-LAST:event_markSpinnerStateChanged
 
     private void refreshButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButton1ActionPerformed
@@ -811,11 +818,11 @@ public class SessionCreator extends javax.swing.JFrame {
     }//GEN-LAST:event_refreshButton1ActionPerformed
 
     private void questionBodyKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_questionBodyKeyReleased
-        SaveQuestion();
+        setQuestion();
     }//GEN-LAST:event_questionBodyKeyReleased
 
     private void questionTitleKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_questionTitleKeyReleased
-        SaveQuestion();
+        setQuestion();
     }//GEN-LAST:event_questionTitleKeyReleased
 
     private void pathBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pathBrowseButtonActionPerformed
