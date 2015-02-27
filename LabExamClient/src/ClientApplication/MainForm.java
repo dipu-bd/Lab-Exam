@@ -5,36 +5,18 @@
  */
 package ClientApplication;
 
-import UtilityClass.Functions;
-import UtilityClass.Question;
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.StringWriter;
-import java.io.Writer;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JEditorPane;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
 import javax.swing.text.DefaultCaret;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaCompiler.CompilationTask;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
-import jsyntaxpane.DefaultSyntaxKit;
+import UtilityClass.Question;
 
 /**
  *
@@ -43,10 +25,7 @@ import jsyntaxpane.DefaultSyntaxKit;
 @SuppressWarnings("serial")
 public class MainForm extends javax.swing.JFrame {
 
-    //
     public javax.swing.JFrame ParentForm;
-    private javax.swing.JEditorPane codeEditor;
-    private javax.swing.JScrollPane answerScrollPane;
     public final Timer timer;
     public final TimerTask refreshTask;
     public final TimerTask updateTask;
@@ -62,8 +41,9 @@ public class MainForm extends javax.swing.JFrame {
      */
     public MainForm()
     {
+        //jsyntaxpane.DefaultSyntaxKit.initKit();
+
         initComponents();
-        initAnswerBox();
 
         //set to full screen
         this.SetToFullFocus();
@@ -92,51 +72,12 @@ public class MainForm extends javax.swing.JFrame {
         timer.scheduleAtFixedRate(refreshTask, 0, 600);
     }
 
-    private void initAnswerBox()
-    {
-        //init and configure default syntax kit
-        DefaultSyntaxKit.initKit();
-
-        //create new editor
-        codeEditor = new JEditorPane();
-        answerScrollPane = new JScrollPane(codeEditor);
-
-        answerPanel.setLayout(new BorderLayout());
-        answerPanel.add(answerScrollPane, BorderLayout.CENTER);
-        answerPanel.doLayout();
-
-        codeEditor.setContentType("text/java"); // NOI18N            
-        codeEditor.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
-        codeEditor.setBackground(answerPanel.getBackground());// new java.awt.Color(230, 255, 255));        
-
-        codeEditor.addKeyListener(new KeyListener() {
-
-            @Override
-            public void keyReleased(KeyEvent ke)
-            {
-                if (selectedID != -1) saveAnswer(selectedID);
-            }
-
-            @Override
-            public void keyPressed(KeyEvent ke)
-            {
-                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
-
-            @Override
-            public void keyTyped(KeyEvent ke)
-            {
-                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
-        });
-    }
-
     private void SetToFullFocus()
     {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        this.setExtendedState(MainForm.MAXIMIZED_BOTH);
         this.setSize(screenSize);
-        this.setFocusableWindowState(true);
+        this.setFocusableWindowState(true); 
     }
 
     private void loadValues()
@@ -205,18 +146,20 @@ public class MainForm extends javax.swing.JFrame {
             selectedID = -1;
             questionTitleBox.setText("No Question");
             markValueBox.setText("0");
-            codeEditor.setEditable(false);
             codeEditor.setText("");
+            codeEditor.setEditable(false);
             questionDescBox.setText("");
-            return;
         }
-
-        Question ques = (Question) selected;
-        selectedID = ques.ID;
-        questionDescBox.setText(ques.Body);
-        questionTitleBox.setText(ques.Title);
-        markValueBox.setText(Integer.toString(ques.Mark));
-        openSavedAnswer(ques.ID);
+        else
+        {
+            Question ques = (Question) selected;
+            selectedID = ques.ID;
+            questionDescBox.setText(ques.Body);
+            questionTitleBox.setText(ques.Title);
+            markValueBox.setText(Integer.toString(ques.Mark));
+            openSavedAnswer(ques.ID);
+            codeEditor.setEditable(true);
+        }
     }
 
     public File getAnswerFile(int qid)
@@ -226,19 +169,14 @@ public class MainForm extends javax.swing.JFrame {
 
     public void openSavedAnswer(int qid)
     {
-        //restore general view
-        codeEditor.setEditable(true);
-        //answerSplitterPane.getRightComponent().setVisible(false);
-
         //try to open file        
-        File file = getAnswerFile(qid);
         try
         {
+            File file = getAnswerFile(qid);
             StringWriter sw = new StringWriter();
             FileInputStream fis = new FileInputStream(file);
             for (int data = fis.read(); data != -1; data = fis.read())
                 sw.write(data);
-
             codeEditor.setText(sw.toString());
         }
         catch (Exception ex)
@@ -270,9 +208,9 @@ public class MainForm extends javax.swing.JFrame {
         answerSplitterPane.getRightComponent().setVisible(true);
 
         final File codeFile = getAnswerFile(selectedID);
-
-        try (StringWriter writer = new StringWriter())
+        try
         {
+            StringWriter writer = new StringWriter();
             boolean result = CompileAndRun.CompileCode(codeFile, writer);
 
             String status = (result ? "[OK]" : "[Failed]");
@@ -339,6 +277,7 @@ public class MainForm extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Lab Exam");
         setAlwaysOnTop(true);
+        setBackground(new java.awt.Color(0, 204, 204));
         setUndecorated(true);
         setResizable(false);
         addWindowFocusListener(new java.awt.event.WindowFocusListener()
@@ -412,12 +351,12 @@ public class MainForm extends javax.swing.JFrame {
                     .addComponent(registrationNoLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(logoutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(examTitleLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(remainingTimeLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(remainingTimeLabel))
                 .addGap(5, 5, 5))
         );
 
         mainSplitterPane.setBackground(new java.awt.Color(204, 204, 255));
-        mainSplitterPane.setBorder(null);
+        mainSplitterPane.setBorder(javax.swing.BorderFactory.createMatteBorder(1, 5, 5, 5, new java.awt.Color(0, 153, 153)));
         mainSplitterPane.setDividerLocation(300);
         mainSplitterPane.setDividerSize(10);
         mainSplitterPane.setResizeWeight(0.4);
@@ -482,7 +421,7 @@ public class MainForm extends javax.swing.JFrame {
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel9Layout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
         jPanel9Layout.setVerticalGroup(
@@ -612,15 +551,32 @@ public class MainForm extends javax.swing.JFrame {
 
         answerPanel.setBackground(new java.awt.Color(221, 251, 251));
 
+        codeEditor.setEditable(false);
+        codeEditor.setColumns(20);
+        codeEditor.setRows(5);
+        codeEditor.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
+        codeEditor.setSyntaxEditingStyle("text/java");
+        codeEditor.setCodeFoldingEnabled(true);
+        codeEditor.setAntiAliasingEnabled(true);
+        codeEditor.setBackground(new java.awt.Color(250, 253, 255));
+        rTextScrollPane1.setViewportView(codeEditor);
+
+        rTextScrollPane1.setFoldIndicatorEnabled(true);
+        rTextScrollPane1.setLineNumbersEnabled(true);
+
         javax.swing.GroupLayout answerPanelLayout = new javax.swing.GroupLayout(answerPanel);
         answerPanel.setLayout(answerPanelLayout);
         answerPanelLayout.setHorizontalGroup(
             answerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 478, Short.MAX_VALUE)
+            .addGroup(answerPanelLayout.createSequentialGroup()
+                .addComponent(rTextScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 427, Short.MAX_VALUE)
+                .addGap(0, 0, 0))
         );
         answerPanelLayout.setVerticalGroup(
             answerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 200, Short.MAX_VALUE)
+            .addGroup(answerPanelLayout.createSequentialGroup()
+                .addComponent(rTextScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 185, Short.MAX_VALUE)
+                .addGap(0, 0, 0))
         );
 
         answerSplitterPane.setLeftComponent(answerPanel);
@@ -651,7 +607,7 @@ public class MainForm extends javax.swing.JFrame {
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 99, Short.MAX_VALUE)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 82, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
 
@@ -683,7 +639,10 @@ public class MainForm extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(topPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(mainSplitterPane)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addComponent(mainSplitterPane, javax.swing.GroupLayout.DEFAULT_SIZE, 735, Short.MAX_VALUE)
+                .addGap(0, 0, 0))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -760,6 +719,7 @@ public class MainForm extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel answerPanel;
     private javax.swing.JSplitPane answerSplitterPane;
+    private final org.fife.ui.rsyntaxtextarea.RSyntaxTextArea codeEditor = new org.fife.ui.rsyntaxtextarea.RSyntaxTextArea();
     private javax.swing.JButton compileAndRunButton;
     private javax.swing.JTextArea consolePane;
     private javax.swing.JLabel examTitleLabel;
@@ -774,6 +734,7 @@ public class MainForm extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JButton logoutButton;
     private javax.swing.JSplitPane mainSplitterPane;
@@ -782,6 +743,7 @@ public class MainForm extends javax.swing.JFrame {
     private javax.swing.JList questionList;
     private javax.swing.JSplitPane questionSplitterPane;
     private javax.swing.JLabel questionTitleBox;
+    private final org.fife.ui.rtextarea.RTextScrollPane rTextScrollPane1 = new org.fife.ui.rtextarea.RTextScrollPane();
     private javax.swing.JLabel registrationNoLabel;
     private javax.swing.JLabel remainingTimeLabel;
     private javax.swing.JButton saveCodeButton;

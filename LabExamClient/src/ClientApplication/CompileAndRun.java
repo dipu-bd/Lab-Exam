@@ -7,19 +7,7 @@ package ClientApplication;
 
 import UtilityClass.Functions;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.Reader;
-import java.io.StringReader;
 import java.io.Writer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
 
 /**
  *
@@ -31,24 +19,21 @@ public final class CompileAndRun {
     {
         try
         {
-            //file to compile 
-            final String dir = codeFile.getParentFile().toString() + File.separator;
+            //file to compile             
+            String dir = codeFile.getParentFile().toString();
+            String commands = String.format("javac -g -d \"%s\" \"%s\"", dir, codeFile.toString());
 
             //collect needed data            
-            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-            StandardJavaFileManager fileManager
-                    = compiler.getStandardFileManager(null, null, null);
-            Iterable<? extends JavaFileObject> compilationUnits1
-                    = fileManager.getJavaFileObjects(codeFile);
+            Process p = Runtime.getRuntime().exec(commands);
+            p.waitFor();
 
-            //compile
-            JavaCompiler.CompilationTask task = compiler.getTask(writer,
-                    fileManager, null, null, null, compilationUnits1);
+            String err = Functions.readFully(p.getErrorStream(), "UTF-8");
+            if (err.length() > 0) writer.write(err + "\n");
 
-            boolean res = task.call();
-            fileManager.close();
+            String inn = Functions.readFully(p.getInputStream(), "UTF-8");
+            if (inn.length() > 0) writer.write(inn + "\n");
 
-            return res;
+            return (p.exitValue() == 0);
         }
         catch (Exception ex)
         {

@@ -5,7 +5,6 @@
  */
 package ClientApplication;
 
-import UtilityClass.Functions;
 import java.awt.Insets;
 import java.nio.file.Path;
 import javax.swing.JFileChooser;
