@@ -18,19 +18,23 @@ package ServerApplication;
 
 import UtilityClass.Candidate;
 import UtilityClass.Question;
+import java.awt.HeadlessException;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 
 /**
  *
  * @author Dipu
  */
-public class SessionCreator extends javax.swing.JFrame {
+public class SessionCreator extends javax.swing.JDialog {
 
     private static final long serialVersionUID = 1L;
 
@@ -44,7 +48,7 @@ public class SessionCreator extends javax.swing.JFrame {
     {
         initComponents();
         model = (DefaultTableModel) candidateTable.getModel();
-        LoadValues();
+        loadValues();
     }
 
     /**
@@ -80,6 +84,7 @@ public class SessionCreator extends javax.swing.JFrame {
         randomizePassButton = new javax.swing.JButton();
         addCandidateButton = new javax.swing.JButton();
         deleteCandidateButton = new javax.swing.JButton();
+        saveToTextButton = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jSplitPane1 = new javax.swing.JSplitPane();
         jPanel5 = new javax.swing.JPanel();
@@ -107,6 +112,7 @@ public class SessionCreator extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Edit Lab Exam Session");
         setIconImages(null);
+        setModal(true);
         addWindowListener(new java.awt.event.WindowAdapter()
         {
             public void windowClosed(java.awt.event.WindowEvent evt)
@@ -314,6 +320,15 @@ public class SessionCreator extends javax.swing.JFrame {
             }
         });
 
+        saveToTextButton.setText("Save To Text");
+        saveToTextButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                saveToTextButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -324,6 +339,8 @@ public class SessionCreator extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(deleteCandidateButton, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(saveToTextButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(randomizePassButton, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(2, 2, 2))
         );
@@ -334,7 +351,8 @@ public class SessionCreator extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(randomizePassButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(addCandidateButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(deleteCandidateButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(deleteCandidateButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(saveToTextButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -658,7 +676,7 @@ public class SessionCreator extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    public final void LoadValues()
+    public final void loadValues()
     {
         try
         {
@@ -671,10 +689,10 @@ public class SessionCreator extends javax.swing.JFrame {
             examPath.setText(CurrentExam.curExam.ExamPath.getAbsolutePath());
 
             //exam values 
-            LoadQuestionList();
+            loadQuestionList();
 
             //user values 
-            LoadCandidateList();
+            loadCandidateList();
         }
         catch (Exception ex)
         {
@@ -682,8 +700,8 @@ public class SessionCreator extends javax.swing.JFrame {
                     "Error while loading values", ex);
         }
     }
-
-    private void LoadCandidateList()
+ 
+    private void loadCandidateList()
     {
         model.setRowCount(0);
         for (Candidate cd : CurrentExam.curExam.allCandidate)
@@ -693,15 +711,15 @@ public class SessionCreator extends javax.swing.JFrame {
                 cd.uid, cd.name, cd.regno, cd.password
             });
         }
-    } 
-    
-    private void LoadQuestionList()
+    }
+
+    private void loadQuestionList()
     {
         totalMarksBox.setText(Integer.toString(CurrentExam.curExam.getTotalMarks()));
         questionList.setListData(CurrentExam.curExam.allQuestion.toArray());
     }
 
-    private void LoadQuestion(Question ques)
+    private void loadQuestion(Question ques)
     {
         if (ques == null)
         {
@@ -719,7 +737,7 @@ public class SessionCreator extends javax.swing.JFrame {
         }
     }
 
-    private boolean SaveValues()
+    private boolean saveValues()
     {
         try
         {
@@ -764,14 +782,43 @@ public class SessionCreator extends javax.swing.JFrame {
         ques.Mark = (int) markSpinner.getValue();
         totalMarksBox.setText(Integer.toString(CurrentExam.curExam.getTotalMarks()));
     }
-    
+
+    public void saveToTextFile()
+    {
+        try
+        {
+            JFileChooser saveFile = new JFileChooser();
+            saveFile.setMultiSelectionEnabled(false);
+            saveFile.setAcceptAllFileFilterUsed(false);
+            saveFile.setSelectedFile(new File("examinee.txt"));
+            saveFile.setFileFilter(new FileNameExtensionFilter("Text File", "txt"));
+            if (saveFile.showSaveDialog(this) == JFileChooser.APPROVE_OPTION)
+            {
+                String data = CurrentExam.printUsers();
+                File file = saveFile.getSelectedFile();
+                FileOutputStream fos = new FileOutputStream(file);
+                fos.write(data.getBytes());
+                fos.close();
+            }
+        }
+        catch (HeadlessException | IOException ex)
+        {
+            Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE,
+                    "Error while saving passwords", ex);
+        }
+    }
+
+
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
-        ParentForm.setVisible(true);
+        if (ParentForm != null)
+        {
+            ParentForm.setVisible(true);
+        }
     }//GEN-LAST:event_formWindowClosed
 
     private void nextButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nextButtonActionPerformed
 
-        if (!SaveValues())
+        if (!saveValues())
             return;
 
         int count = tabbedPane.getTabCount();
@@ -787,21 +834,21 @@ public class SessionCreator extends javax.swing.JFrame {
     }//GEN-LAST:event_nextButtonActionPerformed
 
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
-        SaveValues();
+        saveValues();
     }//GEN-LAST:event_saveButtonActionPerformed
 
     private void questionListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_questionListValueChanged
         Question ques = (Question) questionList.getSelectedValue();
-        if (ques != null) LoadQuestion(ques);
+        if (ques != null) loadQuestion(ques);
     }//GEN-LAST:event_questionListValueChanged
 
     private void setQuestionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setQuestionButtonActionPerformed
         CurrentExam.curExam.addQuestion();
-        LoadQuestionList();
+        loadQuestionList();
     }//GEN-LAST:event_setQuestionButtonActionPerformed
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
-        LoadValues();
+        loadValues();
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void markSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_markSpinnerStateChanged
@@ -814,7 +861,7 @@ public class SessionCreator extends javax.swing.JFrame {
         {
             CurrentExam.curExam.deleteQuestion(ques.ID);
         }
-        LoadQuestionList();
+        loadQuestionList();
     }//GEN-LAST:event_refreshButton1ActionPerformed
 
     private void questionBodyKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_questionBodyKeyReleased
@@ -869,7 +916,7 @@ public class SessionCreator extends javax.swing.JFrame {
         {
             cd.randomizePassword();
         }
-        LoadCandidateList();
+        loadCandidateList();
     }//GEN-LAST:event_randomizePassButtonActionPerformed
 
     private void addCandidateButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_addCandidateButtonActionPerformed
@@ -891,6 +938,11 @@ public class SessionCreator extends javax.swing.JFrame {
         CurrentExam.curExam.deleteCandidate(uid);
         model.removeRow(r);
     }//GEN-LAST:event_deleteCandidateButtonActionPerformed
+
+    private void saveToTextButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_saveToTextButtonActionPerformed
+    {//GEN-HEADEREND:event_saveToTextButtonActionPerformed
+        saveToTextFile();
+    }//GEN-LAST:event_saveToTextButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addCandidateButton;
@@ -935,6 +987,7 @@ public class SessionCreator extends javax.swing.JFrame {
     private javax.swing.JButton randomizePassButton;
     private javax.swing.JButton refreshButton1;
     private javax.swing.JButton saveButton;
+    private javax.swing.JButton saveToTextButton;
     private javax.swing.JButton setQuestionButton;
     private javax.swing.JSpinner startTimeSpinner;
     private javax.swing.JTabbedPane tabbedPane;

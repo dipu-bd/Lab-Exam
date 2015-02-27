@@ -16,7 +16,7 @@
  */
 package UtilityClass;
 
-import java.awt.AWTEvent; 
+import java.awt.AWTEvent;
 
 /**
  *
@@ -27,11 +27,21 @@ public class UserChangeEvent extends AWTEvent {
 
     public int uid;
     public boolean status;
+    public int quesID;
 
     public UserChangeEvent(int id, boolean login)
     {
         super(id, 0);
         this.uid = id;
         this.status = login;
+        this.quesID = -1;
+    }
+
+    public UserChangeEvent(int uid, int qid)
+    {
+        super(uid, 0);
+        this.uid = uid;
+        this.quesID = qid;
+        this.status = true;
     }
 }

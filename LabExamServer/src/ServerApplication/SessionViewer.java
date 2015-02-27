@@ -29,12 +29,16 @@ import UtilityClass.Candidate;
 import UtilityClass.Functions;
 import UtilityClass.UserChangeEvent;
 import UtilityClass.UserChangedHandler;
-import java.awt.HeadlessException;
+import java.awt.Desktop;
 import java.io.File;
-import java.io.FileOutputStream;
-import javax.swing.JFileChooser;
+import java.io.OutputStream;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Formatter;
+import java.util.logging.MemoryHandler;
+import java.util.logging.StreamHandler;
 import javax.swing.JFrame;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.DefaultCaret;
 
@@ -47,7 +51,6 @@ public class SessionViewer extends javax.swing.JFrame {
     public JFrame ParentForm;
     private final Timer timer;
     private final Logger logger;
-    public DefaultTableModel tableModel;
 
     /**
      * Creates new form SessionViewer
@@ -58,7 +61,7 @@ public class SessionViewer extends javax.swing.JFrame {
         this.logger = Logger.getLogger("LabExam");
 
         initComponents();
-        
+
         SetToFullFocus();
         initiateOthers();
         LoadValues();
@@ -70,6 +73,19 @@ public class SessionViewer extends javax.swing.JFrame {
         this.setFocusableWindowState(true);
     }
 
+    private void showSessionCreator()
+    {
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run()
+            {
+                SessionCreator sc = new SessionCreator();
+                sc.ParentForm = null;
+                sc.setVisible(true);
+            }
+        });
+    }
+
     /**
      * Initialize this frame. It loads all data needed for examination server.
      * It creates a new server socket and waits for candidates to connect.
@@ -78,27 +94,18 @@ public class SessionViewer extends javax.swing.JFrame {
      */
     private void initiateOthers()
     {
-        //initialize logger        
-        logger.addHandler(new Handler() {
+        //initialize logger           
+        logger.addHandler(new StreamHandler(System.out, new Formatter() {
             @Override
-            public void publish(LogRecord lr)
+            public String format(LogRecord lr)
             {
                 String msg = (new Date(lr.getMillis())).toString() + " : ";
                 msg += lr.getLevel().getName() + " : ";
                 msg += lr.getMessage() + "\n";
                 statusBox.append(msg);
+                return msg;
             }
-
-            @Override
-            public void flush()
-            {
-            }
-
-            @Override
-            public void close() throws SecurityException
-            {
-            }
-        });
+        }));
 
         //initialize timer
         TimerTask tt = new TimerTask() {
@@ -113,14 +120,22 @@ public class SessionViewer extends javax.swing.JFrame {
         //initialize server 
         LabExamServer.initialize();
 
-        //initialize examinee table        
-        tableModel = (DefaultTableModel) candidateTable.getModel();
+        //initialize tables
         loadCandidateList();
+        loadSubmissionList();
+
+        //add user changed lister
         CurrentExam.addUserChangedHandler(new UserChangedHandler() {
             @Override
             public void userChanged(UserChangeEvent ae)
             {
                 loadCandidateList();
+            }
+
+            @Override
+            public void userSubmitted(UserChangeEvent ae)
+            {
+                loadSubmissionList();
             }
         });
     }
@@ -179,15 +194,19 @@ public class SessionViewer extends javax.swing.JFrame {
      */
     private void loadCandidateList()
     {
+        //get model
+        DefaultTableModel candidateModel;
+        candidateModel = (DefaultTableModel) candidateTable.getModel();
+
+        //clear up previous data        
+        candidateModel.setRowCount(0);
+
         //set status
         String cdc = "Status : ";
         int total = CurrentExam.curExam.allCandidate.size();
         int connected = CurrentExam.logins.size();
         cdc += String.format("%d out of %d candidates are connected.", total, connected);
         candidateCount.setText(cdc);
-
-        //clear up previous data
-        tableModel.setRowCount(0);
 
         //show list 
         for (Candidate cd : CurrentExam.curExam.allCandidate)
@@ -197,35 +216,83 @@ public class SessionViewer extends javax.swing.JFrame {
             {
                 status = "Connected";
             }
-            tableModel.addRow(new Object[]
+            candidateModel.addRow(new Object[]
             {
                 cd.uid, cd.name, cd.regno, cd.password, status
             });
         }
     }
 
-    private void saveToTextFile()
+    private void loadSubmissionList()
+    {
+        //get questions
+        int qcount = CurrentExam.curExam.allQuestion.size();
+        String[] header = new String[qcount + 3];
+        header[0] = "ID";
+        header[1] = "Name";
+        header[2] = "Reg No";
+        for (int i = 0; i < qcount; ++i)
+        {
+            int id = CurrentExam.curExam.allQuestion.get(i).ID;
+            header[i + 3] = String.format("Question %02d", id);
+        }
+
+        //get candidates
+        int siz = CurrentExam.curExam.allCandidate.size();
+        Object data[][] = new Object[siz][qcount + 3];
+        for (int i = 0; i < siz; ++i)
+        {
+            Candidate cd = CurrentExam.curExam.allCandidate.get(i);
+            data[i][0] = cd.uid;
+            data[i][1] = cd.name;
+            data[i][2] = cd.regno;
+            for (int j = 0; j < qcount; ++j)
+            {
+                int id = CurrentExam.curExam.allQuestion.get(j).ID;
+                boolean sub = CurrentExam.getSubmissionPath(cd.regno, id).exists();
+                data[i][j + 3] = sub ? "Submitted" : "-";
+            }
+        }
+
+        //setup table
+        submissionTable.setModel(new DefaultTableModel(data, header) {
+            @Override
+            public boolean isCellEditable(int rowIndex, int columnIndex)
+            {
+                return false;
+            }
+        });
+
+    }
+
+    private void openSubmissionFolder()
     {
         try
         {
-            JFileChooser saveFile = new JFileChooser();
-            saveFile.setMultiSelectionEnabled(false);
-            saveFile.setAcceptAllFileFilterUsed(false);
-            saveFile.setSelectedFile(new File("examinee.txt"));
-            saveFile.setFileFilter(new FileNameExtensionFilter("Text File", "txt"));
-            if (saveFile.showSaveDialog(this) == JFileChooser.APPROVE_OPTION)
+            int r = submissionTable.getSelectedRow();
+            int c = submissionTable.getSelectedColumn();
+
+            File path = CurrentExam.curExam.ExamPath;
+            if (r >= 0 && c > 2)
             {
-                String data = CurrentExam.printUsers();
-                File file = saveFile.getSelectedFile();
-                FileOutputStream fos = new FileOutputStream(file);
-                fos.write(data.getBytes());
-                fos.close();
+                String regno = (String) submissionTable.getValueAt(r, 2);
+                String name = submissionTable.getColumnName(c);
+                name = name.substring(name.lastIndexOf(" "));
+                int qid = Integer.parseInt(name.trim());
+                path = CurrentExam.getSubmissionPath(regno, qid);
             }
+            else if (r >= 0)
+            {
+                String regno = (String) submissionTable.getValueAt(r, 2);
+                path = CurrentExam.getSubmissionPath(regno, 1);
+                path = path.getParentFile();
+            }
+
+            if (path.exists()) Desktop.getDesktop().open(path);
         }
-        catch (HeadlessException | IOException ex)
+        catch (Exception ex)
         {
-            Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE,
-                    "Error while saving passwords", ex);
+            ex.printStackTrace();
         }
     }
 
@@ -259,6 +326,7 @@ public class SessionViewer extends javax.swing.JFrame {
 
         jPanel9 = new javax.swing.JPanel();
         endExamButton = new javax.swing.JButton();
+        editorButton = new javax.swing.JButton();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -266,11 +334,13 @@ public class SessionViewer extends javax.swing.JFrame {
         jPanel2 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         candidateTable = new javax.swing.JTable();
-        jPanel6 = new javax.swing.JPanel();
-        refreshExamineeButton = new javax.swing.JButton();
-        saveToTextButton = new javax.swing.JButton();
-        candidateCount = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
+        jScrollPane6 = new javax.swing.JScrollPane();
+        submissionTable = new javax.swing.JTable();
+        jPanel11 = new javax.swing.JPanel();
+        refreshSubmissionButton = new javax.swing.JButton();
+        openSubFolderButton = new javax.swing.JButton();
+        candidateCount = new javax.swing.JLabel();
         jPanel4 = new javax.swing.JPanel();
         jPanel7 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
@@ -313,12 +383,24 @@ public class SessionViewer extends javax.swing.JFrame {
             }
         });
 
+        editorButton.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
+        editorButton.setText("Editor");
+        editorButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                editorButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
         jPanel9.setLayout(jPanel9Layout);
         jPanel9Layout.setHorizontalGroup(
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel9Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap()
+                .addComponent(editorButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(endExamButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -326,7 +408,9 @@ public class SessionViewer extends javax.swing.JFrame {
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel9Layout.createSequentialGroup()
                 .addGap(3, 3, 3)
-                .addComponent(endExamButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(endExamButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(editorButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(5, 5, 5))
         );
 
@@ -353,7 +437,7 @@ public class SessionViewer extends javax.swing.JFrame {
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 304, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 326, Short.MAX_VALUE)
         );
 
         jTabbedPane1.addTab("Exam Status", jPanel1);
@@ -392,7 +476,6 @@ public class SessionViewer extends javax.swing.JFrame {
             }
         });
         candidateTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_LAST_COLUMN);
-        candidateTable.setCellSelectionEnabled(true);
         candidateTable.setFillsViewportHeight(true);
         candidateTable.setFocusable(false);
         candidateTable.setGridColor(java.awt.Color.cyan);
@@ -406,81 +489,121 @@ public class SessionViewer extends javax.swing.JFrame {
         {
             candidateTable.getColumnModel().getColumn(0).setPreferredWidth(80);
             candidateTable.getColumnModel().getColumn(0).setMaxWidth(100);
+            candidateTable.getColumnModel().getColumn(0).setHeaderValue("ID");
+            candidateTable.getColumnModel().getColumn(1).setHeaderValue("Candidate");
+            candidateTable.getColumnModel().getColumn(2).setHeaderValue("Registration No");
+            candidateTable.getColumnModel().getColumn(3).setHeaderValue("Password");
+            candidateTable.getColumnModel().getColumn(4).setHeaderValue("Status");
         }
-
-        jPanel6.setBackground(new java.awt.Color(186, 242, 242));
-
-        refreshExamineeButton.setText("Refresh");
-        refreshExamineeButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                refreshExamineeButtonActionPerformed(evt);
-            }
-        });
-
-        saveToTextButton.setText("Save to Text File");
-        saveToTextButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                saveToTextButtonActionPerformed(evt);
-            }
-        });
-
-        candidateCount.setText(" ");
-
-        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
-        jPanel6.setLayout(jPanel6Layout);
-        jPanel6Layout.setHorizontalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(candidateCount, javax.swing.GroupLayout.DEFAULT_SIZE, 451, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
-                .addComponent(refreshExamineeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(saveToTextButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
-        jPanel6Layout.setVerticalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel6Layout.createSequentialGroup()
-                .addGap(3, 3, 3)
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(saveToTextButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(refreshExamineeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(candidateCount, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(3, 3, 3))
-        );
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 795, Short.MAX_VALUE)
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 326, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
 
         jTabbedPane1.addTab("Candidates", jPanel2);
 
+        submissionTable.setAutoCreateRowSorter(true);
+        submissionTable.setBackground(new java.awt.Color(223, 255, 255));
+        submissionTable.setFont(new java.awt.Font("Consolas", 0, 12)); // NOI18N
+        submissionTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_LAST_COLUMN);
+        submissionTable.setCellSelectionEnabled(true);
+        submissionTable.setFillsViewportHeight(true);
+        submissionTable.setFocusable(false);
+        submissionTable.setGridColor(java.awt.Color.cyan);
+        submissionTable.setIntercellSpacing(new java.awt.Dimension(3, 3));
+        submissionTable.setRowHeight(20);
+        submissionTable.setSelectionBackground(java.awt.Color.cyan);
+        submissionTable.setSelectionForeground(new java.awt.Color(0, 0, 51));
+        submissionTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        submissionTable.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mouseClicked(java.awt.event.MouseEvent evt)
+            {
+                submissionTableMouseClicked(evt);
+            }
+        });
+        jScrollPane6.setViewportView(submissionTable);
+        submissionTable.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        if (submissionTable.getColumnModel().getColumnCount() > 0)
+        {
+            submissionTable.getColumnModel().getColumn(0).setPreferredWidth(80);
+            submissionTable.getColumnModel().getColumn(1).setPreferredWidth(200);
+            submissionTable.getColumnModel().getColumn(2).setPreferredWidth(150);
+        }
+
+        jPanel11.setBackground(new java.awt.Color(186, 242, 242));
+
+        refreshSubmissionButton.setText("Refresh");
+        refreshSubmissionButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                refreshSubmissionButtonActionPerformed(evt);
+            }
+        });
+
+        openSubFolderButton.setText("Open Folder");
+        openSubFolderButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                openSubFolderButtonActionPerformed(evt);
+            }
+        });
+
+        candidateCount.setText(" ");
+
+        javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
+        jPanel11.setLayout(jPanel11Layout);
+        jPanel11Layout.setHorizontalGroup(
+            jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel11Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(candidateCount, javax.swing.GroupLayout.DEFAULT_SIZE, 451, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addComponent(refreshSubmissionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(openSubFolderButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+        jPanel11Layout.setVerticalGroup(
+            jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel11Layout.createSequentialGroup()
+                .addGap(3, 3, 3)
+                .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(openSubFolderButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(refreshSubmissionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(candidateCount, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(3, 3, 3))
+        );
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 795, Short.MAX_VALUE)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel11, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 795, Short.MAX_VALUE)))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 304, Short.MAX_VALUE)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addComponent(jPanel11, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE)
+                .addGap(0, 0, 0))
         );
 
         jTabbedPane1.addTab("Candidate Status", jPanel3);
@@ -560,7 +683,7 @@ public class SessionViewer extends javax.swing.JFrame {
             jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel8Layout.createSequentialGroup()
                 .addGap(5, 5, 5)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 137, Short.MAX_VALUE)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 159, Short.MAX_VALUE)
                 .addGap(3, 3, 3))
         );
 
@@ -753,14 +876,6 @@ public class SessionViewer extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_add10minButtonActionPerformed
 
-    private void refreshExamineeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshExamineeButtonActionPerformed
-        loadCandidateList();
-    }//GEN-LAST:event_refreshExamineeButtonActionPerformed
-
-    private void saveToTextButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveToTextButtonActionPerformed
-        saveToTextFile();
-    }//GEN-LAST:event_saveToTextButtonActionPerformed
-
     @SuppressWarnings("unchecked")
     private void announceButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_announceButtonActionPerformed
     {//GEN-HEADEREND:event_announceButtonActionPerformed
@@ -778,6 +893,38 @@ public class SessionViewer extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_announceButtonActionPerformed
 
+    private void editorButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_editorButtonActionPerformed
+    {//GEN-HEADEREND:event_editorButtonActionPerformed
+        showSessionCreator();
+    }//GEN-LAST:event_editorButtonActionPerformed
+
+    private void refreshSubmissionButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_refreshSubmissionButtonActionPerformed
+    {//GEN-HEADEREND:event_refreshSubmissionButtonActionPerformed
+        loadSubmissionList();
+    }//GEN-LAST:event_refreshSubmissionButtonActionPerformed
+
+    private void openSubFolderButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_openSubFolderButtonActionPerformed
+    {//GEN-HEADEREND:event_openSubFolderButtonActionPerformed
+        try
+        {
+            File path = CurrentExam.curExam.ExamPath;
+            if (!path.exists()) path.mkdirs();
+            Desktop.getDesktop().open(path);
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
+    }//GEN-LAST:event_openSubFolderButtonActionPerformed
+
+    private void submissionTableMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_submissionTableMouseClicked
+    {//GEN-HEADEREND:event_submissionTableMouseClicked
+        if (evt.getClickCount() == 2)
+        {
+            openSubmissionFolder();
+        }
+    }//GEN-LAST:event_submissionTableMouseClicked
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton add10minButton;
     private javax.swing.JTextArea announceBox;
@@ -785,17 +932,18 @@ public class SessionViewer extends javax.swing.JFrame {
     private javax.swing.JList announceList;
     private javax.swing.JLabel candidateCount;
     private javax.swing.JTable candidateTable;
+    private javax.swing.JButton editorButton;
     private javax.swing.JButton endExamButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel11;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
-    private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
     private javax.swing.JPanel jPanel9;
@@ -803,13 +951,15 @@ public class SessionViewer extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JButton openSubFolderButton;
     private javax.swing.JLabel quesCountBox;
-    private javax.swing.JButton refreshExamineeButton;
+    private javax.swing.JButton refreshSubmissionButton;
     private javax.swing.JLabel remainingTimeBox;
-    private javax.swing.JButton saveToTextButton;
     private javax.swing.JLabel startTimeBox;
     private javax.swing.JTextArea statusBox;
+    private javax.swing.JTable submissionTable;
     private javax.swing.JLabel titleBox;
     private javax.swing.JLabel totalMarkBox;
     // End of variables declaration//GEN-END:variables

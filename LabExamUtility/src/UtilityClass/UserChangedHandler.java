@@ -23,4 +23,5 @@ package UtilityClass;
 public interface UserChangedHandler {
 
     void userChanged(UserChangeEvent ae);
+    void userSubmitted(UserChangeEvent ae);
 }

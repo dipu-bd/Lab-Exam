@@ -77,20 +77,25 @@ public class MainForm extends javax.swing.JFrame {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         this.setExtendedState(MainForm.MAXIMIZED_BOTH);
         this.setSize(screenSize);
-        this.setFocusableWindowState(true); 
+        this.setFocusableWindowState(true);
     }
 
     private void loadValues()
     {
         registrationNoLabel.setText("   " + ServerLink.userName + "   ");
         examTitleLabel.setText(ServerLink.getExamTitle());
-        allQuestion = ServerLink.getAllQuestions();
-        questionList.setListData(allQuestion.toArray());
+        downloadQuestions();
 
         double dsz = answerSplitterPane.getResizeWeight() * answerSplitterPane.getHeight();
         answerSplitterPane.setDividerLocation((int) dsz);
         dsz = mainSplitterPane.getResizeWeight() * mainSplitterPane.getWidth();
         mainSplitterPane.setDividerLocation((int) dsz);
+    }
+
+    private void downloadQuestions()
+    {
+        allQuestion = ServerLink.getAllQuestions();
+        questionList.setListData(allQuestion.toArray());
     }
 
     public void updateValues()
@@ -253,6 +258,7 @@ public class MainForm extends javax.swing.JFrame {
         jPanel2 = new javax.swing.JPanel();
         jPanel7 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
+        submitAnswerButton1 = new javax.swing.JButton();
         questionSplitterPane = new javax.swing.JSplitPane();
         jScrollPane2 = new javax.swing.JScrollPane();
         questionDescBox = new javax.swing.JTextArea();
@@ -371,20 +377,33 @@ public class MainForm extends javax.swing.JFrame {
         jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         jLabel2.setText("List of Questions");
 
+        submitAnswerButton1.setText("Refresh");
+        submitAnswerButton1.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                submitAnswerButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
         jPanel7Layout.setHorizontalGroup(
             jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
+            .addGroup(jPanel7Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(submitAnswerButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         jPanel7Layout.setVerticalGroup(
             jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel7Layout.createSequentialGroup()
                 .addGap(6, 6, 6)
-                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(submitAnswerButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(6, 6, 6))
         );
 
@@ -421,7 +440,7 @@ public class MainForm extends javax.swing.JFrame {
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel9Layout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 323, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
         jPanel9Layout.setVerticalGroup(
@@ -569,7 +588,7 @@ public class MainForm extends javax.swing.JFrame {
         answerPanelLayout.setHorizontalGroup(
             answerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(answerPanelLayout.createSequentialGroup()
-                .addComponent(rTextScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 427, Short.MAX_VALUE)
+                .addComponent(rTextScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 397, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
         answerPanelLayout.setVerticalGroup(
@@ -619,7 +638,7 @@ public class MainForm extends javax.swing.JFrame {
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(answerSplitterPane)
+            .addComponent(answerSplitterPane, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -639,10 +658,7 @@ public class MainForm extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(topPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addComponent(mainSplitterPane, javax.swing.GroupLayout.DEFAULT_SIZE, 735, Short.MAX_VALUE)
-                .addGap(0, 0, 0))
+            .addComponent(mainSplitterPane)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -716,6 +732,11 @@ public class MainForm extends javax.swing.JFrame {
         if (selectedID != -1) compileAndRun();
     }//GEN-LAST:event_compileAndRunButtonActionPerformed
 
+    private void submitAnswerButton1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_submitAnswerButton1ActionPerformed
+    {//GEN-HEADEREND:event_submitAnswerButton1ActionPerformed
+        downloadQuestions();
+    }//GEN-LAST:event_submitAnswerButton1ActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel answerPanel;
     private javax.swing.JSplitPane answerSplitterPane;
@@ -734,7 +755,6 @@ public class MainForm extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JButton logoutButton;
     private javax.swing.JSplitPane mainSplitterPane;
@@ -748,6 +768,7 @@ public class MainForm extends javax.swing.JFrame {
     private javax.swing.JLabel remainingTimeLabel;
     private javax.swing.JButton saveCodeButton;
     private javax.swing.JButton submitAnswerButton;
+    private javax.swing.JButton submitAnswerButton1;
     private javax.swing.JPanel topPanel;
     // End of variables declaration//GEN-END:variables
 }

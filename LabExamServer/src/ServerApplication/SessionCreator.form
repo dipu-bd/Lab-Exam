@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<Form version="1.6" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JFrameFormInfo">
+<Form version="1.6" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JDialogFormInfo">
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="2"/>
     <Property name="title" type="java.lang.String" value="Edit Lab Exam Session"/>
     <Property name="iconImages" type="java.util.List" editor="org.netbeans.modules.form.ComponentChooserEditor">
       <ComponentRef name="null"/>
     </Property>
+    <Property name="modal" type="boolean" value="true"/>
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
@@ -407,6 +408,8 @@
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Component id="deleteCandidateButton" min="-2" pref="120" max="-2" attributes="0"/>
                                   <EmptySpace max="32767" attributes="0"/>
+                                  <Component id="saveToTextButton" min="-2" pref="150" max="-2" attributes="0"/>
+                                  <EmptySpace max="-2" attributes="0"/>
                                   <Component id="randomizePassButton" min="-2" pref="180" max="-2" attributes="0"/>
                                   <EmptySpace min="-2" pref="2" max="-2" attributes="0"/>
                               </Group>
@@ -420,6 +423,7 @@
                                       <Component id="randomizePassButton" alignment="3" min="-2" pref="30" max="-2" attributes="0"/>
                                       <Component id="addCandidateButton" alignment="3" min="-2" pref="26" max="-2" attributes="0"/>
                                       <Component id="deleteCandidateButton" alignment="3" min="-2" pref="26" max="-2" attributes="0"/>
+                                      <Component id="saveToTextButton" alignment="3" min="-2" pref="30" max="-2" attributes="0"/>
                                   </Group>
                                   <EmptySpace min="-2" max="-2" attributes="0"/>
                               </Group>
@@ -449,6 +453,14 @@
                           </Properties>
                           <Events>
                             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="deleteCandidateButtonActionPerformed"/>
+                          </Events>
+                        </Component>
+                        <Component class="javax.swing.JButton" name="saveToTextButton">
+                          <Properties>
+                            <Property name="text" type="java.lang.String" value="Save To Text"/>
+                          </Properties>
+                          <Events>
+                            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="saveToTextButtonActionPerformed"/>
                           </Events>
                         </Component>
                       </SubComponents>

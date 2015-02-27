@@ -56,11 +56,10 @@ public final class CurrentExam {
      * Announcement messages by id
      */
     public final static ArrayList<String> announcements = new ArrayList<>();
-    
     /**
-     * You can use this admin-password to change settings in the client application
+     * List of Blacklisted users
      */
-    public static String adminPassword = "kajnytuihj";
+    public final static ArrayList<Integer> blacklist = new ArrayList<>();
 
     // <editor-fold defaultstate="collapsed" desc="Open Save and Print password list">     
     /**
@@ -78,7 +77,8 @@ public final class CurrentExam {
         logins.clear();
         examFile = file;
         announcements.clear();
-        
+        blacklist.clear();
+
         //open file
         try (FileInputStream fin = new FileInputStream(examFile);
                 ObjectInputStream ois = new ObjectInputStream(fin))
@@ -153,7 +153,8 @@ public final class CurrentExam {
         if (!cand.password.equals(pass))
         {
             Logger.getLogger("LabExam").log(Level.WARNING,
-                    String.format("%s(%s) tried to login with wrong password.", cand.name, cand.regno));
+                    String.format("%s(%s) tried to login with wrong password."
+                            + " (attempted password: %s)", cand.name, cand.regno, pass));
             return false;
         }
 
@@ -186,6 +187,8 @@ public final class CurrentExam {
             return false;
         }
 
+        addToBlacklist(uid);
+
         logins.remove(uid);
         invokeUserChanged(new UserChangeEvent(uid, true));
 
@@ -195,6 +198,78 @@ public final class CurrentExam {
         return true;
     }
     //</editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="Submit and Announcements">
+    public static File getSubmissionPath(String user, int qid)
+    {
+        Path path = curExam.ExamPath.toPath();
+        path = path.resolve(user);
+        //create directory
+        File par = path.toFile();
+        if(!par.exists()) par.mkdirs();
+        if(!par.isDirectory()) par.delete();
+        if(!par.exists()) par.mkdirs();
+        //save to path
+        path = path.resolve(String.format("Q%02d.java", qid));
+        return path.toFile();
+    }
+
+    /**
+     * Submit an answer of a question.
+     *
+     * @param regno Registration no of the student who submitted the answer.
+     * @param qid Question id of the answer.
+     * @param answer Body of the answer.
+     * @return False if answer saving failed, True otherwise.
+     */
+    public static boolean submitAnswer(String regno, int qid, String answer)
+    {
+        if (!CurrentExam.curExam.isRunning()) return false;
+
+        int uid = curExam.getCandidateID(regno);
+        if (!curExam.candidateExist(uid)) return false;
+
+        String name = curExam.getCandidate(uid).name;
+
+        try
+        {
+            FileOutputStream fos;
+            fos = new FileOutputStream(getSubmissionPath(regno, qid));
+            fos.write(answer.getBytes());
+            fos.close();
+
+            invokeUserChanged(new UserChangeEvent(uid, qid));
+
+            Logger.getLogger("LabExam").log(Level.INFO,
+                    String.format("%s(%s) submitted answer for Question %02d", name, regno, qid));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger("LabExam").log(Level.SEVERE,
+                    String.format("Failed to receive %s(%s)'s answer for Question.", name, regno));
+            return false;
+        }
+    }
+
+    public static ArrayList<String> getAnnoucements(int curSiz)
+    {
+        ArrayList<String> nlist = new ArrayList<>();
+        for (int x = curSiz; x < CurrentExam.announcements.size(); ++x)
+        {
+            nlist.add(CurrentExam.announcements.get(x));
+        }
+        return nlist;
+    }
+
+    public static void addToBlacklist(int uid)
+    {
+        if (CurrentExam.curExam.isRunning())
+        {
+            blacklist.add(uid);
+        }
+    }
+    // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="User Changed Event Trigger">     
     private static final ArrayList<UserChangedHandler> userChangeListener = new ArrayList<>();
@@ -218,60 +293,4 @@ public final class CurrentExam {
         }
     }
     //</editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc="Submit and Announcements">
-    /**
-     * Submit an answer of a question.
-     *
-     * @param user Registration no of the student who submitted the answer.
-     * @param qid Question id of the answer.
-     * @param answer Body of the answer.
-     * @return False if answer saving failed, True otherwise.
-     */
-    public static boolean submitAnswer(String user, int qid, String answer)
-    {
-        try
-        {
-            if (!CurrentExam.curExam.isRunning()) return false;
-
-            Path path = curExam.ExamPath.toPath();
-            path = path.resolve(user);
-            path.toFile().mkdirs();
-            path = path.resolve(String.format("Q%02d.txt", qid));            
-
-            FileOutputStream fos;
-            fos = new FileOutputStream(path.toFile());
-            fos.write(answer.getBytes());
-            fos.close();
-
-            Logger.getLogger("LabExam").log(Level.INFO,
-                    user + " submitted answer for Question " + qid);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Logger.getLogger("LabExam").log(Level.SEVERE, String.format(
-                    "Failed to receive " + user + "%s's answer for Question " + qid));
-            return false;
-        }
-    }
-
-    public static ArrayList<String> getAnnoucements(int curSiz)
-    {
-        ArrayList<String> nlist = new ArrayList<>();
-        for (int x = curSiz; x < CurrentExam.announcements.size(); ++x)
-        {
-            nlist.add(CurrentExam.announcements.get(x));
-        }
-        return nlist;
-    }
-
-    public static void addToBlacklist(String user)
-    {
-        if (CurrentExam.curExam.isRunning())
-        {
-            //code to add this user to blacklist
-        }
-    }
-    // </editor-fold>
 }

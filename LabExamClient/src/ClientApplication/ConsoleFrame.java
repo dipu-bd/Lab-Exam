@@ -24,18 +24,10 @@ public class ConsoleFrame extends javax.swing.JDialog {
     {
         initComponents();
         commands = args;
-        showOutput("");
+        showOutput("", false);
     }
 
-    private String getStream(InputStream is) throws IOException
-    {
-        StringWriter sw = new StringWriter();
-        for (int d = is.read(); is.available() > 0 && d != -1; d += is.read())
-            sw.write(d);
-        return sw.toString();
-    }
-
-    private void showOutput(String input)
+    private void showOutput(String input, boolean showError)
     {
         try
         {
@@ -49,11 +41,13 @@ public class ConsoleFrame extends javax.swing.JDialog {
             p.waitFor();
 
             outputBox.setText("");
-            String err = Functions.readFully(p.getErrorStream(), "UTF-8");
             String inn = Functions.readFully(p.getInputStream(), "UTF-8");
-            
-            if(inn.length() > 0) outputBox.append(inn + "\n");
-            if(err.length() > 0) outputBox.append(err + "\n");            
+            if (inn.length() > 0) outputBox.append(inn + "\n");
+            if (showError)
+            {
+                String err = Functions.readFully(p.getErrorStream(), "UTF-8");
+                if (err.length() > 0) outputBox.append(err + "\n");
+            }
             outputBox.append("Process exited with code: " + p.exitValue() + "\n");
         }
         catch (Exception ex)
@@ -89,13 +83,15 @@ public class ConsoleFrame extends javax.swing.JDialog {
         jPanel3 = new javax.swing.JPanel();
         testCodeButton = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
+        closeButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Console Window");
         setAlwaysOnTop(true);
+        setModal(true);
         setPreferredSize(new java.awt.Dimension(600, 400));
 
-        jSplitPane1.setDividerLocation(300);
+        jSplitPane1.setDividerLocation(340);
         jSplitPane1.setDividerSize(8);
         jSplitPane1.setResizeWeight(0.4);
 
@@ -139,7 +135,7 @@ public class ConsoleFrame extends javax.swing.JDialog {
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 329, Short.MAX_VALUE)
+            .addGap(0, 394, Short.MAX_VALUE)
             .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING))
         );
@@ -168,6 +164,16 @@ public class ConsoleFrame extends javax.swing.JDialog {
         jLabel1.setForeground(new java.awt.Color(51, 51, 51));
         jLabel1.setText("Give your input in the Input Box and press Run Test to execute program.");
 
+        closeButton.setFont(closeButton.getFont().deriveFont(closeButton.getFont().getSize()+1f));
+        closeButton.setText("Close");
+        closeButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                closeButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -175,8 +181,10 @@ public class ConsoleFrame extends javax.swing.JDialog {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 58, Short.MAX_VALUE)
                 .addComponent(testCodeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(closeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
@@ -185,7 +193,8 @@ public class ConsoleFrame extends javax.swing.JDialog {
                 .addGap(6, 6, 6)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(testCodeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
+                    .addComponent(jLabel1)
+                    .addComponent(closeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(10, 10, 10))
         );
 
@@ -200,7 +209,7 @@ public class ConsoleFrame extends javax.swing.JDialog {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(jSplitPane1)
+                .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 354, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -212,10 +221,16 @@ public class ConsoleFrame extends javax.swing.JDialog {
     private void testCodeButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_testCodeButtonActionPerformed
     {//GEN-HEADEREND:event_testCodeButtonActionPerformed
         String input = inputBox.getText();
-        showOutput(input);
+        showOutput(input, false);
     }//GEN-LAST:event_testCodeButtonActionPerformed
 
+    private void closeButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_closeButtonActionPerformed
+    {//GEN-HEADEREND:event_closeButtonActionPerformed
+        this.dispose();
+    }//GEN-LAST:event_closeButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton closeButton;
     public final javax.swing.JTextArea inputBox = new javax.swing.JTextArea();
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;

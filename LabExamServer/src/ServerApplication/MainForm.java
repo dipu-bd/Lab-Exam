@@ -199,7 +199,7 @@ public class MainForm extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void OpenFile()
-    {        
+    {
         editSessionButton.setEnabled(true);
         startExamButton.setEnabled(true);
         currentSessionBox.setText(CurrentExam.examFile.getAbsolutePath());
@@ -207,18 +207,33 @@ public class MainForm extends javax.swing.JFrame {
 
     private void showSessionCreator()
     {
-        SessionCreator sc = new SessionCreator();
-        sc.setVisible(true);
-        sc.ParentForm = this;
-        this.setVisible(false);
+        final MainForm cur = this;
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run()
+            {
+                SessionCreator sc = new SessionCreator();
+                sc.setModal(false);
+                sc.ParentForm = cur;
+                sc.setVisible(true);
+                cur.setVisible(false);
+            }
+        });
     }
 
     private void showSessionViewer()
     {
-        SessionViewer sc = new SessionViewer();
-        sc.setVisible(true);
-        sc.ParentForm = this;
-        this.setVisible(false);
+        final MainForm cur = this;
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run()
+            {
+                SessionViewer sc = new SessionViewer();
+                sc.setVisible(true);
+                sc.ParentForm = cur;
+                cur.setVisible(false);
+            }
+        });
     }
 
     private void newSessionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newSessionButtonActionPerformed

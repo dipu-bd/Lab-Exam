@@ -7,6 +7,7 @@ package ClientApplication;
 
 import UtilityClass.Functions;
 import java.io.File;
+import java.io.IOException;
 import java.io.Writer;
 
 /**
@@ -35,7 +36,7 @@ public final class CompileAndRun {
 
             return (p.exitValue() == 0);
         }
-        catch (Exception ex)
+        catch (IOException | InterruptedException ex)
         {
             return false;
         }
@@ -43,21 +44,15 @@ public final class CompileAndRun {
 
     public static boolean RunProgram(File codePath)
     {
-        try
-        {
-            //format of the arguments 
-            String format = "java -classpath \"%s\" Main";
-            final String command = String.format(format, codePath.toString());
+        //format of the arguments 
+        String format = "java -classpath \"%s\" Main";
+        final String command = String.format(format, codePath.toString());
 
-            //start console            
-            ConsoleFrame cf = new ConsoleFrame(command);
-            cf.setVisible(true);
+        //start console            
+        ConsoleFrame cf = new ConsoleFrame(command);
+        cf.setSize(750, 400);
+        cf.setVisible(true);
 
-            return true;
-        }
-        catch (Exception ex)
-        {
-            return false;
-        }
+        return true;
     }
 }
