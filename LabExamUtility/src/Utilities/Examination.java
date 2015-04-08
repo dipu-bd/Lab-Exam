@@ -14,9 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package UtilityClass;
+package Utilities;
 
-import java.io.File;
+import java.io.File; 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,7 +27,8 @@ import java.util.Date;
  *
  * @author Dipu
  */
-public class Examination implements Serializable {
+public class Examination implements Serializable  {
+    private static final long serialVersionUID = 1L;
 
     /**
      * Constructor of examination
@@ -47,38 +48,16 @@ public class Examination implements Serializable {
         return String.format("%s [%d questions; %d participants]",
                 ExamTitle, allQuestion.size(), allCandidate.size());
     }
-
-    /**
-     * Name of the exam
-     */
-    public String ExamTitle;
-
-    /**
-     * Path where the answers will be saved
-     */
-    public File ExamPath;
-
-    /**
-     * Start time of the exam
-     */
-    public Date StartTime;
-
-    /**
-     * Duration in minute
-     */
-    public int Duration;
-
-    /**
-     * All questions of the exam
-     */
-    public ArrayList<Question> allQuestion = new ArrayList<>();
+ 
+    public String ExamTitle; 
+    public File ExamPath; 
+    public Date StartTime; 
+    public int Duration; 
+    
     public int LastProbID = 1;
-
-    /**
-     * Registered usernames for the exam
-     */
-    public ArrayList<Candidate> allCandidate = new ArrayList<>(); 
     public int LastUserID = 1;
+    public ArrayList<Question> allQuestion = new ArrayList<>(); 
+    public ArrayList<Candidate> allCandidate = new ArrayList<>(); 
     
     /**
      * Reduce LastProbID and LastUserID as minimum as possible.
@@ -103,7 +82,7 @@ public class Examination implements Serializable {
     }
 
     /**
-     * gets the total marks for the exam
+     * Gets the total marks for the exam
      *
      * @return integer value with total marks
      */
@@ -232,7 +211,12 @@ public class Examination implements Serializable {
                 return cd.uid;
         return -1;
     }
-
+    
+    public Object[] getQuestionList()
+    {
+        return allQuestion.toArray();
+    }
+    
     /**
      * Add a new empty question to the list.
      */

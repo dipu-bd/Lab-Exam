@@ -11,7 +11,8 @@ import java.awt.Color;
  *
  * @author Dipu
  */
-public class LoginForm extends javax.swing.JFrame {
+public class LoginForm extends javax.swing.JFrame
+{
 
     /**
      * Creates new form LoginForm
@@ -19,7 +20,7 @@ public class LoginForm extends javax.swing.JFrame {
     public LoginForm()
     {
         initComponents();
-        getContentPane().setBackground(this.getBackground()); 
+        getContentPane().setBackground(this.getBackground());
     }
 
     /**
@@ -116,6 +117,7 @@ public class LoginForm extends javax.swing.JFrame {
 
         LoginButton.setFont(LoginButton.getFont().deriveFont(LoginButton.getFont().getStyle() | java.awt.Font.BOLD, LoginButton.getFont().getSize()+1));
         LoginButton.setForeground(new java.awt.Color(0, 51, 102));
+        LoginButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/login.png"))); // NOI18N
         LoginButton.setToolTipText("Fill up all boxes and click to login");
         LoginButton.setLabel("Login");
         LoginButton.setMargin(new java.awt.Insets(2, 3, 2, 3));
@@ -153,7 +155,7 @@ public class LoginForm extends javax.swing.JFrame {
         jLabel6.setText("This should be provided by the teacher.");
 
         jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/logout-icon.png"))); // NOI18N
+        jLabel7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/connect-icon.png"))); // NOI18N
         jLabel7.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 0, 2, new java.awt.Color(0, 204, 204)));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -229,25 +231,22 @@ public class LoginForm extends javax.swing.JFrame {
     {
         // collect data        
         int result = 2;
-        try
-        {
+        try {
             ServerLink.serverName = IPAddressText.getText().trim();
             ServerLink.userName = userNameText.getText().trim();
-            ServerLink.port = Integer.parseInt(PortText.getText());            
-            
+            ServerLink.port = Integer.parseInt(PortText.getText());
+
             //attempt to login
-            String pass = new String(PasswordField.getPassword());            
+            String pass = new String(PasswordField.getPassword());
             result = ClientApplication.ServerLink.promptLogin(pass);
         }
-        catch (NumberFormatException ex)
-        {
+        catch (NumberFormatException ex) {
             result = 2;
         }
-        
+
         //process result
         String message = "";
-        switch (result)
-        {
+        switch (result) {
             case 0:
                 loginCompleted();
                 return;
@@ -261,7 +260,7 @@ public class LoginForm extends javax.swing.JFrame {
                 message = "Check your input again.";
                 break;
         }
-        javax.swing.JOptionPane.showMessageDialog(this, message);        
+        javax.swing.JOptionPane.showMessageDialog(this, message);
     }
 
     private void LoginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LoginButtonActionPerformed

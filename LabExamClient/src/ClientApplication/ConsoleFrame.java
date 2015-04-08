@@ -5,9 +5,8 @@
  */
 package ClientApplication;
 
-import UtilityClass.Functions;
+import Utilities.Functions;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringWriter;
@@ -16,7 +15,8 @@ import java.io.StringWriter;
  *
  * @author Dipu
  */
-public class ConsoleFrame extends javax.swing.JDialog {
+public class ConsoleFrame extends javax.swing.JDialog
+{
 
     public String commands;
 
@@ -29,8 +29,7 @@ public class ConsoleFrame extends javax.swing.JDialog {
 
     private void showOutput(String input, boolean showError)
     {
-        try
-        {
+        try {
             Process p = Runtime.getRuntime().exec(commands);
 
             OutputStream out;
@@ -42,18 +41,19 @@ public class ConsoleFrame extends javax.swing.JDialog {
 
             outputBox.setText("");
             String inn = Functions.readFully(p.getInputStream(), "UTF-8");
-            if (inn.length() > 0) outputBox.append(inn + "\n");
-            if (showError)
-            {
+            if (inn.length() > 0)
+                outputBox.append(inn + "\n");
+            if (showError) {
                 String err = Functions.readFully(p.getErrorStream(), "UTF-8");
-                if (err.length() > 0) outputBox.append(err + "\n");
+                if (err.length() > 0)
+                    outputBox.append(err + "\n");
             }
             outputBox.append("Process exited with code: " + p.exitValue() + "\n");
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             final StringWriter sw = new StringWriter();
-            PrintStream ps = new PrintStream(new OutputStream() {
+            PrintStream ps = new PrintStream(new OutputStream()
+            {
                 @Override
                 public void write(int i) throws IOException
                 {
@@ -72,8 +72,7 @@ public class ConsoleFrame extends javax.swing.JDialog {
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents()
-    {
+    private void initComponents() {
 
         jSplitPane1 = new javax.swing.JSplitPane();
         jPanel1 = new javax.swing.JPanel();
@@ -91,7 +90,7 @@ public class ConsoleFrame extends javax.swing.JDialog {
         setModal(true);
         setPreferredSize(new java.awt.Dimension(600, 400));
 
-        jSplitPane1.setDividerLocation(340);
+        jSplitPane1.setDividerLocation(350);
         jSplitPane1.setDividerSize(8);
         jSplitPane1.setResizeWeight(0.4);
 
@@ -135,7 +134,7 @@ public class ConsoleFrame extends javax.swing.JDialog {
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 394, Short.MAX_VALUE)
+            .addGap(0, 361, Short.MAX_VALUE)
             .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING))
         );
@@ -152,10 +151,8 @@ public class ConsoleFrame extends javax.swing.JDialog {
 
         testCodeButton.setFont(testCodeButton.getFont().deriveFont(testCodeButton.getFont().getSize()+1f));
         testCodeButton.setText("Run Test");
-        testCodeButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        testCodeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 testCodeButtonActionPerformed(evt);
             }
         });
@@ -166,10 +163,8 @@ public class ConsoleFrame extends javax.swing.JDialog {
 
         closeButton.setFont(closeButton.getFont().deriveFont(closeButton.getFont().getSize()+1f));
         closeButton.setText("Close");
-        closeButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        closeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 closeButtonActionPerformed(evt);
             }
         });
@@ -180,8 +175,8 @@ public class ConsoleFrame extends javax.swing.JDialog {
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 58, Short.MAX_VALUE)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 388, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addComponent(testCodeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(closeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -209,7 +204,7 @@ public class ConsoleFrame extends javax.swing.JDialog {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 354, Short.MAX_VALUE)
+                .addComponent(jSplitPane1)
                 .addGap(0, 0, 0)
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );

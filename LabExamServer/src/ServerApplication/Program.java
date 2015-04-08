@@ -28,29 +28,32 @@ import javax.swing.UnsupportedLookAndFeelException;
  *
  * @author Dipu
  */
-public class Program {
+public class Program
+{
 
     public static final String defExtension = "labex";
 
     public static void main(String[] args)
     {
         /* Set the look and feel */
-        try
-        {
+        try {
             //try to set windows theme, if not found then set nibus theme, otherwise default
             String win = null;
             String nimbus = null;
-            for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels())
-            {
-                if ("Windows".equals(info.getName()))
+            for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Windows".equals(info.getName())) {
                     win = info.getClassName();
-                if ("Nimbus".equals(info.getName()))
+                }
+                if ("Nimbus".equals(info.getName())) {
                     nimbus = info.getClassName();
+                }
             }
-            if (win != null)
+            if (win != null) {
                 UIManager.setLookAndFeel(win);
-            else if (nimbus != null)
+            }
+            else if (nimbus != null) {
                 UIManager.setLookAndFeel(nimbus);
+            }
 
             //set look and feel for other controls
             UIDefaults uidef = UIManager.getDefaults();
@@ -58,13 +61,13 @@ public class Program {
             uidef.put("TabbedPane.tabBorderInsets", new Insets(0, 0, 0, 0));
 
         }
-        catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex)
-        {
+        catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(Program.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
 
         /* Create and display the form */
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeLater(new Runnable()
+        {
             @Override
             public void run()
             {

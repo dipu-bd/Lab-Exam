@@ -14,7 +14,8 @@ import javax.swing.JFrame;
  * @author Dipu
  */
 @SuppressWarnings("serial")
-public class WaitingForm extends javax.swing.JFrame {
+public class WaitingForm extends javax.swing.JFrame
+{
 
     public JFrame ParentForm;
     public long startTime;
@@ -31,14 +32,16 @@ public class WaitingForm extends javax.swing.JFrame {
         getContentPane().setBackground(getBackground());
 
         //initialize timertask
-        this.refreshTask = new TimerTask() {
+        this.refreshTask = new TimerTask()
+        {
             @Override
             public void run()
             {
                 startTime = ServerLink.getStartTime();
             }
         };
-        this.updateTask = new TimerTask() {
+        this.updateTask = new TimerTask()
+        {
             @Override
             public void run()
             {
@@ -56,7 +59,8 @@ public class WaitingForm extends javax.swing.JFrame {
     {
         refreshTask.run();
         long now = System.currentTimeMillis();
-        if (now < startTime) return;
+        if (now < startTime)
+            return;
 
         this.dispose();
 
@@ -67,20 +71,18 @@ public class WaitingForm extends javax.swing.JFrame {
 
     public void updateValues()
     {
-        if (startTime < 0)
-        {
+        if (startTime < 0) {
             this.dispose();
             return;
         }
 
         long now = System.currentTimeMillis();
-        if (startTime <= now)
-        {
+        if (startTime <= now) {
             showMainForm();
             return;
         }
 
-        String res = UtilityClass.Functions.formatTimeSpan(startTime - now);
+        String res = Utilities.Functions.formatTimeSpan(startTime - now);
         intervalToBegin.setText(res);
     }
 
@@ -130,6 +132,7 @@ public class WaitingForm extends javax.swing.JFrame {
         intervalToBegin.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(146, 192, 208), 3, true));
         intervalToBegin.setOpaque(true);
 
+        refreshButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/reload.png"))); // NOI18N
         refreshButton.setText("Refresh");
         refreshButton.addActionListener(new java.awt.event.ActionListener()
         {
@@ -139,6 +142,7 @@ public class WaitingForm extends javax.swing.JFrame {
             }
         });
 
+        logoutButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/logout-icon.png"))); // NOI18N
         logoutButton.setText("Logout");
         logoutButton.setToolTipText("");
         logoutButton.addActionListener(new java.awt.event.ActionListener()
@@ -195,8 +199,7 @@ public class WaitingForm extends javax.swing.JFrame {
     {//GEN-HEADEREND:event_formWindowClosed
         timer.cancel();
         long now = System.currentTimeMillis();
-        if (startTime == -1 || now < startTime)
-        {
+        if (startTime == -1 || now < startTime) {
             ServerLink.logoutUser();
             ParentForm.setVisible(true);
         }
@@ -211,7 +214,6 @@ public class WaitingForm extends javax.swing.JFrame {
     {//GEN-HEADEREND:event_refreshButtonActionPerformed
         refreshTask.run();
     }//GEN-LAST:event_refreshButtonActionPerformed
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel intervalToBegin;

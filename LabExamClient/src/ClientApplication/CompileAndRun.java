@@ -5,7 +5,7 @@
  */
 package ClientApplication;
 
-import UtilityClass.Functions;
+import Utilities.Functions;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -14,12 +14,12 @@ import java.io.Writer;
  *
  * @author Dipu
  */
-public final class CompileAndRun {
+public final class CompileAndRun
+{
 
     public static boolean CompileCode(File codeFile, Writer writer)
     {
-        try
-        {
+        try {
             //file to compile             
             String dir = codeFile.getParentFile().toString();
             String commands = String.format("javac -g -d \"%s\" \"%s\"", dir, codeFile.toString());
@@ -29,15 +29,16 @@ public final class CompileAndRun {
             p.waitFor();
 
             String err = Functions.readFully(p.getErrorStream(), "UTF-8");
-            if (err.length() > 0) writer.write(err + "\n");
+            if (err.length() > 0)
+                writer.write(err + "\n");
 
             String inn = Functions.readFully(p.getInputStream(), "UTF-8");
-            if (inn.length() > 0) writer.write(inn + "\n");
+            if (inn.length() > 0)
+                writer.write(inn + "\n");
 
             return (p.exitValue() == 0);
         }
-        catch (IOException | InterruptedException ex)
-        {
+        catch (IOException | InterruptedException ex) {
             return false;
         }
     }

@@ -35,7 +35,7 @@
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
           <Component id="topPanel" max="32767" attributes="0"/>
-          <Component id="mainSplitterPane" max="32767" attributes="0"/>
+          <Component id="mainSplitterPane" pref="883" max="32767" attributes="0"/>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
@@ -122,6 +122,9 @@
                 <Font component="logoutButton" property="font" relativeSize="true" size="2"/>
               </FontInfo>
             </Property>
+            <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+              <Image iconType="3" name="/Resources/logout-icon.png"/>
+            </Property>
             <Property name="text" type="java.lang.String" value="Logout"/>
           </Properties>
           <Events>
@@ -175,7 +178,7 @@
         </Property>
         <Property name="dividerLocation" type="int" value="300"/>
         <Property name="dividerSize" type="int" value="10"/>
-        <Property name="resizeWeight" type="double" value="0.4"/>
+        <Property name="resizeWeight" type="double" value="0.35"/>
         <Property name="continuousLayout" type="boolean" value="true"/>
         <Property name="doubleBuffered" type="boolean" value="true"/>
         <Property name="oneTouchExpandable" type="boolean" value="true"/>
@@ -195,7 +198,7 @@
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="jPanel7" max="32767" attributes="0"/>
-                  <Component id="questionSplitterPane" alignment="0" max="32767" attributes="0"/>
+                  <Component id="questionSplitterPane" alignment="0" pref="0" max="32767" attributes="0"/>
               </Group>
             </DimensionLayout>
             <DimensionLayout dim="1">
@@ -229,8 +232,8 @@
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="jLabel2" min="-2" pref="178" max="-2" attributes="0"/>
-                          <EmptySpace type="unrelated" max="32767" attributes="0"/>
+                          <Component id="jLabel2" max="32767" attributes="0"/>
+                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
                           <Component id="submitAnswerButton1" min="-2" pref="115" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                       </Group>
@@ -260,6 +263,9 @@
                 </Component>
                 <Component class="javax.swing.JButton" name="submitAnswerButton1">
                   <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/Resources/reload.png"/>
+                    </Property>
                     <Property name="text" type="java.lang.String" value="Refresh"/>
                   </Properties>
                   <Events>
@@ -282,35 +288,6 @@
 
               <Layout class="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout"/>
               <SubComponents>
-                <Container class="javax.swing.JScrollPane" name="jScrollPane2">
-                  <AuxValues>
-                    <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
-                  </AuxValues>
-                  <Constraints>
-                    <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout$JSplitPaneConstraintsDescription">
-                      <JSplitPaneConstraints position="right"/>
-                    </Constraint>
-                  </Constraints>
-
-                  <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
-                  <SubComponents>
-                    <Component class="javax.swing.JTextArea" name="questionDescBox">
-                      <Properties>
-                        <Property name="editable" type="boolean" value="false"/>
-                        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                          <Color blue="ff" green="f9" red="ef" type="rgb"/>
-                        </Property>
-                        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                          <Font name="Candara" size="18" style="0"/>
-                        </Property>
-                        <Property name="lineWrap" type="boolean" value="true"/>
-                        <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-                          <Border info="null"/>
-                        </Property>
-                      </Properties>
-                    </Component>
-                  </SubComponents>
-                </Container>
                 <Container class="javax.swing.JPanel" name="jPanel9">
                   <Constraints>
                     <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout$JSplitPaneConstraintsDescription">
@@ -323,7 +300,7 @@
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" attributes="0">
                               <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                              <Component id="jScrollPane1" pref="323" max="32767" attributes="0"/>
+                              <Component id="jScrollPane1" pref="295" max="32767" attributes="0"/>
                               <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
                           </Group>
                       </Group>
@@ -348,6 +325,11 @@
                             <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                               <Color blue="ff" green="f9" red="ff" type="rgb"/>
                             </Property>
+                            <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+                              <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
+                                <EmptyBorder bottom="3" left="3" right="3" top="3"/>
+                              </Border>
+                            </Property>
                             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                               <Font name="Segoe UI" size="14" style="0"/>
                             </Property>
@@ -360,6 +342,45 @@
                           </Events>
                         </Component>
                       </SubComponents>
+                    </Container>
+                  </SubComponents>
+                </Container>
+                <Container class="javax.swing.JPanel" name="jPanel1">
+                  <Constraints>
+                    <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout$JSplitPaneConstraintsDescription">
+                      <JSplitPaneConstraints position="right"/>
+                    </Constraint>
+                  </Constraints>
+
+                  <Layout>
+                    <DimensionLayout dim="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="descToolBar" pref="295" max="32767" attributes="0"/>
+                          <Component id="pdfPanel" alignment="0" max="32767" attributes="0"/>
+                      </Group>
+                    </DimensionLayout>
+                    <DimensionLayout dim="1">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" alignment="0" attributes="0">
+                              <Component id="descToolBar" min="-2" pref="25" max="-2" attributes="0"/>
+                              <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
+                              <Component id="pdfPanel" pref="220" max="32767" attributes="0"/>
+                          </Group>
+                      </Group>
+                    </DimensionLayout>
+                  </Layout>
+                  <SubComponents>
+                    <Container class="javax.swing.JToolBar" name="descToolBar">
+                      <Properties>
+                        <Property name="floatable" type="boolean" value="false"/>
+                        <Property name="rollover" type="boolean" value="true"/>
+                      </Properties>
+
+                      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBoxLayout"/>
+                    </Container>
+                    <Container class="javax.swing.JScrollPane" name="pdfPanel">
+
+                      <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
                     </Container>
                   </SubComponents>
                 </Container>
@@ -389,7 +410,7 @@
                       <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
                       <Component id="jPanel5" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                      <Component id="answerSplitterPane" max="32767" attributes="0"/>
+                      <Component id="answerSplitterPane" pref="335" max="32767" attributes="0"/>
                       <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
                   </Group>
               </Group>
@@ -414,13 +435,13 @@
                 <DimensionLayout dim="0">
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="0" attributes="0">
-                          <EmptySpace max="-2" attributes="0"/>
+                          <EmptySpace min="-2" max="-2" attributes="0"/>
                           <Component id="questionTitleBox" max="32767" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
+                          <EmptySpace max="32767" attributes="0"/>
                           <Component id="jLabel3" min="-2" pref="42" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
+                          <EmptySpace min="-2" max="-2" attributes="0"/>
                           <Component id="markValueBox" min="-2" pref="60" max="-2" attributes="0"/>
-                          <EmptySpace min="-2" pref="5" max="-2" attributes="0"/>
+                          <EmptySpace min="38" pref="38" max="-2" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -485,9 +506,13 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="submitAnswerButton" min="-2" pref="115" max="-2" attributes="0"/>
                           <EmptySpace max="32767" attributes="0"/>
+                          <Component id="jLabel1" min="-2" pref="46" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="themeChooser" min="-2" pref="75" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
                           <Component id="saveCodeButton" min="-2" pref="120" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="compileAndRunButton" min="-2" pref="130" max="-2" attributes="0"/>
+                          <Component id="compileAndRunButton" min="-2" pref="150" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                       </Group>
                   </Group>
@@ -500,6 +525,8 @@
                               <Component id="submitAnswerButton" alignment="3" min="-2" pref="28" max="-2" attributes="0"/>
                               <Component id="compileAndRunButton" alignment="3" min="-2" pref="28" max="-2" attributes="0"/>
                               <Component id="saveCodeButton" alignment="3" min="-2" pref="28" max="-2" attributes="0"/>
+                              <Component id="jLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="themeChooser" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace min="-2" pref="5" max="-2" attributes="0"/>
                       </Group>
@@ -509,6 +536,9 @@
               <SubComponents>
                 <Component class="javax.swing.JButton" name="submitAnswerButton">
                   <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/Resources/submit.png"/>
+                    </Property>
                     <Property name="text" type="java.lang.String" value="Submit"/>
                   </Properties>
                   <Events>
@@ -517,6 +547,9 @@
                 </Component>
                 <Component class="javax.swing.JButton" name="compileAndRunButton">
                   <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/Resources/runtest.png"/>
+                    </Property>
                     <Property name="text" type="java.lang.String" value="Compile and Run"/>
                   </Properties>
                   <Events>
@@ -525,10 +558,32 @@
                 </Component>
                 <Component class="javax.swing.JButton" name="saveCodeButton">
                   <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/Resources/save.png"/>
+                    </Property>
                     <Property name="text" type="java.lang.String" value="Save"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="saveCodeButtonActionPerformed"/>
+                  </Events>
+                </Component>
+                <Component class="javax.swing.JLabel" name="jLabel1">
+                  <Properties>
+                    <Property name="horizontalAlignment" type="int" value="4"/>
+                    <Property name="text" type="java.lang.String" value="Theme :"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JComboBox" name="themeChooser">
+                  <Properties>
+                    <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+                      <StringArray count="2">
+                        <StringItem index="0" value="Light"/>
+                        <StringItem index="1" value="Dark"/>
+                      </StringArray>
+                    </Property>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="themeChooserActionPerformed"/>
                   </Events>
                 </Component>
               </SubComponents>
@@ -562,7 +617,7 @@
                     <DimensionLayout dim="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="0" attributes="0">
-                              <Component id="rTextScrollPane1" pref="397" max="32767" attributes="0"/>
+                              <Component id="rTextScrollPane1" pref="568" max="32767" attributes="0"/>
                               <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
                           </Group>
                       </Group>
@@ -570,7 +625,7 @@
                     <DimensionLayout dim="1">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="0" attributes="0">
-                              <Component id="rTextScrollPane1" pref="185" max="32767" attributes="0"/>
+                              <Component id="rTextScrollPane1" pref="204" max="32767" attributes="0"/>
                               <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
                           </Group>
                       </Group>
@@ -593,8 +648,12 @@
                             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                               <Font name="Consolas" size="14" style="0"/>
                             </Property>
+                            <Property name="markOccurrences" type="boolean" value="true"/>
                             <Property name="syntaxEditingStyle" type="java.lang.String" value="text/java"/>
                           </Properties>
+                          <Events>
+                            <EventHandler event="keyReleased" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="codeEditorKeyReleased"/>
+                          </Events>
                           <AuxValues>
                             <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="codeEditor.setCodeFoldingEnabled(true);&#xa;codeEditor.setAntiAliasingEnabled(true);&#xa;codeEditor.setBackground(new java.awt.Color(250, 253, 255));"/>
                             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="18"/>
@@ -632,7 +691,7 @@
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="1" attributes="0">
                               <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                              <Component id="jScrollPane4" pref="82" max="32767" attributes="0"/>
+                              <Component id="jScrollPane4" pref="107" max="32767" attributes="0"/>
                               <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
                           </Group>
                       </Group>

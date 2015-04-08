@@ -14,51 +14,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package UtilityClass;
+package Utilities;
 
 /**
- * Command for passing data
  *
  * @author Dipu
  */
-public enum Command {
+public interface UserChangedHandler {
 
-    /**
-     * Empty command
-     *//**
-     * Empty command
-     */
-    EMPTY,
-    /**
-     * Login to the server
-     */
-    LOGIN,
-    /**
-     * Logout from the server
-     */
-    LOGOUT,
-    /**
-     * Get the examination start time
-     */
-    START_TIME,
-    /**
-     * Get the examination class object
-     */
-    EXAM_TITLE,
-    /**
-     * Submit answer to an specific question
-     */
-    SUBMIT,
-    /**
-     * Get the last announcement id
-     */
-    ANNOUNCEMENT,
-    /**
-     * Get the ending time of the exam
-     */
-    STOP_TIME,
-    /**
-     * Get list of all questions
-     */
-    ALL_QUES
+    void userChanged(UserChangeEvent ae);
+    void userSubmitted(UserChangeEvent ae);
 }

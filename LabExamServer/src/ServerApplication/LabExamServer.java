@@ -16,8 +16,8 @@
  */
 package ServerApplication;
 
-import UtilityClass.Command;
-import UtilityClass.Question;
+import Utilities.Command;
+import Utilities.Question;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -34,7 +34,8 @@ import java.util.logging.Logger;
  *
  * @author Dipu
  */
-public final class LabExamServer {
+public final class LabExamServer
+{
 
     private static boolean stopListening = false;
     private static ServerSocket serverSocket;
@@ -45,21 +46,18 @@ public final class LabExamServer {
 
     public static String getIPAddress()
     {
-        try
-        {
+        try {
             InetAddress IP = InetAddress.getLocalHost();
             return IP.getHostAddress();
         }
-        catch (UnknownHostException ex)
-        {
+        catch (UnknownHostException ex) {
             return "127.0.0.1";
         }
     }
 
     public static int getPort()
     {
-        if (serverSocket == null || !serverSocket.isBound())
-        {
+        if (serverSocket == null || !serverSocket.isBound()) {
             return 0;
         }
         return serverSocket.getLocalPort();
@@ -68,11 +66,13 @@ public final class LabExamServer {
     public static void initialize()
     {
         int siz = CurrentExam.curExam.allCandidate.size();
-        if (!createSocket(1993, siz + 10))
+        if (!createSocket(1993, siz + 10)) {
             createSocket(0, siz + 10);
+        }
 
         stopListening = false;
-        (new Thread(new Runnable() {
+        (new Thread(new Runnable()
+        {
             @Override
             public void run()
             {
@@ -86,15 +86,15 @@ public final class LabExamServer {
 
     public static boolean createSocket(int port, int siz)
     {
-        try
-        {
-            if (serverSocket != null) serverSocket.close();
+        try {
+            if (serverSocket != null) {
+                serverSocket.close();
+            }
             serverSocket = new ServerSocket(port, siz);
             serverSocket.setReuseAddress(true);
             return true;
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             return false;
         }
     }
@@ -102,7 +102,9 @@ public final class LabExamServer {
     public static String getClientIP()
     {
         String ip = clientSocket.getRemoteSocketAddress().toString();
-        if (ip.startsWith("/")) ip = ip.substring(1);
+        if (ip.startsWith("/")) {
+            ip = ip.substring(1);
+        }
         return ip;
     }
 
@@ -113,11 +115,8 @@ public final class LabExamServer {
         Logger.getLogger("LabExam").log(Level.INFO,
                 "Waiting at " + curip + " on port " + serverSocket.getLocalPort());
 
-        while (true)
-        {
-
-            try
-            {
+        while (true) {
+            try {
                 clientSocket = serverSocket.accept();
 
                 //get input-output
@@ -132,14 +131,11 @@ public final class LabExamServer {
                 input.close();
                 clientSocket.close();
             }
-            catch (IOException | ClassNotFoundException ex)
-            {
-                if (stopListening)
-                {
+            catch (IOException | ClassNotFoundException ex) {
+                if (stopListening) {
                     Logger.getLogger("LabExam").log(Level.INFO, "Exam stopped.");
                 }
-                else
-                {
+                else {
                     Logger.getLogger("LabExam").log(Level.SEVERE,
                             "Error while listening to the socket.", ex);
                 }
@@ -150,13 +146,11 @@ public final class LabExamServer {
 
     public static void StopListening()
     {
-        try
-        {
+        try {
             stopListening = true;
             serverSocket.close();
         }
-        catch (IOException ex)
-        {
+        catch (IOException ex) {
             Logger.getLogger(LabExamServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -167,8 +161,7 @@ public final class LabExamServer {
         boolean result;
         String user, pass, answer;
 
-        switch (command)
-        {
+        switch (command) {
             case EMPTY:
                 output.writeObject(true);
                 break;
@@ -196,10 +189,12 @@ public final class LabExamServer {
                 output.writeObject(CurrentExam.getAnnoucements(curSiz));
                 break;
             case ALL_QUES:
-                if (CurrentExam.curExam.isRunning())
+                if (CurrentExam.curExam.isRunning()) {
                     output.writeObject(CurrentExam.curExam.allQuestion);
-                else
+                }
+                else {
                     output.writeObject(new ArrayList<Question>());
+                }
                 break;
             case SUBMIT:
                 user = (String) input.readObject();

@@ -14,17 +14,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package UtilityClass;
+package Utilities;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  *
  * @author Dipu
  */
 public final class Functions {
-
+    
+    /**
+     * Recursively delete all files and folders from a directory
+     * @param directory Path to delete
+     * @return True in success, False otherwise.
+     */
     public static boolean deleteDirectory(java.io.File directory)
     {
         if (directory.exists())
@@ -47,12 +54,26 @@ public final class Functions {
         }
         return (directory.delete());
     }
-
+    
+    /**
+     * Reads all texts from a stream using a specific encoding.
+     * @param inputStream inputStream to read from.
+     * @param encoding Encoding used to read input stream. (Default is UTF-8).
+     * @return String read from the given input stream.
+     * @throws java.io.IOException Input output exception.
+     */
     public static String readFully(java.io.InputStream inputStream, String encoding) throws java.io.IOException
     {
+        if(encoding == null || encoding.isEmpty()) encoding = "UTF-8";
         return new String(readFully(inputStream), encoding);
     }
 
+    /**
+     * Reads all bytes from a stream using a specific encoding.
+     * @param inputStream inputStream to read from.
+     * @return byte array read from the given input stream.
+     * @throws java.io.IOException Input output exception.
+     */
     public static byte[] readFully(java.io.InputStream inputStream) throws java.io.IOException
     {
         java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
@@ -65,12 +86,36 @@ public final class Functions {
         return baos.toByteArray();
     }
     
+    /**
+     * Write some text string into an output stream using a specific encoding
+     * @param outputStream Stream to write into
+     * @param text Text to write
+     * @param encoding Encoding used to write data. (Default is UTF-8).
+     * @throws IOException 
+     */
     public static void writeFully(java.io.OutputStream outputStream, String text, String encoding) throws IOException 
     {
+        if(encoding == null || encoding.isEmpty()) encoding = "UTF-8";
         outputStream.write(text.getBytes(encoding));
         outputStream.flush();
     }
-
+    
+    /**
+     * Custom format a date variable using "EEE dd-MMM, yyyy hh:mm aa"
+     * @param date Date variable to format
+     * @return Formatted string
+     */
+    public static String formatTime(Date date)
+    {
+        return (new SimpleDateFormat("EEE dd-MMM, yyyy hh:mm aa")).format(date);
+    }
+    
+    /**
+     * Format a span of time. 
+     * It will take some time interval and return day/hour/minute in that interval.
+     * @param time long time interval
+     * @return Formatted time interval
+     */
     public static String formatTimeSpan(long time)
     {
         if (time <= 0) return "0 second";

@@ -16,10 +16,10 @@
  */
 package ServerApplication;
 
-import UtilityClass.Candidate;
-import UtilityClass.Examination;
-import UtilityClass.UserChangeEvent;
-import UtilityClass.UserChangedHandler;
+import Utilities.Candidate;
+import Utilities.Examination;
+import Utilities.UserChangeEvent;
+import Utilities.UserChangedHandler;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -38,7 +38,8 @@ import java.util.logging.Logger;
  *
  * @author Dipu
  */
-public final class CurrentExam {
+public final class CurrentExam
+{
 
     /**
      * File where the curExam data is saved
@@ -81,8 +82,7 @@ public final class CurrentExam {
 
         //open file
         try (FileInputStream fin = new FileInputStream(examFile);
-                ObjectInputStream ois = new ObjectInputStream(fin))
-        {
+             ObjectInputStream ois = new ObjectInputStream(fin)) {
             curExam = (Examination) ois.readObject();
             curExam.recycleLastID();
         }
@@ -97,8 +97,7 @@ public final class CurrentExam {
     public static void Save() throws FileNotFoundException, IOException
     {
         try (FileOutputStream fos = new FileOutputStream(examFile);
-                ObjectOutputStream oos = new ObjectOutputStream(fos))
-        {
+             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(curExam);
             oos.flush();
         }
@@ -109,31 +108,25 @@ public final class CurrentExam {
      *
      * @return list of users and passwords
      */
-    public static String printUsers()
+    public static String getUsers()
     {
-        String output = "";
-        String newline = System.lineSeparator();
-        output += " No  \t IP Address         \t Port   \t Registration No  \t Passwords " + newline;
-        output += "-----\t--------------------\t--------\t------------------\t-----------" + newline;
-
-        String ip = LabExamServer.getIPAddress();
-        int port = LabExamServer.getPort();
-
-        int pos = 0;
-        for (Candidate c : curExam.allCandidate)
-        {
-            ++pos;
-            output += String.format(" %02d: \t", pos);
-            output += String.format(" %-18s \t", ip);
-            output += String.format(" %-6d \t", port);
-            output += String.format(" %-16s \t", c.regno);
-            output += String.format(" %-8s ", c.password) + newline;
+        String output = "Name,\tRegistration No,\tPasswords\n";
+        for (Candidate c : curExam.allCandidate) {
+            output += c.name + ",\t" + c.regno + ",\t" + c.password + "\n";
         }
-
         return output;
     }
-    //</editor-fold>
 
+    public static void loadUsers(String input)
+    {
+        curExam.allCandidate.clear();
+        for (String line : input.split("\n")) {
+            String[] can = line.split(",");
+            curExam.addCandidate(can[0].trim(), can[1].trim());
+        }
+    }
+
+    //</editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Add to Remove Users">     
     /**
      * Assign a Socket to specific user.
@@ -146,12 +139,15 @@ public final class CurrentExam {
     public static boolean assignUser(String user, String pass, String ip)
     {
         int uid = curExam.getCandidateID(user);
-        if (uid == -1) return false;
+        if (uid == -1) {
+            return false;
+        }
         Candidate cand = curExam.getCandidate(uid);
-        if (cand == null) return false;
+        if (cand == null) {
+            return false;
+        }
 
-        if (!cand.password.equals(pass))
-        {
+        if (!cand.password.equals(pass)) {
             Logger.getLogger("LabExam").log(Level.WARNING,
                     String.format("%s(%s) tried to login with wrong password."
                             + " (attempted password: %s)", cand.name, cand.regno, pass));
@@ -177,11 +173,12 @@ public final class CurrentExam {
     public static boolean removeUser(String user, String ip)
     {
         int uid = curExam.getCandidateID(user);
-        if (uid == -1) return false;
+        if (uid == -1) {
+            return false;
+        }
 
         String name = curExam.getCandidate(uid).name;
-        if (!logins.contains(uid))
-        {
+        if (!logins.contains(uid)) {
             Logger.getLogger("LabExam").log(Level.WARNING,
                     String.format("%s(%s) tried to log out but failed.", name, user));
             return false;
@@ -206,9 +203,15 @@ public final class CurrentExam {
         path = path.resolve(user);
         //create directory
         File par = path.toFile();
-        if(!par.exists()) par.mkdirs();
-        if(!par.isDirectory()) par.delete();
-        if(!par.exists()) par.mkdirs();
+        if (!par.exists()) {
+            par.mkdirs();
+        }
+        if (!par.isDirectory()) {
+            par.delete();
+        }
+        if (!par.exists()) {
+            par.mkdirs();
+        }
         //save to path
         path = path.resolve(String.format("Q%02d.java", qid));
         return path.toFile();
@@ -224,15 +227,18 @@ public final class CurrentExam {
      */
     public static boolean submitAnswer(String regno, int qid, String answer)
     {
-        if (!CurrentExam.curExam.isRunning()) return false;
+        if (!CurrentExam.curExam.isRunning()) {
+            return false;
+        }
 
         int uid = curExam.getCandidateID(regno);
-        if (!curExam.candidateExist(uid)) return false;
+        if (!curExam.candidateExist(uid)) {
+            return false;
+        }
 
         String name = curExam.getCandidate(uid).name;
 
-        try
-        {
+        try {
             FileOutputStream fos;
             fos = new FileOutputStream(getSubmissionPath(regno, qid));
             fos.write(answer.getBytes());
@@ -244,8 +250,7 @@ public final class CurrentExam {
                     String.format("%s(%s) submitted answer for Question %02d", name, regno, qid));
             return true;
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             Logger.getLogger("LabExam").log(Level.SEVERE,
                     String.format("Failed to receive %s(%s)'s answer for Question.", name, regno));
             return false;
@@ -255,8 +260,7 @@ public final class CurrentExam {
     public static ArrayList<String> getAnnoucements(int curSiz)
     {
         ArrayList<String> nlist = new ArrayList<>();
-        for (int x = curSiz; x < CurrentExam.announcements.size(); ++x)
-        {
+        for (int x = curSiz; x < CurrentExam.announcements.size(); ++x) {
             nlist.add(CurrentExam.announcements.get(x));
         }
         return nlist;
@@ -264,8 +268,7 @@ public final class CurrentExam {
 
     public static void addToBlacklist(int uid)
     {
-        if (CurrentExam.curExam.isRunning())
-        {
+        if (CurrentExam.curExam.isRunning()) {
             blacklist.add(uid);
         }
     }
@@ -287,8 +290,7 @@ public final class CurrentExam {
     public static void invokeUserChanged(UserChangeEvent uce)
     {
         // Notify everybody who are connected
-        for (UserChangedHandler handler : userChangeListener)
-        {
+        for (UserChangedHandler handler : userChangeListener) {
             handler.userChanged(uce);
         }
     }

@@ -14,14 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package UtilityClass;
+package Utilities;
+
+import java.util.Comparator;
 
 /**
+ * Comparator two Candidate object by their UID
  *
  * @author Dipu
  */
-public interface UserChangedHandler {
+public class UserComparator implements Comparator<Candidate> {
 
-    void userChanged(UserChangeEvent ae);
-    void userSubmitted(UserChangeEvent ae);
+    @Override
+    public int compare(Candidate u1, Candidate u2)
+    {
+        return u1.uid - u2.uid;
+    }
 }

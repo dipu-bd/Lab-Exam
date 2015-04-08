@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package UtilityClass;
-
+package Utilities;
+ 
 import java.io.Serializable;
 
 /**
@@ -24,6 +24,8 @@ import java.io.Serializable;
  * @author Dipu
  */
 public class Question implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
 
     /**
      * Constructor
@@ -32,10 +34,9 @@ public class Question implements Serializable {
      */
     public Question(int id)
     {
-        ID = id;
-        Title = "Question " + Integer.toString(id);
-        Body = "";
-        Mark = 0;
+        ID = id;     
+        Mark = 0; 
+        Title = "Question " + Integer.toString(id);   
     }
 
     /**
@@ -51,9 +52,9 @@ public class Question implements Serializable {
      */
     public int Mark;
     /**
-     * Full question description
+     * Byte data of PDF question
      */
-    public String Body;
+    public byte[] Body;
 
     @Override
     public String toString()

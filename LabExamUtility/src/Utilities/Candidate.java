@@ -14,15 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package UtilityClass;
-
+package Utilities;
+ 
 import java.io.Serializable;
 import java.security.SecureRandom;
 
 /**
  *
  * @author Dipu
- */
+ */ 
 public final class Candidate implements Serializable {
 
     private final static int PASS_LENGTH = 8;
@@ -31,6 +31,7 @@ public final class Candidate implements Serializable {
      * Secured random number class to generate password and other uses
      */
     public final static SecureRandom random = new SecureRandom();
+    private static final long serialVersionUID = 1L;
 
     public Candidate(int id)
     {

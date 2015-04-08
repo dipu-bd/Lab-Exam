@@ -14,20 +14,34 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package UtilityClass;
+package Utilities;
 
-import java.util.Comparator;
+import java.awt.AWTEvent;
 
 /**
- * Comparator two Candidate object by their UID
  *
  * @author Dipu
  */
-public class UserComparator implements Comparator<Candidate> {
+@SuppressWarnings("serial")
+public class UserChangeEvent extends AWTEvent {
 
-    @Override
-    public int compare(Candidate u1, Candidate u2)
+    public int uid;
+    public boolean status;
+    public int quesID;
+
+    public UserChangeEvent(int id, boolean login)
     {
-        return u1.uid - u2.uid;
+        super(id, 0);
+        this.uid = id;
+        this.status = login;
+        this.quesID = -1;
+    }
+
+    public UserChangeEvent(int uid, int qid)
+    {
+        super(uid, 0);
+        this.uid = uid;
+        this.quesID = qid;
+        this.status = true;
     }
 }

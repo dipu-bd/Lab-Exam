@@ -16,10 +16,13 @@
  */
 package ServerApplication;
 
-import UtilityClass.Candidate;
-import UtilityClass.Question;
+import Utilities.Candidate;
+import Utilities.Functions;
+import Utilities.Question;
 import java.awt.HeadlessException;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
@@ -29,26 +32,43 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
+import org.icepdf.ri.common.SwingController;
+import org.icepdf.ri.common.SwingViewBuilder;
 
 /**
  *
  * @author Dipu
  */
-public class SessionCreator extends javax.swing.JDialog {
+public class SessionCreator extends javax.swing.JFrame
+{
 
     private static final long serialVersionUID = 1L;
 
     public JFrame ParentForm;
+    private Question currentQuestion;
     private final DefaultTableModel model;
+    private final SwingController pdfController = new SwingController();
 
     /**
-     * Creates new form SessionCreator
+     * Constructor for the current class
      */
     public SessionCreator()
     {
         initComponents();
+        initPdfViewer();
+
         model = (DefaultTableModel) candidateTable.getModel();
         loadValues();
+    }
+
+    void initPdfViewer()
+    {
+        //factory to build all controls
+        SwingViewBuilder factory = new SwingViewBuilder(pdfController);
+        pdfController.setPageViewMode(2, true);
+
+        //add pdf viewer panel       \
+        factory.buildContents(pdfContainerPanel, false);
     }
 
     /**
@@ -85,6 +105,7 @@ public class SessionCreator extends javax.swing.JDialog {
         addCandidateButton = new javax.swing.JButton();
         deleteCandidateButton = new javax.swing.JButton();
         saveToTextButton = new javax.swing.JButton();
+        saveToTextButton1 = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jSplitPane1 = new javax.swing.JSplitPane();
         jPanel5 = new javax.swing.JPanel();
@@ -98,11 +119,8 @@ public class SessionCreator extends javax.swing.JDialog {
         questionTitle = new javax.swing.JTextField();
         jLabel12 = new javax.swing.JLabel();
         markSpinner = new javax.swing.JSpinner();
-        jLabel14 = new javax.swing.JLabel();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        questionBody = new javax.swing.JTextArea();
-        jLabel15 = new javax.swing.JLabel();
-        idLabel = new javax.swing.JLabel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        pdfContainerPanel = new javax.swing.JPanel();
         jPanel8 = new javax.swing.JPanel();
         saveButton = new javax.swing.JButton();
         nextButton = new javax.swing.JButton();
@@ -111,8 +129,6 @@ public class SessionCreator extends javax.swing.JDialog {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Edit Lab Exam Session");
-        setIconImages(null);
-        setModal(true);
         addWindowListener(new java.awt.event.WindowAdapter()
         {
             public void windowClosed(java.awt.event.WindowEvent evt)
@@ -139,22 +155,31 @@ public class SessionCreator extends javax.swing.JDialog {
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel2.setText("Exam Title :");
 
-        examTitle.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        examTitle.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
 
         jLabel13.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel13.setText("Exam Path :");
 
         examPath.setEditable(false);
-        examPath.setBackground(new java.awt.Color(239, 239, 227));
+        examPath.setBackground(new java.awt.Color(255, 255, 204));
         examPath.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
+        examPath.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mouseClicked(java.awt.event.MouseEvent evt)
+            {
+                examPathMouseClicked(evt);
+            }
+        });
 
         jLabel3.setBackground(new java.awt.Color(255, 255, 255));
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel3.setText("Start Time :");
 
         startTimeSpinner.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
-        startTimeSpinner.setModel(new javax.swing.SpinnerDateModel(new java.util.Date(), null, null, java.util.Calendar.AM_PM));
+        startTimeSpinner.setModel(new javax.swing.SpinnerDateModel(new java.util.Date(), null, null, java.util.Calendar.MINUTE));
 
+        pathBrowseButton.setBackground(new java.awt.Color(204, 255, 204));
+        pathBrowseButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/folder_chooser.png"))); // NOI18N
         pathBrowseButton.setText("Browse");
         pathBrowseButton.setToolTipText("Browse for path");
         pathBrowseButton.addActionListener(new java.awt.event.ActionListener()
@@ -172,6 +197,7 @@ public class SessionCreator extends javax.swing.JDialog {
         durationSpinner.setModel(new javax.swing.SpinnerNumberModel(60, 10, 1000, 10));
         durationSpinner.setToolTipText("Duration of the examination in minutes");
 
+        jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         jLabel5.setText("minutes");
 
         jLabel9.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
@@ -200,17 +226,17 @@ public class SessionCreator extends javax.swing.JDialog {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(pathBrowseButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel11Layout.createSequentialGroup()
-                        .addComponent(startTimeSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 153, Short.MAX_VALUE)
+                        .addComponent(startTimeSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)
                         .addGap(18, 18, 18)
                         .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(durationSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 105, Short.MAX_VALUE)
+                        .addComponent(durationSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(totalMarksBox, javax.swing.GroupLayout.DEFAULT_SIZE, 157, Short.MAX_VALUE)))
+                        .addComponent(totalMarksBox, javax.swing.GroupLayout.DEFAULT_SIZE, 169, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel11Layout.setVerticalGroup(
@@ -223,18 +249,23 @@ public class SessionCreator extends javax.swing.JDialog {
                 .addGap(3, 3, 3)
                 .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel13)
-                    .addComponent(examPath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(pathBrowseButton))
-                .addGap(3, 3, 3)
-                .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(startTimeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel4)
-                    .addComponent(durationSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel5)
-                    .addComponent(jLabel9)
-                    .addComponent(totalMarksBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
+                    .addComponent(examPath, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(pathBrowseButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(4, 4, 4)
+                .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel11Layout.createSequentialGroup()
+                        .addGap(1, 1, 1)
+                        .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(startTimeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addComponent(durationSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(totalMarksBox, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(5, 5, 5))
         );
 
         examPath.setEditable(false);
@@ -302,6 +333,7 @@ public class SessionCreator extends javax.swing.JDialog {
             }
         });
 
+        addCandidateButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/add.png"))); // NOI18N
         addCandidateButton.setText("Add");
         addCandidateButton.addActionListener(new java.awt.event.ActionListener()
         {
@@ -311,6 +343,7 @@ public class SessionCreator extends javax.swing.JDialog {
             }
         });
 
+        deleteCandidateButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/delete.png"))); // NOI18N
         deleteCandidateButton.setText("Delete");
         deleteCandidateButton.addActionListener(new java.awt.event.ActionListener()
         {
@@ -320,12 +353,23 @@ public class SessionCreator extends javax.swing.JDialog {
             }
         });
 
-        saveToTextButton.setText("Save To Text");
+        saveToTextButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/export.png"))); // NOI18N
+        saveToTextButton.setText("Export");
         saveToTextButton.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
                 saveToTextButtonActionPerformed(evt);
+            }
+        });
+
+        saveToTextButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/import.png"))); // NOI18N
+        saveToTextButton1.setText("Import");
+        saveToTextButton1.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                saveToTextButton1ActionPerformed(evt);
             }
         });
 
@@ -335,24 +379,28 @@ public class SessionCreator extends javax.swing.JDialog {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(addCandidateButton, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(addCandidateButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(deleteCandidateButton, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(deleteCandidateButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(saveToTextButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(saveToTextButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(randomizePassButton, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(saveToTextButton, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(randomizePassButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(2, 2, 2))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addGap(2, 2, 2)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(randomizePassButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(addCandidateButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(deleteCandidateButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(saveToTextButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(saveToTextButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(randomizePassButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(addCandidateButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(deleteCandidateButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(saveToTextButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
 
@@ -366,7 +414,7 @@ public class SessionCreator extends javax.swing.JDialog {
         jPanel10Layout.setVerticalGroup(
             jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel10Layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 208, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 236, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0))
@@ -403,13 +451,15 @@ public class SessionCreator extends javax.swing.JDialog {
 
         tabbedPane.addTab("General", jPanel2);
 
-        jSplitPane1.setDividerLocation(230);
-        jSplitPane1.setResizeWeight(0.35);
+        jSplitPane1.setBorder(null);
+        jSplitPane1.setDividerLocation(225);
+        jSplitPane1.setResizeWeight(0.3);
         jSplitPane1.setContinuousLayout(true);
         jSplitPane1.setDoubleBuffered(true);
 
         jPanel5.setBackground(new java.awt.Color(244, 239, 244));
 
+        setQuestionButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/add.png"))); // NOI18N
         setQuestionButton.setText("Add");
         setQuestionButton.addActionListener(new java.awt.event.ActionListener()
         {
@@ -433,6 +483,7 @@ public class SessionCreator extends javax.swing.JDialog {
         });
         jScrollPane2.setViewportView(questionList);
 
+        refreshButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/delete.png"))); // NOI18N
         refreshButton1.setText("Delete");
         refreshButton1.addActionListener(new java.awt.event.ActionListener()
         {
@@ -452,7 +503,7 @@ public class SessionCreator extends javax.swing.JDialog {
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addComponent(setQuestionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 19, Short.MAX_VALUE)
+                        .addGap(18, 18, Short.MAX_VALUE)
                         .addComponent(refreshButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jLabel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
@@ -463,12 +514,12 @@ public class SessionCreator extends javax.swing.JDialog {
                 .addContainerGap()
                 .addComponent(jLabel10)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 309, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 332, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(refreshButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(setQuestionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(11, 11, 11))
+                .addContainerGap())
         );
 
         jSplitPane1.setLeftComponent(jPanel5);
@@ -478,7 +529,7 @@ public class SessionCreator extends javax.swing.JDialog {
         jLabel11.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel11.setText("Question Title :");
 
-        questionTitle.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        questionTitle.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         questionTitle.setMinimumSize(new java.awt.Dimension(60, 23));
         questionTitle.addKeyListener(new java.awt.event.KeyAdapter()
         {
@@ -491,35 +542,30 @@ public class SessionCreator extends javax.swing.JDialog {
         jLabel12.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel12.setText("Mark :");
 
+        markSpinner.setFont(new java.awt.Font("Consolas", 0, 12)); // NOI18N
         markSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(10), Integer.valueOf(0), null, Integer.valueOf(1)));
-        markSpinner.addChangeListener(new javax.swing.event.ChangeListener()
-        {
-            public void stateChanged(javax.swing.event.ChangeEvent evt)
-            {
-                markSpinnerStateChanged(evt);
-            }
-        });
-
-        jLabel14.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel14.setText("Question Body :");
-
-        questionBody.setColumns(20);
-        questionBody.setRows(5);
-        questionBody.addKeyListener(new java.awt.event.KeyAdapter()
+        markSpinner.addKeyListener(new java.awt.event.KeyAdapter()
         {
             public void keyReleased(java.awt.event.KeyEvent evt)
             {
-                questionBodyKeyReleased(evt);
+                markSpinnerKeyReleased(evt);
             }
         });
-        jScrollPane4.setViewportView(questionBody);
 
-        jLabel15.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jLabel15.setText("ID :");
+        pdfContainerPanel.setPreferredSize(new java.awt.Dimension(10, 10));
 
-        idLabel.setBackground(new java.awt.Color(204, 255, 204));
-        idLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        idLabel.setText("0");
+        javax.swing.GroupLayout pdfContainerPanelLayout = new javax.swing.GroupLayout(pdfContainerPanel);
+        pdfContainerPanel.setLayout(pdfContainerPanelLayout);
+        pdfContainerPanelLayout.setHorizontalGroup(
+            pdfContainerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 537, Short.MAX_VALUE)
+        );
+        pdfContainerPanelLayout.setVerticalGroup(
+            pdfContainerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 353, Short.MAX_VALUE)
+        );
+
+        jScrollPane3.setViewportView(pdfContainerPanel);
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
@@ -528,44 +574,29 @@ public class SessionCreator extends javax.swing.JDialog {
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane4)
-                    .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel6Layout.createSequentialGroup()
-                                .addComponent(jLabel14)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addGroup(jPanel6Layout.createSequentialGroup()
-                                .addComponent(jLabel11)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(questionTitle, javax.swing.GroupLayout.DEFAULT_SIZE, 277, Short.MAX_VALUE)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
+                        .addComponent(jLabel11)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(questionTitle, javax.swing.GroupLayout.DEFAULT_SIZE, 324, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
-                                .addComponent(jLabel15)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(idLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
-                                .addComponent(jLabel12)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(markSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                        .addComponent(jLabel12)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(markSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 542, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel11)
-                    .addComponent(questionTitle, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(markSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel12))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel14)
-                    .addComponent(jLabel15)
-                    .addComponent(idLabel))
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(questionTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(markSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 304, Short.MAX_VALUE)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 352, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -592,6 +623,7 @@ public class SessionCreator extends javax.swing.JDialog {
 
         jPanel8.setBackground(new java.awt.Color(5, 225, 225));
 
+        saveButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/save.png"))); // NOI18N
         saveButton.setText("Save");
         saveButton.addActionListener(new java.awt.event.ActionListener()
         {
@@ -610,6 +642,7 @@ public class SessionCreator extends javax.swing.JDialog {
             }
         });
 
+        cancelButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/reload.png"))); // NOI18N
         cancelButton.setText("Cancel Edit");
         cancelButton.addActionListener(new java.awt.event.ActionListener()
         {
@@ -676,10 +709,12 @@ public class SessionCreator extends javax.swing.JDialog {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    public final void loadValues()
+    /**
+     * Load all exam information in the frame.
+     */
+    void loadValues()
     {
-        try
-        {
+        try {
             this.setTitle("Edit Lab Exam Session [" + CurrentExam.examFile.getName() + "]");
 
             //general values   
@@ -694,141 +729,207 @@ public class SessionCreator extends javax.swing.JDialog {
             //user values 
             loadCandidateList();
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             Logger.getLogger(SessionCreator.class.getName()).log(Level.SEVERE,
                     "Error while loading values", ex);
         }
     }
- 
+
+    /**
+     * Loads the list of candidates names/passwords
+     */
     private void loadCandidateList()
     {
         model.setRowCount(0);
-        for (Candidate cd : CurrentExam.curExam.allCandidate)
-        {
-            model.addRow(new Object[]
-            {
+        for (Candidate cd : CurrentExam.curExam.allCandidate) {
+            model.addRow(new Object[]{
                 cd.uid, cd.name, cd.regno, cd.password
             });
         }
     }
 
+    /**
+     * Loads the list of all available questions.
+     */
     private void loadQuestionList()
     {
         totalMarksBox.setText(Integer.toString(CurrentExam.curExam.getTotalMarks()));
-        questionList.setListData(CurrentExam.curExam.allQuestion.toArray());
+        questionList.setListData(CurrentExam.curExam.getQuestionList());
     }
 
-    private void loadQuestion(Question ques)
-    {
-        if (ques == null)
-        {
-            idLabel.setText("0");
-            questionBody.setText("");
-            questionTitle.setText("");
-            markSpinner.setValue(0);
-        }
-        else
-        {
-            idLabel.setText(Integer.toString(ques.ID));
-            questionBody.setText(ques.Body);
-            questionTitle.setText(ques.Title);
-            markSpinner.setValue(ques.Mark);
-        }
-    }
-
+    /**
+     * Get the values from different controls and save them to the curExam
+     * object.
+     *
+     * @return True if saving done successfully, False otherwise.
+     */
     private boolean saveValues()
     {
-        try
-        {
+        try {
             CurrentExam.curExam.ExamTitle = examTitle.getText();
             CurrentExam.curExam.StartTime = (Date) startTimeSpinner.getValue();
             CurrentExam.curExam.Duration = (int) durationSpinner.getValue();
-
             setCandidates();
-            setQuestion();
 
             CurrentExam.Save();
             return true;
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             Logger.getLogger(SessionCreator.class.getName()).log(Level.SEVERE,
                     "Error while saving session values", ex);
             return false;
         }
     }
 
+    /**
+     * Save the edited value of a candidate.
+     */
     private void setCandidates()
     {
-        for (int i = 0; i < model.getRowCount(); ++i)
-        {
+        for (int i = 0; i < model.getRowCount(); ++i) {
             int uid = (int) model.getValueAt(i, 0);
             Candidate cd = CurrentExam.curExam.getCandidate(uid);
-            if (cd == null) continue;
+            if (cd == null) {
+                continue;
+            }
             cd.name = ((String) model.getValueAt(i, 1)).trim();
             cd.regno = ((String) model.getValueAt(i, 2)).trim();
             cd.password = ((String) model.getValueAt(i, 3)).trim();
         }
     }
 
-    private void setQuestion()
+    /**
+     * Save the list of candidates.
+     */
+    private void saveCandidateList()
     {
-        int id = Integer.parseInt(idLabel.getText());
-        Question ques = CurrentExam.curExam.getQuestion(id);
-        if (ques == null) return;
-        ques.Body = questionBody.getText();
-        ques.Title = questionTitle.getText().trim();
-        ques.Mark = (int) markSpinner.getValue();
-        totalMarksBox.setText(Integer.toString(CurrentExam.curExam.getTotalMarks()));
-    }
-
-    public void saveToTextFile()
-    {
-        try
-        {
+        try {
             JFileChooser saveFile = new JFileChooser();
-            saveFile.setMultiSelectionEnabled(false);
-            saveFile.setAcceptAllFileFilterUsed(false);
-            saveFile.setSelectedFile(new File("examinee.txt"));
-            saveFile.setFileFilter(new FileNameExtensionFilter("Text File", "txt"));
-            if (saveFile.showSaveDialog(this) == JFileChooser.APPROVE_OPTION)
-            {
-                String data = CurrentExam.printUsers();
+            saveFile.setSelectedFile(new File("examinee.csv"));
+            saveFile.setFileFilter(new FileNameExtensionFilter("CSV File", "csv"));
+            if (saveFile.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                String data = CurrentExam.getUsers();
                 File file = saveFile.getSelectedFile();
                 FileOutputStream fos = new FileOutputStream(file);
                 fos.write(data.getBytes());
                 fos.close();
             }
         }
-        catch (HeadlessException | IOException ex)
-        {
+        catch (HeadlessException | IOException ex) {
             Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE,
-                    "Error while saving passwords", ex);
+                    "Error while saving user list", ex);
         }
     }
 
+    /**
+     * Save the question currently under editing.
+     */
+    private void saveQuestion(Question ques)
+    {
+        if (ques == null)
+            return;
 
+        ques.Title = questionTitle.getText().trim();
+        ques.Mark = (int) markSpinner.getValue();
+        totalMarksBox.setText(Integer.toString(CurrentExam.curExam.getTotalMarks()));
+
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            pdfController.getDocument().writeToOutputStream(baos);
+            ques.Body = baos.toByteArray();
+            baos.close();
+        }
+        catch (Exception ex) {
+            ques.Body = null;
+        }
+    }
+
+    /**
+     * After selecting a question, this function shows the information about
+     * that question.
+     *
+     * @param ques
+     */
+    private void loadQuestion(Question ques)
+    {
+        saveQuestion(currentQuestion);
+        currentQuestion = ques;
+
+        //clear prev values        
+        pdfController.closeDocument();
+        markSpinner.setValue(0);
+        questionTitle.setText("");
+        if (ques == null)
+            return;
+
+        //load new values
+        markSpinner.setValue(ques.Mark);
+        questionTitle.setText(ques.Title);
+        if (ques.Body != null) {
+            pdfController.openDocument(ques.Body, 0, ques.Body.length, ques.Title, null);
+        }
+    }
+
+    /**
+     * Import the candidate list from a CSV file.
+     */
+    private void importCandidateList()
+    {
+        try {
+            JFileChooser openFile = new JFileChooser();
+            openFile.setSelectedFile(new File("examinee.csv"));
+            openFile.setFileFilter(new FileNameExtensionFilter("CSV File", "csv"));
+            if (openFile.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                File file = openFile.getSelectedFile();
+                FileInputStream fis = new FileInputStream(file);
+                String data = Functions.readFully(fis, "UTF-8");
+                CurrentExam.loadUsers(data);
+                fis.close();
+                loadCandidateList();
+            }
+        }
+        catch (HeadlessException | IOException ex) {
+            Logger.getLogger("LabExam").log(Level.SEVERE,
+                    "Error while opening user list", ex);
+        }
+    }
+
+    /**
+     * Choose the path where answers of candidates will be saved.
+     */
+    private void chooseSubmissionPath()
+    {
+        JFileChooser openPath = new JFileChooser();
+        openPath.setAcceptAllFileFilterUsed(false);
+        openPath.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        if (openPath.showDialog(this, "Select Folder") == JFileChooser.APPROVE_OPTION) {
+            File file = openPath.getSelectedFile();
+            if (file.isFile()) {
+                file = file.getParentFile();
+            }
+            CurrentExam.curExam.ExamPath = file;
+            examPath.setText(file.getAbsolutePath());
+        }
+    }
+
+//<editor-fold defaultstate="collapsed" desc="Event functions for controls">
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
-        if (ParentForm != null)
-        {
+        if (ParentForm != null) {
             ParentForm.setVisible(true);
         }
     }//GEN-LAST:event_formWindowClosed
 
     private void nextButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nextButtonActionPerformed
-
-        if (!saveValues())
+        if (!saveValues()) {
             return;
+        }
 
         int count = tabbedPane.getTabCount();
         int index = tabbedPane.getSelectedIndex();
-        if (index + 1 < count)
-        {
+        if (index + 1 < count) {
             tabbedPane.setSelectedIndex(index + 1);
         }
-        else
-        {
+        else {
             this.dispose();
         }
     }//GEN-LAST:event_nextButtonActionPerformed
@@ -836,11 +937,6 @@ public class SessionCreator extends javax.swing.JDialog {
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
         saveValues();
     }//GEN-LAST:event_saveButtonActionPerformed
-
-    private void questionListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_questionListValueChanged
-        Question ques = (Question) questionList.getSelectedValue();
-        if (ques != null) loadQuestion(ques);
-    }//GEN-LAST:event_questionListValueChanged
 
     private void setQuestionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setQuestionButtonActionPerformed
         CurrentExam.curExam.addQuestion();
@@ -851,47 +947,21 @@ public class SessionCreator extends javax.swing.JDialog {
         loadValues();
     }//GEN-LAST:event_cancelButtonActionPerformed
 
-    private void markSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_markSpinnerStateChanged
-        setQuestion();
-    }//GEN-LAST:event_markSpinnerStateChanged
-
     private void refreshButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButton1ActionPerformed
         Question ques = (Question) questionList.getSelectedValue();
-        if (ques != null)
-        {
+        if (ques != null) {
             CurrentExam.curExam.deleteQuestion(ques.ID);
         }
         loadQuestionList();
     }//GEN-LAST:event_refreshButton1ActionPerformed
 
-    private void questionBodyKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_questionBodyKeyReleased
-        setQuestion();
-    }//GEN-LAST:event_questionBodyKeyReleased
-
-    private void questionTitleKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_questionTitleKeyReleased
-        setQuestion();
-    }//GEN-LAST:event_questionTitleKeyReleased
-
     private void pathBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pathBrowseButtonActionPerformed
-        JFileChooser openPath = new JFileChooser();
-        openPath.setAcceptAllFileFilterUsed(false);
-        openPath.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        if (openPath.showDialog(this, "Select Folder") == JFileChooser.APPROVE_OPTION)
-        {
-            File file = openPath.getSelectedFile();
-            if (file.isFile())
-            {
-                file = file.getParentFile();
-            }
-            CurrentExam.curExam.ExamPath = file;
-            examPath.setText(file.getAbsolutePath());
-        }
+        chooseSubmissionPath();
     }//GEN-LAST:event_pathBrowseButtonActionPerformed
 
     private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
         int index = tabbedPane.getSelectedIndex();
-        if (index - 1 >= 0)
-        {
+        if (index - 1 >= 0) {
             tabbedPane.setSelectedIndex(index - 1);
         }
     }//GEN-LAST:event_backButtonActionPerformed
@@ -900,20 +970,17 @@ public class SessionCreator extends javax.swing.JDialog {
         int count = tabbedPane.getTabCount();
         int index = tabbedPane.getSelectedIndex();
         backButton.setVisible(index > 0);
-        if (index + 1 == count)
-        {
+        if (index + 1 == count) {
             nextButton.setText("OK");
         }
-        else
-        {
+        else {
             nextButton.setText("Next");
         }
     }//GEN-LAST:event_tabbedPaneStateChanged
 
     private void randomizePassButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_randomizePassButtonActionPerformed
     {//GEN-HEADEREND:event_randomizePassButtonActionPerformed
-        for (Candidate cd : CurrentExam.curExam.allCandidate)
-        {
+        for (Candidate cd : CurrentExam.curExam.allCandidate) {
             cd.randomizePassword();
         }
         loadCandidateList();
@@ -924,8 +991,7 @@ public class SessionCreator extends javax.swing.JDialog {
         int last = CurrentExam.curExam.LastUserID;
         CurrentExam.curExam.addCandidate("", "");
         Candidate cd = CurrentExam.curExam.getCandidate(last);
-        model.addRow(new Object[]
-        {
+        model.addRow(new Object[]{
             cd.uid, cd.name, cd.regno, cd.password
         });
     }//GEN-LAST:event_addCandidateButtonActionPerformed
@@ -933,7 +999,8 @@ public class SessionCreator extends javax.swing.JDialog {
     private void deleteCandidateButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_deleteCandidateButtonActionPerformed
     {//GEN-HEADEREND:event_deleteCandidateButtonActionPerformed
         int r = candidateTable.getSelectedRow();
-        if (r < 0) return;
+        if (r < 0)
+            return;
         int uid = (int) model.getValueAt(r, 0);
         CurrentExam.curExam.deleteCandidate(uid);
         model.removeRow(r);
@@ -941,8 +1008,39 @@ public class SessionCreator extends javax.swing.JDialog {
 
     private void saveToTextButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_saveToTextButtonActionPerformed
     {//GEN-HEADEREND:event_saveToTextButtonActionPerformed
-        saveToTextFile();
+        saveCandidateList();
     }//GEN-LAST:event_saveToTextButtonActionPerformed
+
+    private void saveToTextButton1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_saveToTextButton1ActionPerformed
+    {//GEN-HEADEREND:event_saveToTextButton1ActionPerformed
+        importCandidateList();
+    }//GEN-LAST:event_saveToTextButton1ActionPerformed
+
+    private void examPathMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_examPathMouseClicked
+        chooseSubmissionPath();
+    }//GEN-LAST:event_examPathMouseClicked
+
+    private void questionListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_questionListValueChanged
+        if (questionList.getSelectedValue() != null)
+            loadQuestion((Question) questionList.getSelectedValue());
+    }//GEN-LAST:event_questionListValueChanged
+
+    private void questionTitleKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_questionTitleKeyReleased
+    {//GEN-HEADEREND:event_questionTitleKeyReleased
+        if(currentQuestion != null)
+        {
+            currentQuestion.Title = questionTitle.getText().trim();
+        }
+    }//GEN-LAST:event_questionTitleKeyReleased
+
+    private void markSpinnerKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_markSpinnerKeyReleased
+    {//GEN-HEADEREND:event_markSpinnerKeyReleased
+        if(currentQuestion != null)
+        {
+            currentQuestion.Mark = (int) markSpinner.getValue();
+        }
+    }//GEN-LAST:event_markSpinnerKeyReleased
+//</editor-fold>
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addCandidateButton;
@@ -953,13 +1051,10 @@ public class SessionCreator extends javax.swing.JDialog {
     private javax.swing.JSpinner durationSpinner;
     private javax.swing.JTextField examPath;
     private javax.swing.JTextField examTitle;
-    private javax.swing.JLabel idLabel;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
-    private javax.swing.JLabel jLabel14;
-    private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -976,18 +1071,19 @@ public class SessionCreator extends javax.swing.JDialog {
     private javax.swing.JPanel jPanel8;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSpinner markSpinner;
     private javax.swing.JButton nextButton;
     private javax.swing.JButton pathBrowseButton;
-    private javax.swing.JTextArea questionBody;
+    private javax.swing.JPanel pdfContainerPanel;
     private javax.swing.JList questionList;
     private javax.swing.JTextField questionTitle;
     private javax.swing.JButton randomizePassButton;
     private javax.swing.JButton refreshButton1;
     private javax.swing.JButton saveButton;
     private javax.swing.JButton saveToTextButton;
+    private javax.swing.JButton saveToTextButton1;
     private javax.swing.JButton setQuestionButton;
     private javax.swing.JSpinner startTimeSpinner;
     private javax.swing.JTabbedPane tabbedPane;

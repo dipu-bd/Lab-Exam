@@ -5,8 +5,8 @@
  */
 package ClientApplication;
 
-import UtilityClass.Command;
-import UtilityClass.Question;
+import Utilities.Command;
+import Utilities.Question;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -17,7 +17,8 @@ import java.util.ArrayList;
  *
  * @author Dipu
  */
-public final class ServerLink {
+public final class ServerLink
+{
 
     public static int port;
     public static String userName;
@@ -25,8 +26,7 @@ public final class ServerLink {
 
     public static Object getResponce(Command command, Object... var)
     {
-        try
-        {
+        try {
             //connecting to serverName using port                
             Socket server = new Socket(serverName, port);
             ObjectOutputStream outToServer = new ObjectOutputStream(server.getOutputStream());
@@ -37,10 +37,10 @@ public final class ServerLink {
             outToServer.flush();
 
             //send data
-            for (Object v : var)
-            {
+            for (Object v : var) {
                 outToServer.writeObject(v);
             }
+            outToServer.flush();
 
             //get response
             Object result = inFromServer.readObject();
@@ -52,8 +52,7 @@ public final class ServerLink {
 
             return result;
         }
-        catch (IOException | ClassNotFoundException ex)
-        {
+        catch (IOException | ClassNotFoundException ex) {
             return null;
         }
     }
@@ -67,43 +66,51 @@ public final class ServerLink {
     public static int promptLogin(String pass)
     {
         Object result = getResponce(Command.LOGIN, userName, pass);
-        if (result == null) return -1;
-        if ((boolean) result) return 0;
-        else return 1;
+        if (result == null)
+            return -1;
+        if ((boolean) result)
+            return 0;
+        else
+            return 1;
     }
 
     public static boolean logoutUser()
     {
         Object result = getResponce(Command.LOGOUT, userName);
-        if (result == null) return false;
+        if (result == null)
+            return false;
         return (boolean) result;
     }
 
     public static long getStartTime()
     {
         Object result = getResponce(Command.START_TIME);
-        if (result == null) return -1;
+        if (result == null)
+            return -1;
         return (long) result;
     }
 
     public static long getStopTime()
     {
         Object result = getResponce(Command.STOP_TIME);
-        if (result == null) return -1;
+        if (result == null)
+            return -1;
         return (long) result;
     }
 
     public static boolean submitAnswer(int qid, String answer)
     {
         Object result = getResponce(Command.SUBMIT, userName, qid, answer);
-        if (result == null) return false;
+        if (result == null)
+            return false;
         return (boolean) result;
     }
 
     public static String getExamTitle()
     {
         Object result = getResponce(Command.EXAM_TITLE);
-        if (result == null) return "-";
+        if (result == null)
+            return "-";
         return (String) result;
     }
 
@@ -116,7 +123,8 @@ public final class ServerLink {
     public static ArrayList<Question> getAllQuestions()
     {
         Object result = getResponce(Command.ALL_QUES);
-        if (result == null) return new ArrayList<>();
+        if (result == null)
+            return new ArrayList<>();
         return (ArrayList<Question>) result;
     }
 
@@ -129,7 +137,8 @@ public final class ServerLink {
     public static ArrayList<String> getAnnouncements(int curSiz)
     {
         Object result = getResponce(Command.ANNOUNCEMENT, curSiz);
-        if (result == null) return new ArrayList<>();
+        if (result == null)
+            return new ArrayList<>();
         return (ArrayList<String>) result;
     }
 }
