@@ -1,11 +1,20 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2015 Dipu
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package ClientApplication;
-
-import java.awt.Color;
 
 /**
  *
@@ -20,7 +29,7 @@ public class LoginForm extends javax.swing.JFrame
     public LoginForm()
     {
         initComponents();
-        getContentPane().setBackground(this.getBackground());
+        getContentPane().setBackground(this.getBackground()); 
     }
 
     /**
@@ -66,11 +75,26 @@ public class LoginForm extends javax.swing.JFrame
         setName("LoginForm"); // NOI18N
         setResizable(false);
 
-        IPAddressText.setFont(new java.awt.Font("Consolas", 0, 12)); // NOI18N
+        IPAddressText.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
         IPAddressText.setToolTipText("IP Address of the server");
+        IPAddressText.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                IPAddressTextActionPerformed(evt);
+            }
+        });
 
-        PortText.setFont(new java.awt.Font("Consolas", 0, 12)); // NOI18N
+        PortText.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
+        PortText.setText("1661");
         PortText.setToolTipText("Port number.");
+        PortText.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                PortTextActionPerformed(evt);
+            }
+        });
 
         jLabel1.setBackground(new java.awt.Color(220, 210, 230));
         jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
@@ -95,15 +119,22 @@ public class LoginForm extends javax.swing.JFrame
         jLabel4.setLabelFor(userNameText);
         jLabel4.setText("Registration No:");
 
-        userNameText.setFont(new java.awt.Font("Consolas", 0, 12)); // NOI18N
+        userNameText.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
         userNameText.setToolTipText("Registration number of the student");
+        userNameText.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                userNameTextActionPerformed(evt);
+            }
+        });
 
         jLabel5.setFont(jLabel5.getFont());
         jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel5.setLabelFor(PasswordField);
         jLabel5.setText("Password :");
 
-        PasswordField.setFont(new java.awt.Font("Consolas", 0, 12)); // NOI18N
+        PasswordField.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
         PasswordField.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -181,7 +212,7 @@ public class LoginForm extends javax.swing.JFrame
                         .addGap(100, 100, 100))
                     .addComponent(PasswordField)
                     .addComponent(userNameText)
-                    .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, 210, Short.MAX_VALUE))
+                    .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, 246, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -192,6 +223,14 @@ public class LoginForm extends javax.swing.JFrame
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(userNameText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel4))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(PasswordField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel5))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(IPAddressText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel2))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -199,16 +238,8 @@ public class LoginForm extends javax.swing.JFrame
                             .addComponent(PortText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel3))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(userNameText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel4))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(PasswordField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel5))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel6))
-                    .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(20, 20, 20)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -226,7 +257,7 @@ public class LoginForm extends javax.swing.JFrame
         wf.ParentForm = this;
         this.setVisible(false);
     }
-
+    
     private void attemptLogin()
     {
         // collect data        
@@ -271,6 +302,21 @@ public class LoginForm extends javax.swing.JFrame
         attemptLogin();
     }//GEN-LAST:event_PasswordFieldActionPerformed
 
+    private void IPAddressTextActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_IPAddressTextActionPerformed
+    {//GEN-HEADEREND:event_IPAddressTextActionPerformed
+        attemptLogin();
+    }//GEN-LAST:event_IPAddressTextActionPerformed
+
+    private void PortTextActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_PortTextActionPerformed
+    {//GEN-HEADEREND:event_PortTextActionPerformed
+        attemptLogin();
+    }//GEN-LAST:event_PortTextActionPerformed
+
+    private void userNameTextActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_userNameTextActionPerformed
+    {//GEN-HEADEREND:event_userNameTextActionPerformed
+        attemptLogin();
+    }//GEN-LAST:event_userNameTextActionPerformed
+     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField IPAddressText;
     private javax.swing.JButton LoginButton;

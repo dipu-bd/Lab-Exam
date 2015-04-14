@@ -1,7 +1,18 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2015 Dipu
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package ClientApplication;
 
@@ -17,9 +28,11 @@ import java.util.TimerTask;
 import javax.swing.JOptionPane;
 import javax.swing.text.DefaultCaret;
 import Utilities.Question;
-import java.awt.PopupMenu;
-import javax.swing.JPopupMenu;
-import javax.swing.SwingConstants;
+import java.awt.AWTException;
+import java.awt.Robot;
+import java.awt.event.KeyEvent;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.icepdf.ri.common.SwingController;
 import org.icepdf.ri.common.SwingViewBuilder;
@@ -35,7 +48,7 @@ public class MainForm extends javax.swing.JFrame
     javax.swing.JFrame ParentForm;
     private final Timer timer;
     private final TimerTask refreshTask;
-    private final TimerTask updateTask;
+    private final TimerTask updateTask; 
 
     long StopTime = -1;
     int selectedID = -1;
@@ -49,15 +62,15 @@ public class MainForm extends javax.swing.JFrame
      */
     public MainForm()
     {
+        //init form
         initComponents();
+        SetToFullFocus();
         initPdfControl();
 
-        //set to full screen
-        this.SetToFullFocus();
-
-        Program.loadDefaultFolder();
+        //load default values
         loadValues();
 
+        //downloa data periodically
         refreshTask = new TimerTask()
         {
             @Override
@@ -66,7 +79,7 @@ public class MainForm extends javax.swing.JFrame
                 refreshValues();
             }
         };
-
+        //update data in display 
         updateTask = new TimerTask()
         {
             @Override
@@ -75,18 +88,23 @@ public class MainForm extends javax.swing.JFrame
                 updateValues();
             }
         };
-
+        //set up timer to begin timer task 
         timer = new Timer();
         timer.scheduleAtFixedRate(updateTask, 0, 4200);
-        timer.scheduleAtFixedRate(refreshTask, 0, 600);
+        timer.scheduleAtFixedRate(refreshTask, 0, 600); 
     }
 
     private void SetToFullFocus()
     {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         this.setExtendedState(MainForm.MAXIMIZED_BOTH);
+        this.toFront();
         this.setSize(screenSize);
-        this.setFocusableWindowState(true);
+        this.requestFocus();
+        this.requestFocusInWindow();
+        this.setAlwaysOnTop(true);
+
+        KeyHook.blockWindowsKey();
     }
 
     private void initPdfControl()
@@ -94,20 +112,20 @@ public class MainForm extends javax.swing.JFrame
         //factory to build all controls
         SwingViewBuilder factory = new SwingViewBuilder(pdfController);
         pdfController.setPageViewMode(2, true);
-        
+
         //build tool bar        
-        descToolBar.add(factory.buildZoomOutButton()); 
-        descToolBar.add(factory.buildZoomCombBox());        
-        descToolBar.add(factory.buildZoomInButton());        
-        descToolBar.add(factory.buildFitWidthButton());       
+        descToolBar.add(factory.buildZoomOutButton());
+        descToolBar.add(factory.buildZoomCombBox());
+        descToolBar.add(factory.buildZoomInButton());
+        descToolBar.add(factory.buildFitWidthButton());
         descToolBar.add(factory.buildFitPageButton());
-        descToolBar.add(factory.buildFitActualSizeButton()); 
+        descToolBar.add(factory.buildFitActualSizeButton());
         descToolBar.add(factory.buildPanToolButton());
-        descToolBar.add(factory.buildTextSelectToolButton());        
-            
+        descToolBar.add(factory.buildTextSelectToolButton());
+
         //add pdf viewer panel           
-        javax.swing.JSplitPane jsp = factory.buildUtilityAndDocumentSplitPane(false);        
-        jsp.setPreferredSize(new Dimension(10, 10)); 
+        javax.swing.JSplitPane jsp = factory.buildUtilityAndDocumentSplitPane(false);
+        jsp.setPreferredSize(new Dimension(10, 10));
         pdfPanel.setViewportView(jsp);
     }
 
@@ -127,6 +145,8 @@ public class MainForm extends javax.swing.JFrame
     {
         allQuestion = ServerLink.getAllQuestions();
         questionList.setListData(allQuestion.toArray());
+        if (!allQuestion.isEmpty())
+            questionList.setSelectedIndex(0);
     }
 
     public void updateValues()
@@ -160,6 +180,8 @@ public class MainForm extends javax.swing.JFrame
             JOptionPane.showMessageDialog(this, "Exam is over.");
             ServerLink.logoutUser();
             ParentForm.setVisible(true);
+
+            KeyHook.unblockWindowsKey();
         }
     }
 
@@ -342,7 +364,7 @@ public class MainForm extends javax.swing.JFrame
         registrationNoLabel.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 1, 0, 0, new java.awt.Color(153, 153, 255)));
 
         logoutButton.setFont(logoutButton.getFont().deriveFont(logoutButton.getFont().getSize()+2f));
-        logoutButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/logout-icon.png"))); // NOI18N
+        logoutButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/logout.png"))); // NOI18N
         logoutButton.setText("Logout");
         logoutButton.addActionListener(new java.awt.event.ActionListener()
         {

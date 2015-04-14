@@ -78,8 +78,7 @@ public class SessionCreator extends javax.swing.JFrame
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents()
-    {
+    private void initComponents() {
 
         tabbedPane = new javax.swing.JTabbedPane();
         jPanel2 = new javax.swing.JPanel();
@@ -129,20 +128,16 @@ public class SessionCreator extends javax.swing.JFrame
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Edit Lab Exam Session");
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosed(java.awt.event.WindowEvent evt)
-            {
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosed(java.awt.event.WindowEvent evt) {
                 formWindowClosed(evt);
             }
         });
 
         tabbedPane.setBackground(new java.awt.Color(193, 239, 239));
         tabbedPane.setOpaque(true);
-        tabbedPane.addChangeListener(new javax.swing.event.ChangeListener()
-        {
-            public void stateChanged(javax.swing.event.ChangeEvent evt)
-            {
+        tabbedPane.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 tabbedPaneStateChanged(evt);
             }
         });
@@ -163,10 +158,8 @@ public class SessionCreator extends javax.swing.JFrame
         examPath.setEditable(false);
         examPath.setBackground(new java.awt.Color(255, 255, 204));
         examPath.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
-        examPath.addMouseListener(new java.awt.event.MouseAdapter()
-        {
-            public void mouseClicked(java.awt.event.MouseEvent evt)
-            {
+        examPath.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
                 examPathMouseClicked(evt);
             }
         });
@@ -182,10 +175,8 @@ public class SessionCreator extends javax.swing.JFrame
         pathBrowseButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/folder_chooser.png"))); // NOI18N
         pathBrowseButton.setText("Browse");
         pathBrowseButton.setToolTipText("Browse for path");
-        pathBrowseButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        pathBrowseButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 pathBrowseButtonActionPerformed(evt);
             }
         });
@@ -277,32 +268,25 @@ public class SessionCreator extends javax.swing.JFrame
         candidateTable.setBackground(new java.awt.Color(245, 250, 255));
         candidateTable.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
         candidateTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][]
-            {
+            new Object [][] {
 
             },
-            new String []
-            {
+            new String [] {
                 "ID", "Name", "Registration No", "Password"
             }
-        )
-        {
-            Class[] types = new Class []
-            {
+        ) {
+            Class[] types = new Class [] {
                 java.lang.Object.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
-            boolean[] canEdit = new boolean []
-            {
+            boolean[] canEdit = new boolean [] {
                 false, true, true, true
             };
 
-            public Class getColumnClass(int columnIndex)
-            {
+            public Class getColumnClass(int columnIndex) {
                 return types [columnIndex];
             }
 
-            public boolean isCellEditable(int rowIndex, int columnIndex)
-            {
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit [columnIndex];
             }
         });
@@ -316,8 +300,7 @@ public class SessionCreator extends javax.swing.JFrame
         candidateTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(candidateTable);
         candidateTable.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-        if (candidateTable.getColumnModel().getColumnCount() > 0)
-        {
+        if (candidateTable.getColumnModel().getColumnCount() > 0) {
             candidateTable.getColumnModel().getColumn(0).setPreferredWidth(80);
             candidateTable.getColumnModel().getColumn(0).setMaxWidth(100);
         }
@@ -325,50 +308,40 @@ public class SessionCreator extends javax.swing.JFrame
         jPanel1.setBackground(new java.awt.Color(222, 234, 238));
 
         randomizePassButton.setText("Randomize Password");
-        randomizePassButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        randomizePassButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 randomizePassButtonActionPerformed(evt);
             }
         });
 
         addCandidateButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/add.png"))); // NOI18N
         addCandidateButton.setText("Add");
-        addCandidateButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        addCandidateButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addCandidateButtonActionPerformed(evt);
             }
         });
 
         deleteCandidateButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/delete.png"))); // NOI18N
         deleteCandidateButton.setText("Delete");
-        deleteCandidateButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        deleteCandidateButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 deleteCandidateButtonActionPerformed(evt);
             }
         });
 
         saveToTextButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/export.png"))); // NOI18N
         saveToTextButton.setText("Export");
-        saveToTextButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        saveToTextButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveToTextButtonActionPerformed(evt);
             }
         });
 
         saveToTextButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/import.png"))); // NOI18N
         saveToTextButton1.setText("Import");
-        saveToTextButton1.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        saveToTextButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveToTextButton1ActionPerformed(evt);
             }
         });
@@ -461,10 +434,8 @@ public class SessionCreator extends javax.swing.JFrame
 
         setQuestionButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/add.png"))); // NOI18N
         setQuestionButton.setText("Add");
-        setQuestionButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        setQuestionButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 setQuestionButtonActionPerformed(evt);
             }
         });
@@ -474,10 +445,8 @@ public class SessionCreator extends javax.swing.JFrame
         questionList.setBackground(new java.awt.Color(234, 255, 255));
         questionList.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
         questionList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        questionList.addListSelectionListener(new javax.swing.event.ListSelectionListener()
-        {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt)
-            {
+        questionList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
                 questionListValueChanged(evt);
             }
         });
@@ -485,10 +454,8 @@ public class SessionCreator extends javax.swing.JFrame
 
         refreshButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/delete.png"))); // NOI18N
         refreshButton1.setText("Delete");
-        refreshButton1.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        refreshButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 refreshButton1ActionPerformed(evt);
             }
         });
@@ -531,10 +498,8 @@ public class SessionCreator extends javax.swing.JFrame
 
         questionTitle.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         questionTitle.setMinimumSize(new java.awt.Dimension(60, 23));
-        questionTitle.addKeyListener(new java.awt.event.KeyAdapter()
-        {
-            public void keyReleased(java.awt.event.KeyEvent evt)
-            {
+        questionTitle.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
                 questionTitleKeyReleased(evt);
             }
         });
@@ -544,10 +509,8 @@ public class SessionCreator extends javax.swing.JFrame
 
         markSpinner.setFont(new java.awt.Font("Consolas", 0, 12)); // NOI18N
         markSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(10), Integer.valueOf(0), null, Integer.valueOf(1)));
-        markSpinner.addKeyListener(new java.awt.event.KeyAdapter()
-        {
-            public void keyReleased(java.awt.event.KeyEvent evt)
-            {
+        markSpinner.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
                 markSpinnerKeyReleased(evt);
             }
         });
@@ -558,11 +521,11 @@ public class SessionCreator extends javax.swing.JFrame
         pdfContainerPanel.setLayout(pdfContainerPanelLayout);
         pdfContainerPanelLayout.setHorizontalGroup(
             pdfContainerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 537, Short.MAX_VALUE)
+            .addGap(0, 543, Short.MAX_VALUE)
         );
         pdfContainerPanelLayout.setVerticalGroup(
             pdfContainerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 353, Short.MAX_VALUE)
+            .addGap(0, 350, Short.MAX_VALUE)
         );
 
         jScrollPane3.setViewportView(pdfContainerPanel);
@@ -625,38 +588,30 @@ public class SessionCreator extends javax.swing.JFrame
 
         saveButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/save.png"))); // NOI18N
         saveButton.setText("Save");
-        saveButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        saveButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveButtonActionPerformed(evt);
             }
         });
 
         nextButton.setText("Next");
-        nextButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        nextButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 nextButtonActionPerformed(evt);
             }
         });
 
         cancelButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/reload.png"))); // NOI18N
         cancelButton.setText("Cancel Edit");
-        cancelButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        cancelButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cancelButtonActionPerformed(evt);
             }
         });
 
         backButton.setText("Back");
-        backButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        backButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 backButtonActionPerformed(evt);
             }
         });

@@ -123,7 +123,7 @@
               </FontInfo>
             </Property>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/Resources/logout-icon.png"/>
+              <Image iconType="3" name="/Resources/logout.png"/>
             </Property>
             <Property name="text" type="java.lang.String" value="Logout"/>
           </Properties>

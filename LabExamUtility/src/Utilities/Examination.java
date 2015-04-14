@@ -28,6 +28,7 @@ import java.util.Date;
  * @author Dipu
  */
 public class Examination implements Serializable  {
+    
     private static final long serialVersionUID = 1L;
 
     /**
@@ -39,7 +40,7 @@ public class Examination implements Serializable  {
         StartTime = new Date(System.currentTimeMillis());
         Duration = 120;
         LastProbID = 1;
-        ExamPath = new File(ExamTitle);
+        ExamPath = new File(ExamTitle); 
     }
 
     @Override
@@ -48,7 +49,7 @@ public class Examination implements Serializable  {
         return String.format("%s [%d questions; %d participants]",
                 ExamTitle, allQuestion.size(), allCandidate.size());
     }
- 
+  
     public String ExamTitle; 
     public File ExamPath; 
     public Date StartTime; 

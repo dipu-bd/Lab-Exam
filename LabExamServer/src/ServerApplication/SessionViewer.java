@@ -213,19 +213,21 @@ public final class SessionViewer extends javax.swing.JFrame
         //clear up previous data        
         candidateModel.setRowCount(0);
 
-        //set status
-        String cdc = "Status : ";
+        //set status 
         int total = CurrentExam.curExam.allCandidate.size();
         int connected = CurrentExam.logins.size();
-        cdc += String.format("%d out of %d candidates are connected.", total, connected);
-        candidateCount.setText(cdc);
+        String status = String.format("Status : %d out of %d candidates are connected.", connected, total);
+        candidateCount.setText(status);
 
         //show list 
         for (Candidate cd : CurrentExam.curExam.allCandidate) {
-            String status = "Disconnected";
             if (CurrentExam.logins.contains(cd.uid)) {
                 status = "Connected";
             }
+            else {
+                status = "Disconnected";
+            }
+
             candidateModel.addRow(new Object[]{
                 cd.uid, cd.name, cd.regno, cd.password, status
             });
@@ -339,7 +341,7 @@ public final class SessionViewer extends javax.swing.JFrame
         jPanel9 = new javax.swing.JPanel();
         endExamButton = new javax.swing.JButton();
         editorButton = new javax.swing.JButton();
-        jTabbedPane1 = new javax.swing.JTabbedPane();
+        mainTabPane = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         statusBox = new javax.swing.JTextArea();
@@ -384,6 +386,7 @@ public final class SessionViewer extends javax.swing.JFrame
         jPanel9.setBackground(new java.awt.Color(5, 236, 236));
 
         endExamButton.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
+        endExamButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/stop.png"))); // NOI18N
         endExamButton.setText("Exit");
         endExamButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -392,6 +395,7 @@ public final class SessionViewer extends javax.swing.JFrame
         });
 
         editorButton.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
+        editorButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/editor.png"))); // NOI18N
         editorButton.setText("Editor");
         editorButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -420,8 +424,8 @@ public final class SessionViewer extends javax.swing.JFrame
                 .addGap(5, 5, 5))
         );
 
-        jTabbedPane1.setBackground(new java.awt.Color(195, 210, 221));
-        jTabbedPane1.setOpaque(true);
+        mainTabPane.setBackground(new java.awt.Color(195, 210, 221));
+        mainTabPane.setOpaque(true);
 
         statusBox.setEditable(false);
         statusBox.setBackground(new java.awt.Color(0, 40, 50));
@@ -446,7 +450,7 @@ public final class SessionViewer extends javax.swing.JFrame
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 326, Short.MAX_VALUE)
         );
 
-        jTabbedPane1.addTab("Exam Status", jPanel1);
+        mainTabPane.addTab("Exam Status", jPanel1);
 
         candidateTable.setAutoCreateRowSorter(true);
         candidateTable.setBackground(new java.awt.Color(223, 255, 255));
@@ -487,11 +491,6 @@ public final class SessionViewer extends javax.swing.JFrame
         if (candidateTable.getColumnModel().getColumnCount() > 0) {
             candidateTable.getColumnModel().getColumn(0).setPreferredWidth(80);
             candidateTable.getColumnModel().getColumn(0).setMaxWidth(100);
-            candidateTable.getColumnModel().getColumn(0).setHeaderValue("ID");
-            candidateTable.getColumnModel().getColumn(1).setHeaderValue("Candidate");
-            candidateTable.getColumnModel().getColumn(2).setHeaderValue("Registration No");
-            candidateTable.getColumnModel().getColumn(3).setHeaderValue("Password");
-            candidateTable.getColumnModel().getColumn(4).setHeaderValue("Status");
         }
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -508,7 +507,7 @@ public final class SessionViewer extends javax.swing.JFrame
                 .addGap(0, 0, 0))
         );
 
-        jTabbedPane1.addTab("Candidates", jPanel2);
+        mainTabPane.addTab("Candidates", jPanel2);
 
         submissionTable.setAutoCreateRowSorter(true);
         submissionTable.setBackground(new java.awt.Color(223, 255, 255));
@@ -597,7 +596,7 @@ public final class SessionViewer extends javax.swing.JFrame
                 .addGap(0, 0, 0))
         );
 
-        jTabbedPane1.addTab("Candidate Status", jPanel3);
+        mainTabPane.addTab("Candidate Status", jPanel3);
 
         jPanel7.setBackground(new java.awt.Color(237, 240, 230));
         jPanel7.setBorder(javax.swing.BorderFactory.createTitledBorder("Announcement Message :"));
@@ -692,7 +691,7 @@ public final class SessionViewer extends javax.swing.JFrame
                 .addGap(0, 0, 0))
         );
 
-        jTabbedPane1.addTab("Announcements", jPanel4);
+        mainTabPane.addTab("Announcements", jPanel4);
 
         jPanel5.setBackground(new java.awt.Color(163, 236, 239));
 
@@ -814,7 +813,7 @@ public final class SessionViewer extends javax.swing.JFrame
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jTabbedPane1)
+            .addComponent(mainTabPane)
             .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
@@ -822,7 +821,7 @@ public final class SessionViewer extends javax.swing.JFrame
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(jTabbedPane1)
+                .addComponent(mainTabPane)
                 .addGap(0, 0, 0)
                 .addComponent(jPanel9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -932,7 +931,7 @@ public final class SessionViewer extends javax.swing.JFrame
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane6;
-    private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JTabbedPane mainTabPane;
     private javax.swing.JButton openSubFolderButton;
     private javax.swing.JLabel quesCountBox;
     private javax.swing.JButton refreshSubmissionButton;

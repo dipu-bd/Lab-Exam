@@ -1,7 +1,18 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2015 Dipu
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package ClientApplication;
 
@@ -43,7 +54,7 @@ public class ConsoleFrame extends javax.swing.JDialog
             String inn = Functions.readFully(p.getInputStream(), "UTF-8");
             if (inn.length() > 0)
                 outputBox.append(inn + "\n");
-            if (showError) {
+            if (showError || p.exitValue() != 0) {
                 String err = Functions.readFully(p.getErrorStream(), "UTF-8");
                 if (err.length() > 0)
                     outputBox.append(err + "\n");
@@ -150,6 +161,7 @@ public class ConsoleFrame extends javax.swing.JDialog
         jPanel3.setBackground(new java.awt.Color(0, 204, 204));
 
         testCodeButton.setFont(testCodeButton.getFont().deriveFont(testCodeButton.getFont().getSize()+1f));
+        testCodeButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/runtest.png"))); // NOI18N
         testCodeButton.setText("Run Test");
         testCodeButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {

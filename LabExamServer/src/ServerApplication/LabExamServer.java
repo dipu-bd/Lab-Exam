@@ -36,7 +36,7 @@ import java.util.logging.Logger;
  */
 public final class LabExamServer
 {
-
+    private static final int DEFAULT_PORT = 1661;
     private static boolean stopListening = false;
     private static ServerSocket serverSocket;
     private static Socket clientSocket;
@@ -66,7 +66,7 @@ public final class LabExamServer
     public static void initialize()
     {
         int siz = CurrentExam.curExam.allCandidate.size();
-        if (!createSocket(1993, siz + 10)) {
+        if (!createSocket(DEFAULT_PORT, siz + 10)) {
             createSocket(0, siz + 10);
         }
 

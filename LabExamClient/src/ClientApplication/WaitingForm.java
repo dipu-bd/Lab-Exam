@@ -1,7 +1,18 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2015 Dipu
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package ClientApplication;
 
@@ -59,11 +70,11 @@ public class WaitingForm extends javax.swing.JFrame
     {
         refreshTask.run();
         long now = System.currentTimeMillis();
-        if (now < startTime)
-            return;
+        if (now < startTime) return;
 
-        this.dispose();
-
+        this.dispose();        
+        Program.loadDefaultFolder((startTime / 1000) + "_" + ServerLink.userName);
+        
         MainForm mf = new MainForm();
         mf.ParentForm = this.ParentForm;
         mf.setVisible(true);
@@ -105,7 +116,7 @@ public class WaitingForm extends javax.swing.JFrame
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Lab Exam - Lobby");
         setAlwaysOnTop(true);
-        setBackground(new java.awt.Color(188, 235, 235));
+        setBackground(new java.awt.Color(0, 51, 51));
         addWindowListener(new java.awt.event.WindowAdapter()
         {
             public void windowClosed(java.awt.event.WindowEvent evt)
@@ -121,7 +132,8 @@ public class WaitingForm extends javax.swing.JFrame
         jLabel1.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 2, 0, new java.awt.Color(56, 204, 219)));
         jLabel1.setOpaque(true);
 
-        jLabel2.setFont(new java.awt.Font("Segoe UI Semilight", 2, 14)); // NOI18N
+        jLabel2.setFont(new java.awt.Font("Segoe UI Semibold", 2, 14)); // NOI18N
+        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel2.setText("Exam will start in");
 
@@ -129,7 +141,7 @@ public class WaitingForm extends javax.swing.JFrame
         intervalToBegin.setFont(new java.awt.Font("Segoe UI Semibold", 0, 24)); // NOI18N
         intervalToBegin.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         intervalToBegin.setText("0 seconds");
-        intervalToBegin.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(146, 192, 208), 3, true));
+        intervalToBegin.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(146, 192, 208), 3));
         intervalToBegin.setOpaque(true);
 
         refreshButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/reload.png"))); // NOI18N
@@ -142,7 +154,7 @@ public class WaitingForm extends javax.swing.JFrame
             }
         });
 
-        logoutButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/logout-icon.png"))); // NOI18N
+        logoutButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/logout.png"))); // NOI18N
         logoutButton.setText("Logout");
         logoutButton.setToolTipText("");
         logoutButton.addActionListener(new java.awt.event.ActionListener()
