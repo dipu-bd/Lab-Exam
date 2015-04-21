@@ -34,6 +34,7 @@ import java.awt.HeadlessException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Writer;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -300,6 +301,7 @@ public class MainForm extends javax.swing.JFrame
             //set data to view  
             codeEditor.setEditable(true);
             codeEditor.setText(sw.toString());
+            PaneForCodeEditor.setLineNumbersEnabled(true);
             questionTitleBox.setText(selectedQues.Title + " >> " + file.getName());
 
             //set highlighting style
@@ -354,17 +356,33 @@ public class MainForm extends javax.swing.JFrame
         File file = ((TreeNodeData) selectedNode.getUserObject()).getFile();
         if (!file.isFile()) return;
 
+        saveFileFromEditor();
         consolePane.setText("");
         answerSplitterPane.getRightComponent().setVisible(true);
 
         try {
-            StringWriter writer = new StringWriter();
+
+            //initialize a writer to show output
+            Writer writer = new Writer()
+            {
+                @Override
+                public void close() throws IOException
+                {                    
+                }
+
+                @Override
+                public void flush() throws IOException
+                {
+                }
+
+                @Override
+                public void write(char[] value, int offset, int count) throws IOException
+                {
+                    consolePane.append(new String(value, offset, count));
+                }
+            };
+
             boolean result = CompileAndRun.CompileCode(file, writer);
-
-            String status = (result ? "[OK]" : "[Failed]");
-            consolePane.append("Compilation Report : " + status + "\n");
-            consolePane.append(writer.toString());
-
             writer.close();
 
             if (!result) {
@@ -388,7 +406,8 @@ public class MainForm extends javax.swing.JFrame
         }
 
         int result = JOptionPane.showConfirmDialog(this,
-                "Are you sure to submit answers to \"" + selectedQues.Title + "\"?",
+                "Are you sure to submit answers to \"" + selectedQues.Title + "\"?\n"
+                + "Your previous submission(if any) will be overwritten.",
                 "Submit Answer", JOptionPane.YES_NO_OPTION);
         try {
             File qpath = Program.defaultPath.resolve("Question_" + selectedQues.ID).toFile();
@@ -529,7 +548,7 @@ public class MainForm extends javax.swing.JFrame
 
             //delete all files in directories
             closeOpenedFile();
-            deleteFileRecursively(file);
+            Functions.deleteDirectory(file);
 
             //remove node from view
             DefaultTreeModel model = (DefaultTreeModel) explorerTree.getModel();
@@ -539,18 +558,6 @@ public class MainForm extends javax.swing.JFrame
         catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "SORRY!! Something went wrong. Please try again!");
             ex.printStackTrace();
-        }
-    }
-
-    private void deleteFileRecursively(File f) throws java.io.IOException
-    {
-        if (f.isDirectory()) {
-            for (File c : f.listFiles()) {
-                deleteFileRecursively(c);
-            }
-        }
-        if (!f.delete()) {
-            throw new FileNotFoundException("Failed to delete file: " + f);
         }
     }
 
@@ -765,7 +772,7 @@ public class MainForm extends javax.swing.JFrame
 
         mainSplitterPane.setBackground(new java.awt.Color(204, 204, 255));
         mainSplitterPane.setBorder(javax.swing.BorderFactory.createMatteBorder(1, 5, 5, 5, new java.awt.Color(0, 153, 153)));
-        mainSplitterPane.setDividerLocation(250);
+        mainSplitterPane.setDividerLocation(230);
         mainSplitterPane.setDividerSize(10);
         mainSplitterPane.setResizeWeight(0.45);
         mainSplitterPane.setContinuousLayout(true);
@@ -836,7 +843,7 @@ public class MainForm extends javax.swing.JFrame
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel9Layout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 238, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
         jPanel9Layout.setVerticalGroup(
@@ -856,7 +863,7 @@ public class MainForm extends javax.swing.JFrame
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(descToolBar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 238, Short.MAX_VALUE)
+            .addComponent(descToolBar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE)
             .addComponent(pdfPanel, javax.swing.GroupLayout.Alignment.TRAILING)
         );
         jPanel1Layout.setVerticalGroup(
@@ -990,7 +997,7 @@ public class MainForm extends javax.swing.JFrame
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(submitAnswerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(submitAnswerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1076,6 +1083,8 @@ public class MainForm extends javax.swing.JFrame
         jScrollPane2.setViewportView(explorerTree);
 
         codeSplitPane.setLeftComponent(jScrollPane2);
+
+        PaneForCodeEditor.setLineNumbersEnabled(true);
 
         codeEditor.setEditable(false);
         codeEditor.setColumns(20);
@@ -1270,10 +1279,10 @@ public class MainForm extends javax.swing.JFrame
 
     private void fullscreenButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_fullscreenButtonActionPerformed
     {//GEN-HEADEREND:event_fullscreenButtonActionPerformed
-        if (fullscreenButton.isSelected()) {            
+        if (fullscreenButton.isSelected()) {
             mainSplitterPane.setDividerLocation(0); //hide
         }
-        else {            
+        else {
             double dsz = mainSplitterPane.getResizeWeight() * mainSplitterPane.getWidth();
             mainSplitterPane.setDividerLocation((int) dsz); //show
         }

@@ -18,6 +18,7 @@ package ServerApplication;
 
 import Utilities.Candidate;
 import Utilities.Examination;
+import Utilities.Functions;
 import Utilities.UserChangeEvent;
 import Utilities.UserChangedHandler;
 import java.io.File;
@@ -238,21 +239,24 @@ public final class CurrentExam
                 CurrentExam.examFile.mkdir();
             }
 
-            //write all data in files
+            //delete previous data            
+            Functions.deleteDirectory(getSubmissionPath(regno, qid));
             Path par = getSubmissionPath(regno).toPath();
+            //save submitted data
             for (int i = 0; i < files.length; ++i) {
                 File f = par.resolve((String) files[i]).toFile();
-                f.getParentFile().mkdirs(); 
+                f.getParentFile().mkdirs();
                 FileOutputStream fos = new FileOutputStream(f);
                 fos.write((byte[]) data[i]);
                 fos.flush();
                 fos.close();
             }
 
+            //tell about the submission
             invokeUserSubmitted(new UserChangeEvent(uid, qid));
 
             Logger.getLogger("LabExam").log(Level.INFO,
-                    String.format("%s(%s) submitted answer for Question %02d", name, regno, qid));
+                    String.format("%s(%s) submitted for Question %02d", name, regno, qid));
             return true;
         }
         catch (Exception ex) {

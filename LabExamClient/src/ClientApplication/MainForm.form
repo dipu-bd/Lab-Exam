@@ -265,7 +265,7 @@
             </MatteColorBorder>
           </Border>
         </Property>
-        <Property name="dividerLocation" type="int" value="250"/>
+        <Property name="dividerLocation" type="int" value="230"/>
         <Property name="dividerSize" type="int" value="10"/>
         <Property name="resizeWeight" type="double" value="0.45"/>
         <Property name="continuousLayout" type="boolean" value="true"/>
@@ -390,7 +390,7 @@
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" attributes="0">
                               <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                              <Component id="jScrollPane1" pref="238" max="32767" attributes="0"/>
+                              <Component id="jScrollPane1" pref="221" max="32767" attributes="0"/>
                               <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
                           </Group>
                       </Group>
@@ -445,7 +445,7 @@
                   <Layout>
                     <DimensionLayout dim="0">
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="descToolBar" alignment="1" pref="238" max="32767" attributes="0"/>
+                          <Component id="descToolBar" alignment="1" pref="221" max="32767" attributes="0"/>
                           <Component id="pdfPanel" alignment="1" max="32767" attributes="0"/>
                       </Group>
                     </DimensionLayout>
@@ -610,7 +610,7 @@
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace min="-2" max="-2" attributes="0"/>
-                          <Component id="submitAnswerButton" min="-2" pref="150" max="-2" attributes="0"/>
+                          <Component id="submitAnswerButton" min="-2" pref="140" max="-2" attributes="0"/>
                           <EmptySpace type="unrelated" max="32767" attributes="0"/>
                           <Component id="jLabel1" min="-2" pref="46" max="-2" attributes="0"/>
                           <EmptySpace min="-2" max="-2" attributes="0"/>
@@ -815,6 +815,9 @@
                       </SubComponents>
                     </Container>
                     <Container class="org.fife.ui.rtextarea.RTextScrollPane" name="PaneForCodeEditor">
+                      <Properties>
+                        <Property name="lineNumbersEnabled" type="boolean" value="true"/>
+                      </Properties>
                       <Constraints>
                         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout$JSplitPaneConstraintsDescription">
                           <JSplitPaneConstraints position="right"/>
