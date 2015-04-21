@@ -54,11 +54,11 @@ public final class CompileAndRun
         }
     }
 
-    public static boolean RunProgram(File codePath)
+    public static boolean RunProgram(File codeFile)
     {
         //format of the arguments 
         String format = "java -classpath \"%s\" Main";
-        final String command = String.format(format, codePath.toString());
+        final String command = String.format(format, codeFile.getParent());
 
         //start console            
         ConsoleFrame cf = new ConsoleFrame(command);

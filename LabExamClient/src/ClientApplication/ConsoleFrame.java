@@ -83,7 +83,8 @@ public class ConsoleFrame extends javax.swing.JDialog
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    private void initComponents()
+    {
 
         jSplitPane1 = new javax.swing.JSplitPane();
         jPanel1 = new javax.swing.JPanel();
@@ -99,7 +100,6 @@ public class ConsoleFrame extends javax.swing.JDialog
         setTitle("Console Window");
         setAlwaysOnTop(true);
         setModal(true);
-        setPreferredSize(new java.awt.Dimension(600, 400));
 
         jSplitPane1.setDividerLocation(350);
         jSplitPane1.setDividerSize(8);
@@ -163,8 +163,10 @@ public class ConsoleFrame extends javax.swing.JDialog
         testCodeButton.setFont(testCodeButton.getFont().deriveFont(testCodeButton.getFont().getSize()+1f));
         testCodeButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/runtest.png"))); // NOI18N
         testCodeButton.setText("Run Test");
-        testCodeButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        testCodeButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 testCodeButtonActionPerformed(evt);
             }
         });
@@ -175,8 +177,10 @@ public class ConsoleFrame extends javax.swing.JDialog
 
         closeButton.setFont(closeButton.getFont().deriveFont(closeButton.getFont().getSize()+1f));
         closeButton.setText("Close");
-        closeButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        closeButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 closeButtonActionPerformed(evt);
             }
         });

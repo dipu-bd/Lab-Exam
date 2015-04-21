@@ -16,6 +16,8 @@
  */
 package ClientApplication;
 
+import ClientApplication.ServerLink;
+
 /**
  *
  * @author Dipu
@@ -99,7 +101,7 @@ public class LoginForm extends javax.swing.JFrame
         jLabel1.setBackground(new java.awt.Color(220, 210, 230));
         jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Login to server");
+        jLabel1.setText("Login to Exam Server");
         jLabel1.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 2, 0, new java.awt.Color(200, 190, 220)));
         jLabel1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jLabel1.setOpaque(true);
@@ -263,9 +265,9 @@ public class LoginForm extends javax.swing.JFrame
         // collect data        
         int result = 2;
         try {
-            ServerLink.serverName = IPAddressText.getText().trim();
-            ServerLink.userName = userNameText.getText().trim();
-            ServerLink.port = Integer.parseInt(PortText.getText());
+            ServerLink.setServerName(IPAddressText.getText());
+            ServerLink.setUsername(userNameText.getText());
+            ServerLink.setPort(Integer.parseInt(PortText.getText()));
 
             //attempt to login
             String pass = new String(PasswordField.getPassword());

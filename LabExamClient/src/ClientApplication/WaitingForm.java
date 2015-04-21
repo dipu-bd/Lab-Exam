@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package ClientApplication;
-
+  
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.JFrame;
@@ -73,7 +73,7 @@ public class WaitingForm extends javax.swing.JFrame
         if (now < startTime) return;
 
         this.dispose();        
-        Program.loadDefaultFolder((startTime / 1000) + "_" + ServerLink.userName);
+        Program.loadDefaultFolder((startTime / 1000) + "_" + ServerLink.getUsername());
         
         MainForm mf = new MainForm();
         mf.ParentForm = this.ParentForm;

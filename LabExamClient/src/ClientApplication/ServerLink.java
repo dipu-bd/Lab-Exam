@@ -31,10 +31,18 @@ import java.util.ArrayList;
 public final class ServerLink
 {
 
-    public static int port;
-    public static String userName;
-    public static String serverName;
+    private static int port;
+    private static String userName;
+    private static String serverName;
 
+    /**
+     * Connect to the server, send some data, and receive some corresponding
+     * data.
+     *
+     * @param command Which type of data/request is being sent
+     * @param var Data to send
+     * @return Data received from the server
+     */
     public static Object getResponce(Command command, Object... var)
     {
         try {
@@ -64,64 +72,98 @@ public final class ServerLink
             return result;
         }
         catch (IOException | ClassNotFoundException ex) {
+            ex.printStackTrace();
             return null;
         }
     }
 
+//<editor-fold defaultstate="collapsed" desc="Function to get different data from the server">
+    /**
+     * Checks if the server is available right now.
+     *
+     * @return True if server is available; False otherwise.
+     */
     public static boolean isAvailable()
     {
         Object result = getResponce(Command.EMPTY);
         return (result != null && (boolean) result);
     }
 
+    /**
+     * Attempt to login to the server using current username and provided
+     * password
+     *
+     * @param pass Password to use to login to the server
+     * @return -1 in error; 0 in success; 1 is failure.
+     */
     public static int promptLogin(String pass)
     {
         Object result = getResponce(Command.LOGIN, userName, pass);
-        if (result == null)
-            return -1;
-        if ((boolean) result)
-            return 0;
-        else
-            return 1;
+        if (result == null) return -1;
+        if ((boolean) result) return 0;
+        else return 1;
     }
 
+    /**
+     * Logout the current user from the server.
+     *
+     * @return True on success; False otherwise.
+     */
     public static boolean logoutUser()
     {
         Object result = getResponce(Command.LOGOUT, userName);
-        if (result == null)
-            return false;
+        if (result == null) return false;
         return (boolean) result;
     }
 
+    /**
+     * Gets the start time of the exam.
+     *
+     * @return -1 in Error; A UNIX-style time in success.
+     */
     public static long getStartTime()
     {
         Object result = getResponce(Command.START_TIME);
-        if (result == null)
-            return -1;
+        if (result == null) return -1;
         return (long) result;
     }
 
+    /**
+     * Gets the stop time of the exam.
+     *
+     * @return -1 in Error; A UNIX-style time in success.
+     */
     public static long getStopTime()
     {
         Object result = getResponce(Command.STOP_TIME);
-        if (result == null)
-            return -1;
+        if (result == null) return -1;
         return (long) result;
     }
 
-    public static boolean submitAnswer(int qid, String answer)
+    /**
+     * Submits an answer to the server.
+     *
+     * @param qid ID of question to submit answer.
+     * @param files List of files to submit.
+     * @param data Data of files to submit.
+     * @return True on success; False otherwise.
+     */
+    public static boolean submitAnswer(int qid, Object[] files, Object[] data)
     {
-        Object result = getResponce(Command.SUBMIT, userName, qid, answer);
-        if (result == null)
-            return false;
+        Object result = getResponce(Command.SUBMIT, userName, qid, files, data);
+        if (result == null) return false;
         return (boolean) result;
     }
 
+    /**
+     * Get the title of the current exam.
+     *
+     * @return "-" on failure; Exam Title on success.
+     */
     public static String getExamTitle()
     {
         Object result = getResponce(Command.EXAM_TITLE);
-        if (result == null)
-            return "-";
+        if (result == null) return "-";
         return (String) result;
     }
 
@@ -152,4 +194,67 @@ public final class ServerLink
             return new ArrayList<>();
         return (ArrayList<String>) result;
     }
+
+//</editor-fold>
+//<editor-fold defaultstate="collapsed" desc="Get or Set methods">
+    /**
+     * Set the port address used in connection
+     *
+     * @param port Integer value for port number
+     */
+    public static void setPort(int port)
+    {
+        ServerLink.port = port;
+    }
+
+    /**
+     * Get the current port number used to connect
+     *
+     * @return Integer port number
+     */
+    public static int getPort()
+    {
+        return ServerLink.port;
+    }
+
+    /**
+     * Set the current username used to connect
+     *
+     * @param user Registration number of the user
+     */
+    public static void setUsername(String user)
+    {
+        ServerLink.userName = user.trim();
+    }
+
+    /**
+     * Get the currently assigned registration number
+     *
+     * @return Registration number currently in use.
+     */
+    public static String getUsername()
+    {
+        return ServerLink.userName;
+    }
+
+    /**
+     * Set the server address to connect
+     *
+     * @param server Address of the server
+     */
+    public static void setServerName(String server)
+    {
+        ServerLink.serverName = server.trim();
+    }
+
+    /**
+     * Get the server address currently in use
+     *
+     * @return Server address or name.
+     */
+    public static String getServerName()
+    {
+        return ServerLink.serverName;
+    }
+//</editor-fold>
 }

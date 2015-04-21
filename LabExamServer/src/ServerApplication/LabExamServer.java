@@ -132,6 +132,7 @@ public final class LabExamServer
                 clientSocket.close();
             }
             catch (IOException | ClassNotFoundException ex) {
+                ex.printStackTrace();
                 if (stopListening) {
                     Logger.getLogger("LabExam").log(Level.INFO, "Exam stopped.");
                 }
@@ -150,7 +151,7 @@ public final class LabExamServer
             stopListening = true;
             serverSocket.close();
         }
-        catch (IOException ex) {
+        catch (IOException ex) {            
             Logger.getLogger(LabExamServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -159,7 +160,7 @@ public final class LabExamServer
     {
         int qid;
         boolean result;
-        String user, pass, answer;
+        String user, pass;
 
         switch (command) {
             case EMPTY:
@@ -199,8 +200,9 @@ public final class LabExamServer
             case SUBMIT:
                 user = (String) input.readObject();
                 qid = (int) input.readObject();
-                answer = (String) input.readObject();
-                boolean res = CurrentExam.submitAnswer(user, qid, answer);
+                Object[] files = (Object[]) input.readObject();
+                Object[] data = (Object[]) input.readObject();
+                boolean res = CurrentExam.submitAnswer(user, qid, files, data);
                 output.writeObject(res);
                 break;
         }

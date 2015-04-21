@@ -196,25 +196,19 @@ public final class CurrentExam
     }
     //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc="Submit and Announcements">
-    public static File getSubmissionPath(String user, int qid)
+    public static File getSubmissionPath(String regno)
     {
-        Path path = curExam.ExamPath.toPath();
-        path = path.resolve(user);
-        //create directory
-        File par = path.toFile();
-        if (!par.exists()) {
-            par.mkdirs();
-        }
-        if (!par.isDirectory()) {
-            par.delete();
-        }
-        if (!par.exists()) {
-            par.mkdirs();
-        }
-        //save to path
-        path = path.resolve(String.format("Q%02d.java", qid));
-        return path.toFile();
+        Path par = CurrentExam.curExam.ExamPath.toPath();
+        par = par.resolve(regno);
+        return par.toFile();
+    }
+
+    public static File getSubmissionPath(String regno, int qid)
+    {
+        Path par = CurrentExam.curExam.ExamPath.toPath();
+        par = par.resolve(regno);
+        par = par.resolve("Question_" + qid);
+        return par.toFile();
     }
 
     /**
@@ -222,35 +216,47 @@ public final class CurrentExam
      *
      * @param regno Registration no of the student who submitted the answer.
      * @param qid Question id of the answer.
-     * @param answer Body of the answer.
+     * @param files List of files for the answer.
+     * @param data Data of the answer files.
      * @return False if answer saving failed, True otherwise.
      */
-    public static boolean submitAnswer(String regno, int qid, String answer)
+    public static boolean submitAnswer(String regno, int qid, Object[] files, Object[] data)
     {
         if (!CurrentExam.curExam.isRunning()) {
             return false;
         }
 
+        //get userid and name
         int uid = curExam.getCandidateID(regno);
         if (!curExam.candidateExist(uid)) {
             return false;
         }
-
         String name = curExam.getCandidate(uid).name;
 
         try {
-            FileOutputStream fos;
-            fos = new FileOutputStream(getSubmissionPath(regno, qid));
-            fos.write(answer.getBytes());
-            fos.close();
+            if (!CurrentExam.examFile.exists()) {
+                CurrentExam.examFile.mkdir();
+            }
 
-            invokeUserChanged(new UserChangeEvent(uid, qid));
+            //write all data in files
+            Path par = getSubmissionPath(regno).toPath();
+            for (int i = 0; i < files.length; ++i) {
+                File f = par.resolve((String) files[i]).toFile();
+                f.getParentFile().mkdirs(); 
+                FileOutputStream fos = new FileOutputStream(f);
+                fos.write((byte[]) data[i]);
+                fos.flush();
+                fos.close();
+            }
+
+            invokeUserSubmitted(new UserChangeEvent(uid, qid));
 
             Logger.getLogger("LabExam").log(Level.INFO,
                     String.format("%s(%s) submitted answer for Question %02d", name, regno, qid));
             return true;
         }
         catch (Exception ex) {
+            ex.printStackTrace();
             Logger.getLogger("LabExam").log(Level.SEVERE,
                     String.format("Failed to receive %s(%s)'s answer for Question.", name, regno));
             return false;
@@ -294,5 +300,14 @@ public final class CurrentExam
             handler.userChanged(uce);
         }
     }
+
+    public static void invokeUserSubmitted(UserChangeEvent uce)
+    {
+        // Notify everybody who are connected
+        for (UserChangedHandler handler : userChangeListener) {
+            handler.userSubmitted(uce);
+        }
+    }
     //</editor-fold>
+
 }
