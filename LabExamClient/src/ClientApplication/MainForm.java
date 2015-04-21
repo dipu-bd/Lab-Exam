@@ -33,7 +33,6 @@ import java.awt.Font;
 import java.awt.HeadlessException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Writer;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
@@ -183,8 +182,8 @@ public class MainForm extends javax.swing.JFrame
         examTitleLabel.setText(ServerLink.getExamTitle());
         downloadQuestions();
 
-        double dsz = answerSplitterPane.getResizeWeight() * answerSplitterPane.getHeight();
-        answerSplitterPane.setDividerLocation((int) dsz);
+        double dsz = codeSplitPane.getResizeWeight() * codeSplitPane.getHeight();
+        codeSplitPane.setDividerLocation((int) dsz);
         dsz = mainSplitterPane.getResizeWeight() * mainSplitterPane.getWidth();
         mainSplitterPane.setDividerLocation((int) dsz);
     }
@@ -265,6 +264,7 @@ public class MainForm extends javax.swing.JFrame
             DefaultMutableTreeNode root = new DefaultMutableTreeNode(new TreeNodeData(qpath, selectedQues.Title));
             loadFileList(root, qpath);
             explorerTree.setModel(new DefaultTreeModel(root));
+            explorerTree.setSelectionRow(0);
         }
         catch (Exception ex) {
             ex.printStackTrace();
@@ -273,15 +273,21 @@ public class MainForm extends javax.swing.JFrame
 
     void loadFileList(DefaultMutableTreeNode node, File dir)
     {
-        if (!dir.isDirectory()) {
-            node.setAllowsChildren(false);
-            return;
-        }
-
         node.setAllowsChildren(true);
         for (File f : dir.listFiles()) {
+            //if file then check if valid
+            if (f.isFile()) {
+                String nam = f.getName().toLowerCase();
+                if (nam.endsWith(".exe") || nam.endsWith(".class")) {
+                    f.delete();
+                    continue;
+                }
+            }
+            //add child
             DefaultMutableTreeNode child = new DefaultMutableTreeNode(new TreeNodeData(f));
-            loadFileList(child, f);
+            if (f.isDirectory()) {
+                loadFileList(child, f);
+            }
             node.add(child);
         }
     }
@@ -289,6 +295,24 @@ public class MainForm extends javax.swing.JFrame
     void openFileInEditor(File file)
     {
         try {
+            //set highlighting style
+            String nam = file.getName().toLowerCase();
+            if (nam.endsWith(".exe") || nam.endsWith(".class")) {
+                return;
+            }
+            else if (nam.endsWith(".java")) {
+                codeEditor.setSyntaxEditingStyle("text/java");
+            }
+            else if (nam.endsWith(".cpp")) {
+                codeEditor.setSyntaxEditingStyle("text/cpp");
+            }
+            else if (nam.endsWith(".c")) {
+                codeEditor.setSyntaxEditingStyle("text/c");
+            }
+            else {
+                codeEditor.setSyntaxEditingStyle("text/plain");
+            }
+
             //get text
             StringWriter sw = new StringWriter();
             FileInputStream fis = new FileInputStream(file);
@@ -301,23 +325,8 @@ public class MainForm extends javax.swing.JFrame
             //set data to view  
             codeEditor.setEditable(true);
             codeEditor.setText(sw.toString());
-            PaneForCodeEditor.setLineNumbersEnabled(true);
+            paneForCodeEditor.setLineNumbersEnabled(true);
             questionTitleBox.setText(selectedQues.Title + " >> " + file.getName());
-
-            //set highlighting style
-            String nam = file.getName().toLowerCase();
-            if (nam.endsWith(".java")) {
-                codeEditor.setSyntaxEditingStyle("text/java");
-            }
-            else if (nam.endsWith(".cpp")) {
-                codeEditor.setSyntaxEditingStyle("text/cpp");
-            }
-            else if (nam.endsWith(".c")) {
-                codeEditor.setSyntaxEditingStyle("text/c");
-            }
-            else {
-                codeEditor.setSyntaxEditingStyle("text/plain");
-            }
         }
         catch (Exception ex) {
             codeEditor.setText("Create a new file and select it to edit.");
@@ -367,7 +376,7 @@ public class MainForm extends javax.swing.JFrame
             {
                 @Override
                 public void close() throws IOException
-                {                    
+                {
                 }
 
                 @Override
@@ -410,6 +419,8 @@ public class MainForm extends javax.swing.JFrame
                 + "Your previous submission(if any) will be overwritten.",
                 "Submit Answer", JOptionPane.YES_NO_OPTION);
         try {
+            saveFileFromEditor();
+
             File qpath = Program.defaultPath.resolve("Question_" + selectedQues.ID).toFile();
             ArrayList<Object> data = new ArrayList<>();
             ArrayList<Object> files = new ArrayList<>();
@@ -434,6 +445,13 @@ public class MainForm extends javax.swing.JFrame
     {
         if (!f.exists()) return;
         if (f.isFile()) {
+            //delete if not valid file
+            String nam = f.getName().toLowerCase();
+            if (nam.endsWith(".exe") || nam.endsWith(".class")) {
+                f.delete();
+                return;
+            }
+            //send all other files
             data.add(Functions.readFully(new FileInputStream(f)));
             int deflen = Program.defaultPath.toFile().getAbsolutePath().length();
             list.add(f.getAbsolutePath().substring(deflen + 1)); //+1 is for separator
@@ -465,8 +483,8 @@ public class MainForm extends javax.swing.JFrame
 
             //add node to display
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(new TreeNodeData(f), true);
-            DefaultTreeModel model = (DefaultTreeModel) explorerTree.getModel();
-            model.insertNodeInto(node, selectedNode, selectedNode.getChildCount());
+            selectedNode.add(node);
+            ((DefaultTreeModel) explorerTree.getModel()).reload(selectedNode);
         }
         catch (Exception ex) {
             //JOptionPane.showMessageDialog(this, "SORRY!! Something went wrong. Please try again!");
@@ -484,19 +502,19 @@ public class MainForm extends javax.swing.JFrame
 
             //create new file
             if (ext == null || ext.isEmpty()) ext = ".txt";
-            String name = JOptionPane.showInputDialog(this, "Name of the file to create", "New File");
+            String name = JOptionPane.showInputDialog(this, "Name of the file to create", "New File" + ext);
             name = name.replaceAll("[\\\\/:*?\\\"<>|]", "").trim();
-            File f = (file.toPath().resolve(name + ext)).toFile();
+            File f = (file.toPath().resolve(name)).toFile();
             if (name.isEmpty() || f.exists()) {
-                JOptionPane.showMessageDialog(this, "Another file with name \"" + name + ext + "\" already exists!");
+                JOptionPane.showMessageDialog(this, "Another file with name \"" + name + "\" already exists!");
                 return;
             }
             if (!f.createNewFile()) throw new FileNotFoundException();
 
             //add node to display
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(new TreeNodeData(f), true);
-            DefaultTreeModel model = (DefaultTreeModel) explorerTree.getModel();
-            model.insertNodeInto(node, selectedNode, selectedNode.getChildCount());
+            selectedNode.add(node);
+            ((DefaultTreeModel) explorerTree.getModel()).reload(selectedNode);
         }
         catch (Exception ex) {
             //JOptionPane.showMessageDialog(this, "SORRY!! Something went wrong. Please try again!");
@@ -523,11 +541,10 @@ public class MainForm extends javax.swing.JFrame
             }
 
             //reload the view
-            DefaultTreeModel model = (DefaultTreeModel) explorerTree.getModel();
             selectedNode.setUserObject(new TreeNodeData(newFile));
             selectedNode.removeAllChildren();
             loadFileList(selectedNode, newFile);
-            model.reload(selectedNode);
+            ((DefaultTreeModel) explorerTree.getModel()).reload(selectedNode);
         }
         catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "SORRY!! Something went wrong. Please try again!");
@@ -584,37 +601,46 @@ public class MainForm extends javax.swing.JFrame
         examTitleLabel = new javax.swing.JLabel();
         remainingTimeLabel = new javax.swing.JLabel();
         mainSplitterPane = new javax.swing.JSplitPane();
-        jPanel2 = new javax.swing.JPanel();
-        jPanel7 = new javax.swing.JPanel();
-        jLabel2 = new javax.swing.JLabel();
+        mainLeftPanel = new javax.swing.JPanel();
+        questionHeader = new javax.swing.JPanel();
+        listOfQuesLabel = new javax.swing.JLabel();
         submitAnswerButton1 = new javax.swing.JButton();
         questionSplitterPane = new javax.swing.JSplitPane();
-        jPanel9 = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        quesListPanel = new javax.swing.JPanel();
+        queslistPane = new javax.swing.JScrollPane();
         questionList = new javax.swing.JList();
-        jPanel1 = new javax.swing.JPanel();
+        descPanel = new javax.swing.JPanel();
         descToolBar = new javax.swing.JToolBar();
         pdfPanel = new javax.swing.JScrollPane();
-        jPanel3 = new javax.swing.JPanel();
-        jPanel4 = new javax.swing.JPanel();
+        mainRightPanel = new javax.swing.JPanel();
+        answerHeaderPanel = new javax.swing.JPanel();
         questionTitleBox = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
+        markLabel = new javax.swing.JLabel();
         markValueBox = new javax.swing.JLabel();
         fullscreenButton = new javax.swing.JToggleButton();
-        jPanel5 = new javax.swing.JPanel();
+        submitToolBar = new javax.swing.JPanel();
         submitAnswerButton = new javax.swing.JButton();
         compileAndRunButton = new javax.swing.JButton();
         saveCodeButton = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
+        themeLabel = new javax.swing.JLabel();
         themeChooser = new javax.swing.JComboBox();
         answerSplitterPane = new javax.swing.JSplitPane();
-        jPanel6 = new javax.swing.JPanel();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        consolePane = new javax.swing.JTextArea();
-        codeSplitPane = new javax.swing.JSplitPane();
+        explorerContainer = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         explorerTree = new javax.swing.JTree();
-        PaneForCodeEditor = new org.fife.ui.rtextarea.RTextScrollPane();
+        jPanel10 = new javax.swing.JPanel();
+        newFolderToolButton = new javax.swing.JButton();
+        deleteToolButton = new javax.swing.JButton();
+        newJavaToolButton = new javax.swing.JButton();
+        newCPPToolButton = new javax.swing.JButton();
+        newCToolButton = new javax.swing.JButton();
+        newFileToolButton = new javax.swing.JButton();
+        codeSplitPane = new javax.swing.JSplitPane();
+        consoleContainer = new javax.swing.JPanel();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        consolePane = new javax.swing.JTextArea();
+        jPanel1 = new javax.swing.JPanel();
+        paneForCodeEditor = new org.fife.ui.rtextarea.RTextScrollPane();
         codeEditor = new org.fife.ui.rsyntaxtextarea.RSyntaxTextArea();
 
         newFolderMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/folder.png"))); // NOI18N
@@ -749,7 +775,7 @@ public class MainForm extends javax.swing.JFrame
             topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(topPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(examTitleLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(examTitleLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 367, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(remainingTimeLabel)
                 .addGap(10, 10, 10)
@@ -772,20 +798,21 @@ public class MainForm extends javax.swing.JFrame
 
         mainSplitterPane.setBackground(new java.awt.Color(204, 204, 255));
         mainSplitterPane.setBorder(javax.swing.BorderFactory.createMatteBorder(1, 5, 5, 5, new java.awt.Color(0, 153, 153)));
-        mainSplitterPane.setDividerLocation(230);
+        mainSplitterPane.setDividerLocation(240);
         mainSplitterPane.setDividerSize(10);
-        mainSplitterPane.setResizeWeight(0.45);
+        mainSplitterPane.setResizeWeight(0.38);
         mainSplitterPane.setContinuousLayout(true);
         mainSplitterPane.setDoubleBuffered(true);
         mainSplitterPane.setOneTouchExpandable(true);
         mainSplitterPane.setOpaque(false);
+        mainSplitterPane.setPreferredSize(new java.awt.Dimension(0, 0));
 
-        jPanel7.setBackground(java.awt.Color.cyan);
-        jPanel7.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new java.awt.Color(0, 204, 255)));
-        jPanel7.setAutoscrolls(true);
+        questionHeader.setBackground(java.awt.Color.cyan);
+        questionHeader.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new java.awt.Color(0, 204, 255)));
+        questionHeader.setAutoscrolls(true);
 
-        jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
-        jLabel2.setText("List of Questions");
+        listOfQuesLabel.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
+        listOfQuesLabel.setText("List of Questions");
 
         submitAnswerButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/reload.png"))); // NOI18N
         submitAnswerButton1.setText("Redownload");
@@ -797,23 +824,23 @@ public class MainForm extends javax.swing.JFrame
             }
         });
 
-        javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
-        jPanel7.setLayout(jPanel7Layout);
-        jPanel7Layout.setHorizontalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel7Layout.createSequentialGroup()
+        javax.swing.GroupLayout questionHeaderLayout = new javax.swing.GroupLayout(questionHeader);
+        questionHeader.setLayout(questionHeaderLayout);
+        questionHeaderLayout.setHorizontalGroup(
+            questionHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(questionHeaderLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE)
+                .addComponent(listOfQuesLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(submitAnswerButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
-        jPanel7Layout.setVerticalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel7Layout.createSequentialGroup()
+        questionHeaderLayout.setVerticalGroup(
+            questionHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(questionHeaderLayout.createSequentialGroup()
                 .addGap(6, 6, 6)
-                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(questionHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(listOfQuesLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(submitAnswerButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(6, 6, 6))
         );
@@ -835,74 +862,75 @@ public class MainForm extends javax.swing.JFrame
                 questionListValueChanged(evt);
             }
         });
-        jScrollPane1.setViewportView(questionList);
+        queslistPane.setViewportView(questionList);
 
-        javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
-        jPanel9.setLayout(jPanel9Layout);
-        jPanel9Layout.setHorizontalGroup(
-            jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel9Layout.createSequentialGroup()
+        javax.swing.GroupLayout quesListPanelLayout = new javax.swing.GroupLayout(quesListPanel);
+        quesListPanel.setLayout(quesListPanelLayout);
+        quesListPanelLayout.setHorizontalGroup(
+            quesListPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(quesListPanelLayout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE)
+                .addComponent(queslistPane, javax.swing.GroupLayout.DEFAULT_SIZE, 232, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
-        jPanel9Layout.setVerticalGroup(
-            jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel9Layout.createSequentialGroup()
+        quesListPanelLayout.setVerticalGroup(
+            quesListPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(quesListPanelLayout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
+                .addComponent(queslistPane, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
 
-        questionSplitterPane.setTopComponent(jPanel9);
+        questionSplitterPane.setTopComponent(quesListPanel);
 
         descToolBar.setFloatable(false);
         descToolBar.setRollover(true);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(descToolBar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE)
+        javax.swing.GroupLayout descPanelLayout = new javax.swing.GroupLayout(descPanel);
+        descPanel.setLayout(descPanelLayout);
+        descPanelLayout.setHorizontalGroup(
+            descPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(descToolBar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 232, Short.MAX_VALUE)
             .addComponent(pdfPanel, javax.swing.GroupLayout.Alignment.TRAILING)
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+        descPanelLayout.setVerticalGroup(
+            descPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(descPanelLayout.createSequentialGroup()
                 .addComponent(descToolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(pdfPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 251, Short.MAX_VALUE))
+                .addComponent(pdfPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 227, Short.MAX_VALUE))
         );
 
-        questionSplitterPane.setRightComponent(jPanel1);
+        questionSplitterPane.setRightComponent(descPanel);
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        javax.swing.GroupLayout mainLeftPanelLayout = new javax.swing.GroupLayout(mainLeftPanel);
+        mainLeftPanel.setLayout(mainLeftPanelLayout);
+        mainLeftPanelLayout.setHorizontalGroup(
+            mainLeftPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(questionHeader, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(questionSplitterPane)
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        mainLeftPanelLayout.setVerticalGroup(
+            mainLeftPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(mainLeftPanelLayout.createSequentialGroup()
+                .addComponent(questionHeader, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
                 .addComponent(questionSplitterPane)
                 .addGap(0, 0, 0))
         );
 
-        mainSplitterPane.setLeftComponent(jPanel2);
+        mainSplitterPane.setLeftComponent(mainLeftPanel);
 
-        jPanel4.setBackground(java.awt.Color.cyan);
-        jPanel4.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new java.awt.Color(0, 204, 255)));
-        jPanel4.setAutoscrolls(true);
+        answerHeaderPanel.setBackground(java.awt.Color.cyan);
+        answerHeaderPanel.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new java.awt.Color(0, 204, 255)));
+        answerHeaderPanel.setAutoscrolls(true);
 
         questionTitleBox.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         questionTitleBox.setText("No Question");
+        questionTitleBox.setPreferredSize(new java.awt.Dimension(0, 0));
 
-        jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel3.setText("Mark :");
+        markLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        markLabel.setText("Mark :");
 
         markValueBox.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
         markValueBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -910,7 +938,7 @@ public class MainForm extends javax.swing.JFrame
         markValueBox.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 255)));
 
         fullscreenButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/fullscreen.png"))); // NOI18N
-        fullscreenButton.setText("Fullscreen");
+        fullscreenButton.setText("Extend");
         fullscreenButton.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -919,35 +947,35 @@ public class MainForm extends javax.swing.JFrame
             }
         });
 
-        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
-        jPanel4.setLayout(jPanel4Layout);
-        jPanel4Layout.setHorizontalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel4Layout.createSequentialGroup()
+        javax.swing.GroupLayout answerHeaderPanelLayout = new javax.swing.GroupLayout(answerHeaderPanel);
+        answerHeaderPanel.setLayout(answerHeaderPanelLayout);
+        answerHeaderPanelLayout.setHorizontalGroup(
+            answerHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(answerHeaderPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(questionTitleBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(markLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(markValueBox, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(fullscreenButton)
                 .addContainerGap())
         );
-        jPanel4Layout.setVerticalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel4Layout.createSequentialGroup()
+        answerHeaderPanelLayout.setVerticalGroup(
+            answerHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(answerHeaderPanelLayout.createSequentialGroup()
                 .addGap(5, 5, 5)
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(answerHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(markLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(markValueBox, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(fullscreenButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(questionTitleBox, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(5, 5, 5))
         );
 
-        jPanel5.setBackground(new java.awt.Color(0, 233, 242));
-        jPanel5.setAutoscrolls(true);
+        submitToolBar.setBackground(new java.awt.Color(0, 233, 242));
+        submitToolBar.setAutoscrolls(true);
 
         submitAnswerButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/submit.png"))); // NOI18N
         submitAnswerButton.setText("Submit");
@@ -979,8 +1007,8 @@ public class MainForm extends javax.swing.JFrame
             }
         });
 
-        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel1.setText("Theme :");
+        themeLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        themeLabel.setText("Theme :");
 
         themeChooser.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Light", "Dark" }));
         themeChooser.addActionListener(new java.awt.event.ActionListener()
@@ -991,15 +1019,15 @@ public class MainForm extends javax.swing.JFrame
             }
         });
 
-        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
-        jPanel5.setLayout(jPanel5Layout);
-        jPanel5Layout.setHorizontalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel5Layout.createSequentialGroup()
+        javax.swing.GroupLayout submitToolBarLayout = new javax.swing.GroupLayout(submitToolBar);
+        submitToolBar.setLayout(submitToolBarLayout);
+        submitToolBarLayout.setHorizontalGroup(
+            submitToolBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(submitToolBarLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(submitAnswerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(themeLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(themeChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1008,58 +1036,27 @@ public class MainForm extends javax.swing.JFrame
                 .addComponent(compileAndRunButton, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
-        jPanel5Layout.setVerticalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
+        submitToolBarLayout.setVerticalGroup(
+            submitToolBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, submitToolBarLayout.createSequentialGroup()
                 .addGap(5, 5, 5)
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(submitToolBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(submitAnswerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(compileAndRunButton, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(saveCodeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1)
+                    .addComponent(themeLabel)
                     .addComponent(themeChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(5, 5, 5))
         );
 
         answerSplitterPane.setBorder(null);
-        answerSplitterPane.setDividerLocation(200);
-        answerSplitterPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        answerSplitterPane.setResizeWeight(0.75);
+        answerSplitterPane.setDividerLocation(220);
+        answerSplitterPane.setDividerSize(6);
         answerSplitterPane.setContinuousLayout(true);
+        answerSplitterPane.setOneTouchExpandable(true);
 
-        jPanel6.setBorder(javax.swing.BorderFactory.createTitledBorder("Compile and Run Report"));
-
-        consolePane.setEditable(false);
-        consolePane.setBackground(new java.awt.Color(0, 45, 50));
-        consolePane.setColumns(20);
-        consolePane.setForeground(new java.awt.Color(99, 255, 52));
-        consolePane.setRows(5);
-        consolePane.setText("Test console");
-        consolePane.setCaretColor(new java.awt.Color(99, 255, 52));
-        jScrollPane4.setViewportView(consolePane);
-        (consolePane.getCaret()).setVisible(true);
-        ((DefaultCaret)consolePane.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-
-        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
-        jPanel6.setLayout(jPanel6Layout);
-        jPanel6Layout.setHorizontalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel6Layout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addComponent(jScrollPane4)
-                .addGap(0, 0, 0))
-        );
-        jPanel6Layout.setVerticalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 122, Short.MAX_VALUE)
-                .addGap(0, 0, 0))
-        );
-
-        answerSplitterPane.setRightComponent(jPanel6);
-
-        codeSplitPane.setDividerLocation(180);
+        explorerContainer.setBorder(javax.swing.BorderFactory.createTitledBorder("File Explorer"));
+        explorerContainer.setPreferredSize(new java.awt.Dimension(0, 0));
 
         explorerTree.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
         explorerTree.setToolTipText("");
@@ -1082,16 +1079,153 @@ public class MainForm extends javax.swing.JFrame
         });
         jScrollPane2.setViewportView(explorerTree);
 
-        codeSplitPane.setLeftComponent(jScrollPane2);
+        jPanel10.setLayout(new java.awt.GridLayout(3, 0, 1, 1));
 
-        PaneForCodeEditor.setLineNumbersEnabled(true);
+        newFolderToolButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/folder.png"))); // NOI18N
+        newFolderToolButton.setText("Create");
+        newFolderToolButton.setToolTipText("Create a new folder under selected folder");
+        newFolderToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
+        newFolderToolButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                newFolderToolButtonActionPerformed(evt);
+            }
+        });
+        jPanel10.add(newFolderToolButton);
 
-        codeEditor.setEditable(false);
+        deleteToolButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/delete.png"))); // NOI18N
+        deleteToolButton.setText("Delete");
+        deleteToolButton.setToolTipText("Delete the selected file or folder");
+        deleteToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
+        deleteToolButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                deleteToolButtonActionPerformed(evt);
+            }
+        });
+        jPanel10.add(deleteToolButton);
+
+        newJavaToolButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/java.png"))); // NOI18N
+        newJavaToolButton.setText("Java");
+        newJavaToolButton.setToolTipText("Create a new Java file under selected folder");
+        newJavaToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
+        newJavaToolButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                newJavaToolButtonActionPerformed(evt);
+            }
+        });
+        jPanel10.add(newJavaToolButton);
+
+        newCPPToolButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/cpp.png"))); // NOI18N
+        newCPPToolButton.setText("C++");
+        newCPPToolButton.setToolTipText("Create a new C++ file under selected folder");
+        newCPPToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
+        newCPPToolButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                newCPPToolButtonActionPerformed(evt);
+            }
+        });
+        jPanel10.add(newCPPToolButton);
+
+        newCToolButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/ansi_c.png"))); // NOI18N
+        newCToolButton.setText("Ansi C");
+        newCToolButton.setToolTipText("Create a new C file under selected folder");
+        newCToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
+        newCToolButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                newCToolButtonActionPerformed(evt);
+            }
+        });
+        jPanel10.add(newCToolButton);
+
+        newFileToolButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/file.png"))); // NOI18N
+        newFileToolButton.setText("Text");
+        newFileToolButton.setToolTipText("Create a new text file under selected folder");
+        newFileToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
+        newFileToolButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                newFileToolButtonActionPerformed(evt);
+            }
+        });
+        jPanel10.add(newFileToolButton);
+
+        javax.swing.GroupLayout explorerContainerLayout = new javax.swing.GroupLayout(explorerContainer);
+        explorerContainer.setLayout(explorerContainerLayout);
+        explorerContainerLayout.setHorizontalGroup(
+            explorerContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(explorerContainerLayout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addGroup(explorerContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel10, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 204, Short.MAX_VALUE))
+                .addGap(0, 0, 0))
+        );
+        explorerContainerLayout.setVerticalGroup(
+            explorerContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(explorerContainerLayout.createSequentialGroup()
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 234, Short.MAX_VALUE)
+                .addGap(0, 0, 0)
+                .addComponent(jPanel10, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0))
+        );
+
+        answerSplitterPane.setLeftComponent(explorerContainer);
+
+        codeSplitPane.setDividerLocation(200);
+        codeSplitPane.setDividerSize(6);
+        codeSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        codeSplitPane.setResizeWeight(0.7);
+        codeSplitPane.setOneTouchExpandable(true);
+
+        consoleContainer.setBorder(javax.swing.BorderFactory.createTitledBorder("Compile and Run Report"));
+
+        consolePane.setEditable(false);
+        consolePane.setBackground(new java.awt.Color(0, 45, 50));
+        consolePane.setColumns(20);
+        consolePane.setForeground(new java.awt.Color(99, 255, 52));
+        consolePane.setRows(5);
+        consolePane.setText("Test console");
+        consolePane.setCaretColor(new java.awt.Color(99, 255, 52));
+        jScrollPane4.setViewportView(consolePane);
+        (consolePane.getCaret()).setVisible(true);
+        ((DefaultCaret)consolePane.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+
+        javax.swing.GroupLayout consoleContainerLayout = new javax.swing.GroupLayout(consoleContainer);
+        consoleContainer.setLayout(consoleContainerLayout);
+        consoleContainerLayout.setHorizontalGroup(
+            consoleContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(consoleContainerLayout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 312, Short.MAX_VALUE)
+                .addGap(0, 0, 0))
+        );
+        consoleContainerLayout.setVerticalGroup(
+            consoleContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, consoleContainerLayout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 168, Short.MAX_VALUE))
+        );
+
+        codeSplitPane.setRightComponent(consoleContainer);
+
+        paneForCodeEditor.setLineNumbersEnabled(true);
+
         codeEditor.setColumns(20);
         codeEditor.setRows(5);
-        codeEditor.setText("class Main //don't rename the main class\n{\n\n}");
+        codeEditor.setCodeFoldingEnabled(true);
         codeEditor.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
-        codeEditor.setSyntaxEditingStyle("text/java");
+        codeEditor.setPaintMarkOccurrencesBorder(true);
+        codeEditor.setPaintMatchedBracketPair(true);
         codeEditor.addKeyListener(new java.awt.event.KeyAdapter()
         {
             public void keyTyped(java.awt.event.KeyEvent evt)
@@ -1099,47 +1233,63 @@ public class MainForm extends javax.swing.JFrame
                 codeEditorKeyTyped(evt);
             }
         });
-        PaneForCodeEditor.setViewportView(codeEditor);
+        paneForCodeEditor.setViewportView(codeEditor);
 
-        codeSplitPane.setRightComponent(PaneForCodeEditor);
-
-        answerSplitterPane.setLeftComponent(codeSplitPane);
-
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(answerSplitterPane, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-            .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(1, 1, 1)
-                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(answerSplitterPane, javax.swing.GroupLayout.DEFAULT_SIZE, 364, Short.MAX_VALUE)
+                .addComponent(paneForCodeEditor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(0, 0, 0))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addComponent(paneForCodeEditor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
 
-        mainSplitterPane.setRightComponent(jPanel3);
+        codeSplitPane.setLeftComponent(jPanel1);
+
+        answerSplitterPane.setRightComponent(codeSplitPane);
+
+        javax.swing.GroupLayout mainRightPanelLayout = new javax.swing.GroupLayout(mainRightPanel);
+        mainRightPanel.setLayout(mainRightPanelLayout);
+        mainRightPanelLayout.setHorizontalGroup(
+            mainRightPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(answerHeaderPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(answerSplitterPane, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+            .addComponent(submitToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        mainRightPanelLayout.setVerticalGroup(
+            mainRightPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(mainRightPanelLayout.createSequentialGroup()
+                .addComponent(answerHeaderPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(1, 1, 1)
+                .addComponent(submitToolBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(answerSplitterPane)
+                .addGap(0, 0, 0))
+        );
+
+        mainSplitterPane.setRightComponent(mainRightPanel);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(topPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(mainSplitterPane)
+            .addComponent(mainSplitterPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(topPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(mainSplitterPane)
-                .addGap(0, 0, 0))
+                .addComponent(mainSplitterPane, javax.swing.GroupLayout.DEFAULT_SIZE, 425, Short.MAX_VALUE))
         );
 
         pack();
@@ -1263,11 +1413,6 @@ public class MainForm extends javax.swing.JFrame
         deleteSelectedFile();
     }//GEN-LAST:event_deleteMenuActionPerformed
 
-    private void codeEditorKeyTyped(java.awt.event.KeyEvent evt)//GEN-FIRST:event_codeEditorKeyTyped
-    {//GEN-HEADEREND:event_codeEditorKeyTyped
-        saveFileFromEditor();
-    }//GEN-LAST:event_codeEditorKeyTyped
-
     private void explorerTreeMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_explorerTreeMouseClicked
     {//GEN-HEADEREND:event_explorerTreeMouseClicked
         if (SwingUtilities.isRightMouseButton(evt)) {
@@ -1288,42 +1433,84 @@ public class MainForm extends javax.swing.JFrame
         }
     }//GEN-LAST:event_fullscreenButtonActionPerformed
 
+    private void newFolderToolButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_newFolderToolButtonActionPerformed
+    {//GEN-HEADEREND:event_newFolderToolButtonActionPerformed
+        createNewFolder();
+    }//GEN-LAST:event_newFolderToolButtonActionPerformed
+
+    private void newFileToolButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_newFileToolButtonActionPerformed
+    {//GEN-HEADEREND:event_newFileToolButtonActionPerformed
+        createNewFile(null);
+    }//GEN-LAST:event_newFileToolButtonActionPerformed
+
+    private void newJavaToolButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_newJavaToolButtonActionPerformed
+    {//GEN-HEADEREND:event_newJavaToolButtonActionPerformed
+        createNewFile(".java");
+    }//GEN-LAST:event_newJavaToolButtonActionPerformed
+
+    private void newCPPToolButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_newCPPToolButtonActionPerformed
+    {//GEN-HEADEREND:event_newCPPToolButtonActionPerformed
+        createNewFile(".cpp");
+    }//GEN-LAST:event_newCPPToolButtonActionPerformed
+
+    private void newCToolButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_newCToolButtonActionPerformed
+    {//GEN-HEADEREND:event_newCToolButtonActionPerformed
+        createNewFile(".c");
+    }//GEN-LAST:event_newCToolButtonActionPerformed
+
+    private void deleteToolButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_deleteToolButtonActionPerformed
+    {//GEN-HEADEREND:event_deleteToolButtonActionPerformed
+        deleteSelectedFile();
+    }//GEN-LAST:event_deleteToolButtonActionPerformed
+
+    private void codeEditorKeyTyped(java.awt.event.KeyEvent evt)//GEN-FIRST:event_codeEditorKeyTyped
+    {//GEN-HEADEREND:event_codeEditorKeyTyped
+        saveFileFromEditor();
+    }//GEN-LAST:event_codeEditorKeyTyped
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.fife.ui.rtextarea.RTextScrollPane PaneForCodeEditor;
+    private javax.swing.JPanel answerHeaderPanel;
     private javax.swing.JSplitPane answerSplitterPane;
     private org.fife.ui.rsyntaxtextarea.RSyntaxTextArea codeEditor;
     private javax.swing.JSplitPane codeSplitPane;
     private javax.swing.JButton compileAndRunButton;
+    private javax.swing.JPanel consoleContainer;
     private javax.swing.JTextArea consolePane;
     private javax.swing.JMenuItem deleteMenu;
+    private javax.swing.JButton deleteToolButton;
+    private javax.swing.JPanel descPanel;
     private javax.swing.JToolBar descToolBar;
     private javax.swing.JLabel examTitleLabel;
+    private javax.swing.JPanel explorerContainer;
     private final javax.swing.JPopupMenu explorerPopup = new javax.swing.JPopupMenu();
     private javax.swing.JTree explorerTree;
     private javax.swing.JToggleButton fullscreenButton;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel4;
-    private javax.swing.JPanel jPanel5;
-    private javax.swing.JPanel jPanel6;
-    private javax.swing.JPanel jPanel7;
-    private javax.swing.JPanel jPanel9;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JPanel jPanel10;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JLabel listOfQuesLabel;
     private javax.swing.JButton logoutButton;
+    private javax.swing.JPanel mainLeftPanel;
+    private javax.swing.JPanel mainRightPanel;
     private javax.swing.JSplitPane mainSplitterPane;
+    private javax.swing.JLabel markLabel;
     private javax.swing.JLabel markValueBox;
     private javax.swing.JMenuItem newCMenu;
     private javax.swing.JMenuItem newCPPMenu;
+    private javax.swing.JButton newCPPToolButton;
+    private javax.swing.JButton newCToolButton;
     private javax.swing.JMenuItem newFileMenu;
+    private javax.swing.JButton newFileToolButton;
     private javax.swing.JMenuItem newFolderMenu;
+    private javax.swing.JButton newFolderToolButton;
     private javax.swing.JMenuItem newJavaMenu;
+    private javax.swing.JButton newJavaToolButton;
+    private org.fife.ui.rtextarea.RTextScrollPane paneForCodeEditor;
     private javax.swing.JScrollPane pdfPanel;
+    private javax.swing.JPanel quesListPanel;
+    private javax.swing.JScrollPane queslistPane;
+    private javax.swing.JPanel questionHeader;
     private javax.swing.JList questionList;
     private javax.swing.JSplitPane questionSplitterPane;
     private javax.swing.JLabel questionTitleBox;
@@ -1333,7 +1520,9 @@ public class MainForm extends javax.swing.JFrame
     private javax.swing.JButton saveCodeButton;
     private javax.swing.JButton submitAnswerButton;
     private javax.swing.JButton submitAnswerButton1;
+    private javax.swing.JPanel submitToolBar;
     private javax.swing.JComboBox themeChooser;
+    private javax.swing.JLabel themeLabel;
     private javax.swing.JPanel topPanel;
     // End of variables declaration//GEN-END:variables
 }
