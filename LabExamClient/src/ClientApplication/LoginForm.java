@@ -41,8 +41,7 @@ public class LoginForm extends javax.swing.JFrame
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents()
-    {
+    private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
         IPAddressText = new javax.swing.JTextField();
@@ -79,10 +78,8 @@ public class LoginForm extends javax.swing.JFrame
 
         IPAddressText.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
         IPAddressText.setToolTipText("IP Address of the server");
-        IPAddressText.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        IPAddressText.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 IPAddressTextActionPerformed(evt);
             }
         });
@@ -90,10 +87,8 @@ public class LoginForm extends javax.swing.JFrame
         PortText.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
         PortText.setText("1661");
         PortText.setToolTipText("Port number.");
-        PortText.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        PortText.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 PortTextActionPerformed(evt);
             }
         });
@@ -123,10 +118,8 @@ public class LoginForm extends javax.swing.JFrame
 
         userNameText.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
         userNameText.setToolTipText("Registration number of the student");
-        userNameText.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        userNameText.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 userNameTextActionPerformed(evt);
             }
         });
@@ -137,10 +130,8 @@ public class LoginForm extends javax.swing.JFrame
         jLabel5.setText("Password :");
 
         PasswordField.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
-        PasswordField.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        PasswordField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 PasswordFieldActionPerformed(evt);
             }
         });
@@ -152,13 +143,10 @@ public class LoginForm extends javax.swing.JFrame
         LoginButton.setForeground(new java.awt.Color(0, 51, 102));
         LoginButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/login.png"))); // NOI18N
         LoginButton.setToolTipText("Fill up all boxes and click to login");
-        LoginButton.setLabel("Login");
         LoginButton.setMargin(new java.awt.Insets(2, 3, 2, 3));
         LoginButton.setPreferredSize(new java.awt.Dimension(80, 28));
-        LoginButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        LoginButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 LoginButtonActionPerformed(evt);
             }
         });

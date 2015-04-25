@@ -285,7 +285,6 @@
               <Image iconType="3" name="/Resources/login.png"/>
             </Property>
             <Property name="toolTipText" type="java.lang.String" value="Fill up all boxes and click to login"/>
-            <Property name="label" type="java.lang.String" value="Login"/>
             <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
               <Insets value="[2, 3, 2, 3]"/>
             </Property>
