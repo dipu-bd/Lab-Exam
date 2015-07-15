@@ -17,6 +17,7 @@
 package ServerApplication;
 
 import Utilities.Candidate;
+import Utilities.Examination;
 import Utilities.Functions;
 import Utilities.Question;
 import java.awt.HeadlessException;
@@ -41,27 +42,44 @@ import org.icepdf.ri.common.SwingViewBuilder;
  */
 public class SessionCreator extends javax.swing.JFrame
 {
-
     private static final long serialVersionUID = 1L;
-
-    public JFrame ParentForm;
-    private Question currentQuestion;
-    private final DefaultTableModel model;
-    private final SwingController pdfController = new SwingController();
 
     /**
      * Constructor for the current class
+     *
+     * @param parent Parent frame of this frame
+     * @param curExam Current exam object to work with
      */
-    public SessionCreator()
+    public SessionCreator(JFrame parent, CurrentExam curExam)
     {
+        mParentForm = parent;
+        mCurrentExam = curExam;
+        mExam = curExam.getExamination();
+        
         initComponents();
         initPdfViewer();
 
-        model = (DefaultTableModel) candidateTable.getModel();
+        tableModel = (DefaultTableModel) candidateTable.getModel();
         loadValues();
     }
 
-    void initPdfViewer()
+    //parent form
+    private final JFrame mParentForm;
+    //currently running examination
+    private final CurrentExam mCurrentExam;
+    //examination object to work with
+    private final Examination mExam;    
+    //default table model
+    private final DefaultTableModel tableModel;
+    //pdf controllerr
+    private final SwingController pdfController = new SwingController();
+    //current question under editing
+    private Question mCurrentQuestion;
+
+    /**
+     * Initializes the PDF viewer control
+     */
+    private void initPdfViewer()
     {
         //factory to build all controls
         SwingViewBuilder factory = new SwingViewBuilder(pdfController);
@@ -667,16 +685,16 @@ public class SessionCreator extends javax.swing.JFrame
     /**
      * Load all exam information in the frame.
      */
-    void loadValues()
+    private void loadValues()
     {
         try {
-            this.setTitle("Edit Lab Exam Session [" + CurrentExam.examFile.getName() + "]");
+            this.setTitle("Edit Lab Exam Session [" + mCurrentExam.getExamPath().getName() + "]");
 
             //general values   
-            examTitle.setText(CurrentExam.curExam.ExamTitle);
-            startTimeSpinner.setValue(CurrentExam.curExam.StartTime);
-            durationSpinner.setValue(CurrentExam.curExam.Duration);
-            examPath.setText(CurrentExam.curExam.ExamPath.getAbsolutePath());
+            examTitle.setText(mExam.getExamTitle());
+            startTimeSpinner.setValue(mExam.getStartTime());
+            durationSpinner.setValue(mExam.getDuration());
+            examPath.setText(mExam.getSubmissionPath().getAbsolutePath());
 
             //exam values 
             loadQuestionList();
@@ -695,10 +713,10 @@ public class SessionCreator extends javax.swing.JFrame
      */
     private void loadCandidateList()
     {
-        model.setRowCount(0);
-        for (Candidate cd : CurrentExam.curExam.allCandidate) {
-            model.addRow(new Object[]{
-                cd.uid, cd.name, cd.regno, cd.password
+        tableModel.setRowCount(0);
+        for (Candidate cd : mExam.getAllCandidate()) {
+            tableModel.addRow(new Object[]{
+                cd.getId(), cd.getName(), cd.getRegNo(), cd.getPassword()
             });
         }
     }
@@ -708,8 +726,8 @@ public class SessionCreator extends javax.swing.JFrame
      */
     private void loadQuestionList()
     {
-        totalMarksBox.setText(Integer.toString(CurrentExam.curExam.getTotalMarks()));
-        questionList.setListData(CurrentExam.curExam.getQuestionList());
+        totalMarksBox.setText(Integer.toString(mExam.getTotalMarks()));
+        questionList.setListData(mExam.getQuestionList());
     }
 
     /**
@@ -721,12 +739,15 @@ public class SessionCreator extends javax.swing.JFrame
     private boolean saveValues()
     {
         try {
-            CurrentExam.curExam.ExamTitle = examTitle.getText();
-            CurrentExam.curExam.StartTime = (Date) startTimeSpinner.getValue();
-            CurrentExam.curExam.Duration = (int) durationSpinner.getValue();
+            mExam.setExamTitle(
+                    examTitle.getText().trim());
+            mExam.setStartTime(
+                    (Date) startTimeSpinner.getValue());
+            mExam.setDuration(
+                    (int) durationSpinner.getValue());
             setCandidates();
 
-            CurrentExam.Save();
+            mCurrentExam.SaveToFile();
             return true;
         }
         catch (Exception ex) {
@@ -741,15 +762,15 @@ public class SessionCreator extends javax.swing.JFrame
      */
     private void setCandidates()
     {
-        for (int i = 0; i < model.getRowCount(); ++i) {
-            int uid = (int) model.getValueAt(i, 0);
+        for (int i = 0; i < tableModel.getRowCount(); ++i) {
+            int uid = (int) tableModel.getValueAt(i, 0);
             Candidate cd = CurrentExam.curExam.getCandidate(uid);
             if (cd == null) {
                 continue;
             }
-            cd.name = ((String) model.getValueAt(i, 1)).trim();
-            cd.regno = ((String) model.getValueAt(i, 2)).trim();
-            cd.password = ((String) model.getValueAt(i, 3)).trim();
+            cd.name = ((String) tableModel.getValueAt(i, 1)).trim();
+            cd.regno = ((String) tableModel.getValueAt(i, 2)).trim();
+            cd.password = ((String) tableModel.getValueAt(i, 3)).trim();
         }
     }
 
@@ -807,8 +828,8 @@ public class SessionCreator extends javax.swing.JFrame
      */
     private void loadQuestion(Question ques)
     {
-        saveQuestion(currentQuestion);
-        currentQuestion = ques;
+        saveQuestion(mCurrentQuestion);
+        mCurrentQuestion = ques;
 
         //clear prev values        
         pdfController.closeDocument();
@@ -869,8 +890,8 @@ public class SessionCreator extends javax.swing.JFrame
 
 //<editor-fold defaultstate="collapsed" desc="Event functions for controls">
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
-        if (ParentForm != null) {
-            ParentForm.setVisible(true);
+        if (mParentForm != null) {
+            mParentForm.setVisible(true);
         }
     }//GEN-LAST:event_formWindowClosed
 
@@ -946,7 +967,7 @@ public class SessionCreator extends javax.swing.JFrame
         int last = CurrentExam.curExam.LastUserID;
         CurrentExam.curExam.addCandidate("", "");
         Candidate cd = CurrentExam.curExam.getCandidate(last);
-        model.addRow(new Object[]{
+        tableModel.addRow(new Object[]{
             cd.uid, cd.name, cd.regno, cd.password
         });
     }//GEN-LAST:event_addCandidateButtonActionPerformed
@@ -956,9 +977,9 @@ public class SessionCreator extends javax.swing.JFrame
         int r = candidateTable.getSelectedRow();
         if (r < 0)
             return;
-        int uid = (int) model.getValueAt(r, 0);
+        int uid = (int) tableModel.getValueAt(r, 0);
         CurrentExam.curExam.deleteCandidate(uid);
-        model.removeRow(r);
+        tableModel.removeRow(r);
     }//GEN-LAST:event_deleteCandidateButtonActionPerformed
 
     private void saveToTextButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_saveToTextButtonActionPerformed
@@ -982,17 +1003,15 @@ public class SessionCreator extends javax.swing.JFrame
 
     private void questionTitleKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_questionTitleKeyReleased
     {//GEN-HEADEREND:event_questionTitleKeyReleased
-        if(currentQuestion != null)
-        {
-            currentQuestion.Title = questionTitle.getText().trim();
+        if (mCurrentQuestion != null) {
+            mCurrentQuestion.Title = questionTitle.getText().trim();
         }
     }//GEN-LAST:event_questionTitleKeyReleased
 
     private void markSpinnerKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_markSpinnerKeyReleased
     {//GEN-HEADEREND:event_markSpinnerKeyReleased
-        if(currentQuestion != null)
-        {
-            currentQuestion.Mark = (int) markSpinner.getValue();
+        if (mCurrentQuestion != null) {
+            mCurrentQuestion.Mark = (int) markSpinner.getValue();
         }
     }//GEN-LAST:event_markSpinnerKeyReleased
 //</editor-fold>

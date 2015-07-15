@@ -25,6 +25,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import Utilities.Candidate;
+import Utilities.Examination;
 import Utilities.Functions;
 import Utilities.UserChangeEvent;
 import Utilities.UserChangedHandler;
@@ -42,18 +43,18 @@ import javax.swing.text.DefaultCaret;
  */
 public class SessionViewer extends javax.swing.JFrame
 {
-
-    public JFrame ParentForm;
-    private final Timer timer;
-    private final Logger logger;
-
     /**
      * Constructor for current class
+     * @param parent Parent frame to set
+     * @param curExam Current Exam object to work with
      */
-    public SessionViewer()
+    public SessionViewer(JFrame parent, CurrentExam curExam)
     {
-        this.timer = new Timer();
-        this.logger = Logger.getLogger("LabExam");
+        mParentForm = parent;
+        mCurrentExam = curExam;
+        mExam = curExam.getExamination();
+        timer = new Timer();
+        logger = Logger.getLogger("LabExam");
 
         initComponents();
 
@@ -61,6 +62,17 @@ public class SessionViewer extends javax.swing.JFrame
         initiateOthers();
         LoadValues();
     }
+
+    //parent frame of this frame
+    private final JFrame mParentForm;
+    //current exam object to work with
+    private final CurrentExam mCurrentExam;
+    //examination object to work with
+    private final Examination mExam;
+    //timer object 
+    private final Timer timer;
+    //logger to get logs
+    private final Logger logger;
 
     /**
      * Maximize the current window and bring it into focus.
@@ -325,7 +337,7 @@ public class SessionViewer extends javax.swing.JFrame
             LabExamServer.StopListening();
             timer.cancel();
             this.dispose();
-            ParentForm.setVisible(true);
+            mParentForm.setVisible(true);
         }
     }
 

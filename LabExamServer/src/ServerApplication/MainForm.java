@@ -37,10 +37,11 @@ public class MainForm extends javax.swing.JFrame
     {
         initComponents();
         getContentPane().setBackground(getBackground());
+        mCurrentExam = new CurrentExam();
     }
-    
-    //holds currently opened exam data
-    private CurrentExam mCurrentExam;
+
+    // current exam work with
+    private final CurrentExam mCurrentExam;
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -201,41 +202,40 @@ public class MainForm extends javax.swing.JFrame
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void OpenFile()
+    /**
+     * Load info about currently opened file
+     */
+    private void ShowDataOfOpenedFile()
     {
         editSessionButton.setEnabled(true);
         startExamButton.setEnabled(true);
-        currentSessionBox.setText(CurrentExam.examFile.getAbsolutePath());
+        currentSessionBox.setText(mCurrentExam.getExamPath().getAbsolutePath());
     }
 
     private void showSessionCreator()
     {
-        final MainForm cur = this;
+        final MainForm mainForm = this;
         javax.swing.SwingUtilities.invokeLater(new Runnable()
         {
             @Override
             public void run()
             {
-                SessionCreator sc = new SessionCreator();
-                sc.ParentForm = cur;
-                sc.setVisible(true);
-                cur.setVisible(false);
+                (new SessionCreator(mainForm, mCurrentExam)).setVisible(true);
+                mainForm.setVisible(false);
             }
         });
     }
 
     private void showSessionViewer()
     {
-        final MainForm cur = this;
+        final MainForm mainForm = this;
         javax.swing.SwingUtilities.invokeLater(new Runnable()
         {
             @Override
             public void run()
             {
-                SessionViewer sc = new SessionViewer();
-                sc.setVisible(true);
-                sc.ParentForm = cur;
-                cur.setVisible(false);
+                (new SessionViewer(mainForm, mCurrentExam)).setVisible(true);
+                mainForm.setVisible(false);
             }
         });
     }
@@ -248,10 +248,10 @@ public class MainForm extends javax.swing.JFrame
             saveFile.setMultiSelectionEnabled(false);
             saveFile.setSelectedFile(new File("exam." + Program.FILE_EXTENSION));
             if (saveFile.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-                CurrentExam.curExam = new Examination();
-                CurrentExam.examFile = saveFile.getSelectedFile();
-                CurrentExam.Save();
-                OpenFile();
+                mCurrentExam.setExamination(new Examination());
+                mCurrentExam.setExamPath(saveFile.getSelectedFile());
+                mCurrentExam.SaveToFile();
+                ShowDataOfOpenedFile();
             }
         }
         catch (HeadlessException | IOException ex) {
@@ -267,8 +267,8 @@ public class MainForm extends javax.swing.JFrame
             openFile.setMultiSelectionEnabled(false);
             openFile.setSelectedFile(new File("exam." + Program.FILE_EXTENSION));
             if (openFile.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                CurrentExam.Open(openFile.getSelectedFile());
-                OpenFile();
+                mCurrentExam.LoadFromFile(openFile.getSelectedFile());
+                ShowDataOfOpenedFile();
             }
         }
         catch (HeadlessException | IOException | ClassNotFoundException ex) {

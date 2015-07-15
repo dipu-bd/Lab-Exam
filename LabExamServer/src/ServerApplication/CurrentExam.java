@@ -18,7 +18,7 @@ package ServerApplication;
 
 import Utilities.AnswerData;
 import Utilities.Candidate;
-import Utilities.Examination; 
+import Utilities.Examination;
 import Utilities.UserChangeEvent;
 import Utilities.UserChangedHandler;
 import java.io.File;
@@ -57,7 +57,6 @@ public class CurrentExam
     // To store connected method to this handler
     private final ArrayList<UserChangedHandler> userChangeListener;
 
-
     /**
      * Gets the file where this object is stored.
      *
@@ -89,6 +88,16 @@ public class CurrentExam
     }
 
     /**
+     * Sets the current examination object
+     *
+     * @param exam Examination object.
+     */
+    public void setExamination(Examination exam)
+    {
+        mCurExam = exam;
+    }
+
+    /**
      * Get id of the logged in candidates.
      *
      * @return HasSet of the connected candidates.
@@ -107,7 +116,7 @@ public class CurrentExam
      * @throws ClassNotFoundException If specific file does not have desired
      * format.
      */
-    public void OpenFromFile(File file)
+    public void LoadFromFile(File file)
             throws FileNotFoundException, IOException, ClassNotFoundException
     {
         //a little clean up
@@ -326,32 +335,33 @@ public class CurrentExam
         return (success == answers.length);
     }
 
-    
-   /**
-    * Adds a new event handler to monitor user changed events.
-    * @param handler Event handler to add.
-    * @return True if successfully added; False otherwise.
-    */
+    /**
+     * Adds a new event handler to monitor user changed events.
+     *
+     * @param handler Event handler to add.
+     * @return True if successfully added; False otherwise.
+     */
     public boolean addUserChangedHandler(UserChangedHandler handler)
     {
         return userChangeListener.add(handler);
     }
-    
-   /**
-    * Removes an event handler from monitoring user changed events.
-    * @param handler Event handler to remove.
-    * @return True if successfully removed; False otherwise.
-    */
+
+    /**
+     * Removes an event handler from monitoring user changed events.
+     *
+     * @param handler Event handler to remove.
+     * @return True if successfully removed; False otherwise.
+     */
     public boolean removeUserChangedHandler(UserChangedHandler handler)
     {
         return userChangeListener.remove(handler);
     }
 
-    
-   /**
-    * Raise all event handler that is currently monitoring user changed events.
-    * @param uce User Change Event to invoke.
-    */
+    /**
+     * Raise all event handler that is currently monitoring user changed events.
+     *
+     * @param uce User Change Event to invoke.
+     */
     public void invokeUserChanged(UserChangeEvent uce)
     {
         // Notify everybody who are connected
@@ -360,10 +370,11 @@ public class CurrentExam
         }
     }
 
-   /**
-    * Raise all event handler that is currently monitoring user changed events.
-    * @param uce User Change Event to invoke.
-    */
+    /**
+     * Raise all event handler that is currently monitoring user changed events.
+     *
+     * @param uce User Change Event to invoke.
+     */
     public void invokeUserSubmitted(UserChangeEvent uce)
     {
         // Notify everybody who are connected
