@@ -16,7 +16,9 @@
  */
 package ServerApplication;
 
+import Utilities.AnswerData;
 import Utilities.Command;
+import Utilities.Examination;
 import Utilities.Question;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -34,16 +36,40 @@ import java.util.logging.Logger;
  *
  * @author Dipu
  */
-public final class LabExamServer
+public class LabExamServer
 {
     private static final int DEFAULT_PORT = 1661;
-    private static boolean stopListening = false;
-    private static ServerSocket serverSocket;
-    private static Socket clientSocket;
-    private static Command command;
-    private static ObjectInputStream input;
-    private static ObjectOutputStream output;
+    private static final int MAX_SIMULTANEOUS_CONNECTION = 25;
 
+    public LabExamServer()
+    {
+        mCurExam = null;
+        mStopListening = false;
+        mServerSocket = null;
+    }
+
+    private CurrentExam mCurExam;
+    //true to stop listening
+    private boolean mStopListening;
+    //server socket to receive clients
+    private ServerSocket mServerSocket;
+
+    /**
+     * Sets a new current exam object to use in server.
+     *
+     * @param curExam Current exam to begin.
+     */
+    public void setCurrentExam(CurrentExam curExam)
+    {
+        mCurExam = curExam;
+        this.initialize(); //initialize server
+    }
+
+    /**
+     * Gets the current IP address of the server machine.
+     *
+     * @return IP address of the server machine.
+     */
     public static String getIPAddress()
     {
         try {
@@ -55,28 +81,66 @@ public final class LabExamServer
         }
     }
 
-    public static int getPort()
+    /**
+     * Gets the IP address of a client socket.
+     *
+     * @param clientSocket Socket to get IP address.
+     * @return IP address of the client socket.
+     */
+    public static String getClientIP(Socket clientSocket)
     {
-        if (serverSocket == null || !serverSocket.isBound()) {
-            return 0;
+        String ip = clientSocket.getRemoteSocketAddress().toString();
+        if (ip.startsWith("/")) {
+            return ip.substring(1);
         }
-        return serverSocket.getLocalPort();
+        return ip;
     }
 
-    public static void initialize()
+    /**
+     * Gets the address of the current port of the server.
+     *
+     * @return Port address of the server.
+     */
+    public int getPort()
     {
-        int siz = CurrentExam.curExam.allCandidate.size();
-        if (!createSocket(DEFAULT_PORT, siz + 10)) {
-            createSocket(0, siz + 10);
+        if (mServerSocket != null && mServerSocket.isBound())
+            return mServerSocket.getLocalPort();
+        return 0;
+    }
+
+    /**
+     * Stops the server from waiting for clients.
+     */
+    public void StopListening()
+    {
+        try {
+            mStopListening = true;
+            mServerSocket.close();
+        }
+        catch (IOException ex) {
+            Logger.getLogger(LabExamServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    /**
+     * Initializes a server to run an exam
+     */
+    private void initialize()
+    {
+        //try to create socket with default port
+        //   on failure use socket's own choice
+        if (!createSocket(DEFAULT_PORT, MAX_SIMULTANEOUS_CONNECTION)) {
+            createSocket(0, MAX_SIMULTANEOUS_CONNECTION);
         }
 
-        stopListening = false;
+        // run on a separate thread
+        mStopListening = false;
         (new Thread(new Runnable()
         {
             @Override
             public void run()
             {
-                LabExamServer.BeginListen();
+                beginListening();
             }
         })).start();
 
@@ -84,14 +148,21 @@ public final class LabExamServer
                 Level.INFO, "Waiting for users to connect...");
     }
 
-    public static boolean createSocket(int port, int siz)
+    /**
+     * Creates a new server socket.
+     *
+     * @param port Port address to use.
+     * @param siz Number of client socket to receive simultaneously.
+     * @return True on success; False otherwise.
+     */
+    private boolean createSocket(int port, int siz)
     {
         try {
-            if (serverSocket != null) {
-                serverSocket.close();
+            if (mServerSocket != null) {
+                mServerSocket.close();
             }
-            serverSocket = new ServerSocket(port, siz);
-            serverSocket.setReuseAddress(true);
+            mServerSocket = new ServerSocket(port, siz);
+            mServerSocket.setReuseAddress(true);
             return true;
         }
         catch (Exception ex) {
@@ -99,114 +170,101 @@ public final class LabExamServer
         }
     }
 
-    public static String getClientIP()
+    /**
+     * Start the server and wait for clients indefinitely.
+     */
+    private void beginListening()
     {
-        String ip = clientSocket.getRemoteSocketAddress().toString();
-        if (ip.startsWith("/")) {
-            ip = ip.substring(1);
-        }
-        return ip;
-    }
-
-    public static void BeginListen()
-    {
-        // Waiting for clients in port -> serverSocket.getLocalPort()          
-        String curip = getIPAddress();
+        // Waiting for clients in port -> serverSocket.getLocalPort()                  
         Logger.getLogger("LabExam").log(Level.INFO,
-                "Waiting at " + curip + " on port " + serverSocket.getLocalPort());
+                String.format("Waitinig at %s on port %d.",
+                        getIPAddress(), mServerSocket.getLocalPort()));
 
-        while (true) {
-            try {
-                clientSocket = serverSocket.accept();
-
-                //get input-output
-                output = new ObjectOutputStream(clientSocket.getOutputStream());
-                input = new ObjectInputStream(clientSocket.getInputStream());
-
-                command = (Command) input.readObject();
-                ProcessCommand();
-
-                output.flush();
-                output.close();
-                input.close();
-                clientSocket.close();
-            }
-            catch (IOException | ClassNotFoundException ex) {
-                ex.printStackTrace();
-                if (stopListening) {
-                    Logger.getLogger("LabExam").log(Level.INFO, "Exam stopped.");
+        while (!mStopListening) {
+            (new Thread(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    try {
+                        Socket clientSocket = mServerSocket.accept();
+                        ProcessCommand(clientSocket);
+                        clientSocket.close();
+                    }
+                    catch (IOException | ClassNotFoundException ex) {
+                        ex.printStackTrace();
+                        if (!mStopListening) {
+                            Logger.getLogger("LabExam").log(Level.SEVERE,
+                                    "Error while listening to the socket.", ex);
+                        }
+                    }
                 }
-                else {
-                    Logger.getLogger("LabExam").log(Level.SEVERE,
-                            "Error while listening to the socket.", ex);
-                }
-                break;
-            }
+            })).start();
         }
+
+        Logger.getLogger("LabExam").log(Level.INFO, "Exam server stopped.");
     }
 
-    public static void StopListening()
-    {
-        try {
-            stopListening = true;
-            serverSocket.close();
-        }
-        catch (IOException ex) {            
-            Logger.getLogger(LabExamServer.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    private static void ProcessCommand() throws IOException, ClassNotFoundException
+    /**
+     * Receive and process the command from client sockets
+     * @param client Client socket to work with.
+     */
+    private void ProcessCommand(Socket client)
+            throws IOException, ClassNotFoundException
     {
         int qid;
         boolean result;
-        String user, pass;
+        String regNo, pass;
+        Examination exam = mCurExam.getExamination();
 
+        //get input-output
+        ObjectInputStream input = new ObjectInputStream(client.getInputStream());
+        ObjectOutputStream output = new ObjectOutputStream(client.getOutputStream());
+        Command command = (Command) input.readObject();
+
+        //process commands        
         switch (command) {
             case EMPTY:
                 output.writeObject(true);
                 break;
             case START_TIME:
-                output.writeObject(CurrentExam.curExam.StartTime.getTime());
+                output.writeObject(exam.getStartTime().getTime());
                 break;
             case STOP_TIME:
-                output.writeObject(CurrentExam.curExam.StopTime().getTime());
+                output.writeObject(exam.getStopTime().getTime());
                 break;
             case EXAM_TITLE:
-                output.writeObject(CurrentExam.curExam.ExamTitle);
+                output.writeObject(exam.getExamTitle());
                 break;
             case LOGOUT:
-                user = (String) input.readObject();
-                output.writeObject(CurrentExam.removeUser(user, getClientIP()));
+                regNo = (String) input.readObject();
+                output.writeObject(mCurExam.removeUser(regNo, getClientIP(client)));
                 break;
             case LOGIN:
-                user = (String) input.readObject();
+                regNo = (String) input.readObject();
                 pass = (String) input.readObject();
-                result = CurrentExam.assignUser(user, pass, getClientIP());
+                result = mCurExam.assignUser(regNo, pass, getClientIP(client));
                 output.writeObject(result);
                 break;
-            case ANNOUNCEMENT:
-                int curSiz = (int) input.readObject();
-                output.writeObject(CurrentExam.getAnnoucements(curSiz));
-                break;
             case ALL_QUES:
-                if (CurrentExam.curExam.isRunning()) {
-                    output.writeObject(CurrentExam.curExam.allQuestion);
+                if (exam.isRunning()) {
+                    output.writeObject(exam.getAllQuestion().toArray());
                 }
                 else {
                     output.writeObject(new ArrayList<Question>());
                 }
                 break;
             case SUBMIT:
-                user = (String) input.readObject();
+                regNo = (String) input.readObject();
                 qid = (int) input.readObject();
-                Object[] files = (Object[]) input.readObject();
-                Object[] data = (Object[]) input.readObject();
-                boolean res = CurrentExam.receiveAnswer(user, qid, files, data);
+                AnswerData[] answers = (AnswerData[]) input.readObject();
+                boolean res = mCurExam.receiveAnswer(regNo, qid, answers);
                 output.writeObject(res);
                 break;
         }
 
         output.flush();
+        output.close();
+        input.close();
     }
 }

@@ -278,7 +278,7 @@ public class CurrentExam
      * @param answers Answer data of the submission.
      * @return True on success False otherwise.
      */
-    public boolean receiveAnswer(String regNo, int quesId, ArrayList<AnswerData> answers)
+    public boolean receiveAnswer(String regNo, int quesId, AnswerData[] answers)
     {
         // do not take submission if exam is not running
         if (!mCurExam.isRunning()) {
@@ -320,10 +320,10 @@ public class CurrentExam
             invokeUserSubmitted(new UserChangeEvent(uid, quesId));
             Logger.getLogger("LabExam").log(Level.INFO,
                     String.format("%s(%s) submitted for Question %02d. (%d out of %d data saved)",
-                            name, regNo, quesId, success, answers.size()));
+                            name, regNo, quesId, success, answers.length));
         }
 
-        return (success == answers.size());
+        return (success == answers.length);
     }
 
     
