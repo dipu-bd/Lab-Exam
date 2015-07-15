@@ -23,110 +23,165 @@ import java.util.Collections;
 import java.util.Date;
 
 /**
- * Examination session object
- *
- * @author Dipu
+ * Class to hold all informations about an examination.
  */
 public class Examination implements Serializable  {
     
+    //serial version uid for serialization
     private static final long serialVersionUID = 1L;
-
+    
     /**
-     * Constructor of examination
+     * Creates an instance of the class
      */
     public Examination()
     {
-        ExamTitle = "Lab Exam";
-        StartTime = new Date(System.currentTimeMillis());
-        Duration = 120;
-        LastProbID = 1;
-        ExamPath = new File(ExamTitle); 
+        mExamTitle = "Lab Exam";        
+        mExamPath = new File(mExamTitle); 
+        mStartTime = new Date(System.currentTimeMillis());
+        mDuration = 120;
+        mAllQuestion = new ArrayList<>(); 
+        mAllCandidate = new ArrayList<>(); 
+        mLastProbID = 0;
+        mLastUserID = 0;
     }
 
+    //overrides the default toString() method
     @Override
     public String toString()
     {
         return String.format("%s [%d questions; %d participants]",
-                ExamTitle, allQuestion.size(), allCandidate.size());
+                mExamTitle, mAllQuestion.size(), mAllCandidate.size());
     }
   
-    public String ExamTitle; 
-    public File ExamPath; 
-    public Date StartTime; 
-    public int Duration; 
-    
-    public int LastProbID = 1;
-    public int LastUserID = 1;
-    public ArrayList<Question> allQuestion = new ArrayList<>(); 
-    public ArrayList<Candidate> allCandidate = new ArrayList<>(); 
+    //title of the exam
+    private String mExamTitle; 
+    //file where the exam data is stored
+    private File mExamPath; 
+    //start time of the examination
+    private Date mStartTime; 
+    //duration of the examination
+    private int mDuration;      
+    //last used problem id
+    private int mLastProbID;
+    //last used user id
+    private int mLastUserID;
+    //list of all question
+    private ArrayList<Question> mAllQuestion;
+    //list of all candidates
+    private ArrayList<Candidate> mAllCandidate;
     
     /**
-     * Reduce LastProbID and LastUserID as minimum as possible.
-     * It will replace all question id sequentially and store minimum possible value in LastProbID.
-     * It will replace all candidate id sequentially and store minimum possible value in LastUserID.
+     * Gets title of the examination.
+     * @return Title of the examination.
      */
-    public void recycleLastID()
-    {
-        LastProbID = 1;
-        for(Question qs : allQuestion)
-        {
-            qs.ID = LastProbID;
-            LastProbID++;
-        }
-        
-        LastUserID = 1;
-        for(Candidate cd : allCandidate)
-        {
-            cd.uid = LastUserID;
-            LastUserID++;
-        }
-    }
-
+    public String getExamTitle() { return mExamTitle; }
     /**
-     * Gets the total marks for the exam
-     *
+     * Sets title of the examination.
+     * @param title Title of the examination.
+     */
+    public void setExamTitle(String title) { mExamTitle = title; }
+    
+    /**
+     * Gets the file where this object is stored.
+     * @return File in which this object is stored.
+     */
+    public File getExamPath() { return mExamPath; }
+    /**
+     * Sets the file where this object is stored.
+     * @param path File in which this object is stored.
+     */
+    public void setExamPath(File path) { mExamPath = path; }
+    
+    /**
+     * Gets the start time of the examination.
+     * @return Start time of the examination.
+     */
+    public Date getStartTime() { return mStartTime; }
+    /**
+     * Sets the start time of the examination.
+     * @param startTime Start Time of the examination.
+     */
+    public void setStartTime(Date startTime) { mStartTime = startTime; }
+    
+    /**
+     * Gets the duration of the examination minutes.
+     * @return Duration of the examination in minutes.
+     */
+    public int getDuration() { return mDuration; }
+    /**
+     * Set the duration of the examination in minutes.
+     * @param duration Duration of the examination in minutes.
+     */
+    public void setDuration(int duration) { mDuration = duration; }
+    
+    /**
+     * Get a list of all questions of this examination.
+     * @return List of Question objects for the examination.
+     */
+    public ArrayList<Question> getAllQuestion() { return mAllQuestion; }
+    /**
+     * Gets the number of questions in this examination.
+     * @return Number of questions in this examination.
+     */
+    public int getQuestionCount() { return mAllQuestion.size(); }
+    
+    /**
+     * Gets a list of candidates in this examination.
+     * @return List of candidates in this examination.
+     */
+    public ArrayList<Candidate> getAllCandidate() { return mAllCandidate; }
+    /**
+     * Gets the number of candidates in this examination.
+     * @return Number of candidate in this examination.
+     */
+    public int getCandidateCount() { return mAllCandidate.size(); }
+    
+    /**
+     * Gets the total marks of the exam
      * @return integer value with total marks
      */
     public int getTotalMarks()
     {
         int marks = 0;
-        for (Question q : allQuestion)
+        for (Question q : mAllQuestion)
         {
-            marks += q.Mark;
+            marks += q.getMark();
         }
         return marks;
     }
     
-    public Date StopTime()
+    /**
+     * Gets the ending time of the examination.
+     * @return Date object representing end time of the exam.
+     */
+    public Date getStopTime()
     {
-        long start = StartTime.getTime();
-        long stop = start + Duration * 60000;
+        long start = mStartTime.getTime();
+        long stop = start + mDuration * 60000;
         return new Date(stop);
     }
     
     /**
-     * Checks if the exam is running
-     * @return True if exam is running
+     * Checks if the exam is running now.
+     * @return True if exam is running.
      */
     public boolean isRunning()
     {
         long now = System.currentTimeMillis();
-        long start = StartTime.getTime();
-        long stop = start + Duration * 60000;
+        long start = mStartTime.getTime();
+        long stop = start + mDuration * 60000;
         return start <= now && now <= stop;
-    }
-    
+    }        
     /**
-     * Checks if the exam is waiting to started ( Not yet started)
-     * @return True if exam is waiting to be started
+     * Checks if the exam is waiting to be started ( Not yet started)
+     * @return True if exam is waiting to be started.
      */
     public boolean isWaiting()
     {
         long now = System.currentTimeMillis();
-        long start = StartTime.getTime();
+        long start = mStartTime.getTime();
         return now < start;
     }
-    
     /**
      * Checks if the exam is over (Past the duration)
      * @return True if the exam is over
@@ -134,70 +189,96 @@ public class Examination implements Serializable  {
     public boolean isOver()
     {
         long now = System.currentTimeMillis();
-        long start = StartTime.getTime();
-        long stop = start + Duration * 60000;
+        long start = mStartTime.getTime();
+        long stop = start + mDuration * 60000;
         return now > stop;
     }
-
+    
     /**
-     * Add new candidate
-     *
-     * @param name Name of the candidate
-     * @param reg Registration Number
+     * Reduce LastProbID and LastUserID as minimum as possible.
+     * It will replace all question id sequentially and store minimum possible value in LastProbID.
+     * It will replace all candidate id sequentially and store minimum possible value in LastUserID.
      */
-    public void addCandidate(String name, String reg)
+    public void recycleLastIDs()
+    {        
+        mLastProbID = 0;
+        for(Question qs : mAllQuestion)
+        {
+            qs.setId(++mLastProbID);
+        }
+        
+        mLastUserID = 0;
+        for(Candidate cd : mAllCandidate)
+        {
+            cd.setId(++mLastUserID);
+        }
+    }
+    
+    
+    
+    /**
+     * Adds a new candidate
+     *
+     * @param name Name of the candidate.
+     * @param reg Registration Number.
+     * @return Added Candidate object.
+     */
+    public Candidate addCandidate(String name, String reg)
     {
-        Candidate em = new Candidate(LastUserID);
-        em.name = name;
-        em.regno = reg;
-        allCandidate.add(em); 
-        ++LastUserID;
+        Candidate cd = new Candidate(++mLastUserID);
+        cd.setName(name);
+        cd.setRegNo(reg);
+        mAllCandidate.add(cd); 
+        return cd;
     }
 
     /**
      * Get the index of candidate by candidate id
-     * @param uid ID of the candidate
+     * @param id ID of the candidate
      * @return Negative value if not found, otherwise a 0 based index of the candidate
      */
-    public int getCandidateIndex(int uid)
+    public int getCandidateIndex(int id)
     {
-        return Collections.binarySearch(allCandidate,
-                new Candidate(uid), new UserComparator());
+        return Collections.binarySearch(mAllCandidate,
+                new Candidate(id), new UserComparator());
     }
 
     /**
      * Checks if a candidate is in the list by their id
-     * @param uid ID of the candidate
+     * @param id ID of the candidate
      * @return True if exist, False otherwise
      */
-    public boolean candidateExist(int uid)
+    public boolean isCandidateExist(int id)
     {
-        if (allCandidate.isEmpty()) return false;
-        return (getCandidateIndex(uid) >= 0);
+        return (!mAllCandidate.isEmpty()) && 
+                (getCandidateIndex(id) >= 0);
     }
 
     /**
      * Get the Candidate object by candidate id
-     * @param uid ID of the candidate
+     * @param id ID of the candidate
      * @return A Candidate object if found, otherwise a null value.
      */
-    public Candidate getCandidate(int uid)
+    public Candidate getCandidate(int id)
     {
-        if (allCandidate.isEmpty()) return null;
-        int pos = getCandidateIndex(uid);
-        if (pos >= 0) return allCandidate.get(pos);
-        return null;
+        if (mAllCandidate.isEmpty()) return null;
+        int pos = getCandidateIndex(id);
+        if (pos < 0) return null;
+        return mAllCandidate.get(pos);        
     }
 
     /**
      * Delete a candidate from the list by ID
      * @param uid ID of the candidate
+     * @return True of success; False otherwise.
      */
-    public void deleteCandidate(int uid)
+    public boolean deleteCandidate(int uid)
     {
-        if (allCandidate.isEmpty()) return;
+        if (mAllCandidate.isEmpty()) return false;
         int pos = getCandidateIndex(uid);
-        if (pos >= 0) allCandidate.remove(pos);
+        if (pos < 0) return false;
+        mAllCandidate.remove(pos);
+        return true;
     }
     
     /**
@@ -207,15 +288,17 @@ public class Examination implements Serializable  {
      */
     public int getCandidateID(String regno)
     {
-        for (Candidate cd : allCandidate)
-            if (cd.regno.equals(regno))
-                return cd.uid;
+        for (Candidate cd : mAllCandidate)
+        {
+            if (cd.getRegNo().equals(regno))
+                return cd.getId();
+        }
         return -1;
     }
     
     public Object[] getQuestionList()
     {
-        return allQuestion.toArray();
+        return mAllQuestion.toArray();
     }
     
     /**
@@ -223,10 +306,12 @@ public class Examination implements Serializable  {
      */
     public void addQuestion()
     {
-        allQuestion.add(new Question(LastProbID));
-        ++LastProbID;
+        mAllQuestion.add(new Question(++mLastProbID));
     }
 
+    
+    
+    
     /**
      * Get the index of the question by its ID.
      * @param qid ID of the question.
@@ -234,7 +319,7 @@ public class Examination implements Serializable  {
      */
     public int getQuestionIndex(int qid)
     {
-        return Collections.binarySearch(allQuestion,
+        return Collections.binarySearch(mAllQuestion,
                 new Question(qid), new QuestionComparator());
     }
 
@@ -245,9 +330,9 @@ public class Examination implements Serializable  {
      */
     public Question getQuestion(int qid)
     {
-        if (allQuestion.isEmpty()) return null;
+        if (mAllQuestion.isEmpty()) return null;
         int pos = getQuestionIndex(qid);
-        if (pos >= 0) return allQuestion.get(pos);
+        if (pos >= 0) return mAllQuestion.get(pos);
         return null;
     }
 
@@ -258,20 +343,22 @@ public class Examination implements Serializable  {
      */
     public boolean questionExist(int qid)
     {
-        if (allQuestion.isEmpty()) return false;
+        if (mAllQuestion.isEmpty()) return false;
         int pos = getQuestionIndex(qid);
         return (pos >= 0);
     }
 
     /**
      * Delete a question by id.
-     *
      * @param qid ID of the question to delete.
+     * @return True on success; False otherwise.
      */
-    public void deleteQuestion(int qid)
+    public boolean deleteQuestion(int qid)
     {
-        if (allQuestion.isEmpty()) return;
+        if (mAllQuestion.isEmpty()) return false;
         int pos = getQuestionIndex(qid);
-        if (pos >= 0) allQuestion.remove(pos);
+        if (pos < 0) return false;
+        mAllQuestion.remove(pos);
+        return true;
     }
 }

@@ -19,7 +19,7 @@ package Utilities;
 import java.util.Comparator;
 
 /**
- * Comparator two Candidate object by their UID
+ * Compares two Candidates by their Id
  *
  * @author Dipu
  */
@@ -28,6 +28,6 @@ public class UserComparator implements Comparator<Candidate> {
     @Override
     public int compare(Candidate u1, Candidate u2)
     {
-        return u1.uid - u2.uid;
+        return u1.getId() - u2.getId();
     }
 }

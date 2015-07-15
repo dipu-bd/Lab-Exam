@@ -19,29 +19,59 @@ package Utilities;
 import java.awt.AWTEvent;
 
 /**
- *
- * @author Dipu
+ * Event raised when a candidate's connection status is changed.
  */
 @SuppressWarnings("serial")
 public class UserChangeEvent extends AWTEvent {
+    
+    //user id
+    private final int mUserId;
+    //login status
+    private final boolean mLoginStatus;
+    //question id
+    private final int mQuesId;
+    
+    /**
+     * Gets the candidates id who is involved.
+     * @return Id of the candidate.
+     */
+    public int getUserId() { return mUserId; } 
+    
+    /**
+     * Gets if the candidate is logged in or logged out.
+     * @return True if logged in; False if logged out.
+     */
+    public boolean mLoginStatus() { return mLoginStatus; } 
+    
+    /**
+     * Gets the question id involved. -1 if no question is involved.
+     * @return Id of the question. -1 if no question is involved.
+     */
+    public int getQuestionId() { return mQuesId; } 
 
-    public int uid;
-    public boolean status;
-    public int quesID;
-
+    /**
+     * Creates a new UserChangeEvent which specify that a candidate has logged in or logged out.
+     * @param id Id of the involved candidate.
+     * @param login True if user has logged in; False otherwise.
+     */
     public UserChangeEvent(int id, boolean login)
     {
         super(id, 0);
-        this.uid = id;
-        this.status = login;
-        this.quesID = -1;
+        mUserId = id;
+        mLoginStatus = login;
+        mQuesId = -1; //default
     }
 
+    /**
+     * Creates a new UserChangeEvent which specify that a candidate has submitted answer to a question.
+     * @param uid Id of the candidate.
+     * @param qid Id of the question involved.
+     */
     public UserChangeEvent(int uid, int qid)
     {
         super(uid, 0);
-        this.uid = uid;
-        this.quesID = qid;
-        this.status = true;
+        mUserId = uid;
+        mLoginStatus = true; //default
+        mQuesId = qid;
     }
 }

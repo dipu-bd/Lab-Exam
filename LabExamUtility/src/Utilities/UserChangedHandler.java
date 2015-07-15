@@ -17,11 +17,20 @@
 package Utilities;
 
 /**
- *
+ * Event handler for user's login status change and question submission.
  * @author Dipu
  */
 public interface UserChangedHandler {
 
+    /**
+     * Raised when candidate's login status has been changed.
+     * @param ae UserChangeEvent holding status data.
+     */
     void userChanged(UserChangeEvent ae);
+    
+    /**
+     * Raised when candidate has submitted answer to a question.
+     * @param ae UserChangeEvent holding status data.
+     */
     void userSubmitted(UserChangeEvent ae);
 }

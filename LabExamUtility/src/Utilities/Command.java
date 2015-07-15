@@ -17,9 +17,7 @@
 package Utilities;
 
 /**
- * Command for passing data
- *
- * @author Dipu
+ * Commands used for passing data between server and client computers.
  */
 public enum Command {
 

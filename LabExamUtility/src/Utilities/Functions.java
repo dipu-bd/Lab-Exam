@@ -22,7 +22,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- *
+ * Useful multipurpose methods
  * @author Dipu
  */
 public final class Functions {

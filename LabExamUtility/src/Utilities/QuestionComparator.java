@@ -19,7 +19,7 @@ package Utilities;
 import java.util.Comparator;
 
 /**
- * Comparator two Question object by their ID
+ * Compares two Questions by their ID
  *
  * @author Dipu
  */
@@ -28,6 +28,6 @@ public class QuestionComparator implements Comparator<Question> {
     @Override
     public int compare(Question q1, Question q2)
     {
-        return q1.ID - q2.ID;
+        return q1.getId() - q2.getId();
     }
 }
