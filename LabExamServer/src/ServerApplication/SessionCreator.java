@@ -55,12 +55,12 @@ public class SessionCreator extends javax.swing.JFrame
         mParentForm = parent;
         mCurrentExam = curExam;
         mExam = curExam.getExamination();
-        
+
         initComponents();
         initPdfViewer();
 
         tableModel = (DefaultTableModel) candidateTable.getModel();
-        loadValues();
+        loadExamValues();
     }
 
     //parent form
@@ -68,7 +68,7 @@ public class SessionCreator extends javax.swing.JFrame
     //currently running examination
     private final CurrentExam mCurrentExam;
     //examination object to work with
-    private final Examination mExam;    
+    private final Examination mExam;
     //default table model
     private final DefaultTableModel tableModel;
     //pdf controllerr
@@ -96,7 +96,8 @@ public class SessionCreator extends javax.swing.JFrame
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    private void initComponents()
+    {
 
         tabbedPane = new javax.swing.JTabbedPane();
         jPanel2 = new javax.swing.JPanel();
@@ -138,6 +139,7 @@ public class SessionCreator extends javax.swing.JFrame
         markSpinner = new javax.swing.JSpinner();
         jScrollPane3 = new javax.swing.JScrollPane();
         pdfContainerPanel = new javax.swing.JPanel();
+        openPdfFileButton = new javax.swing.JButton();
         jPanel8 = new javax.swing.JPanel();
         saveButton = new javax.swing.JButton();
         nextButton = new javax.swing.JButton();
@@ -146,16 +148,20 @@ public class SessionCreator extends javax.swing.JFrame
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Edit Lab Exam Session");
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosed(java.awt.event.WindowEvent evt) {
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosed(java.awt.event.WindowEvent evt)
+            {
                 formWindowClosed(evt);
             }
         });
 
         tabbedPane.setBackground(new java.awt.Color(193, 239, 239));
         tabbedPane.setOpaque(true);
-        tabbedPane.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+        tabbedPane.addChangeListener(new javax.swing.event.ChangeListener()
+        {
+            public void stateChanged(javax.swing.event.ChangeEvent evt)
+            {
                 tabbedPaneStateChanged(evt);
             }
         });
@@ -169,15 +175,19 @@ public class SessionCreator extends javax.swing.JFrame
         jLabel2.setText("Exam Title :");
 
         examTitle.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
+        examTitle.setToolTipText("Set the title of the examination");
 
         jLabel13.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel13.setText("Exam Path :");
+        jLabel13.setText("Submission Path :");
 
         examPath.setEditable(false);
         examPath.setBackground(new java.awt.Color(255, 255, 204));
         examPath.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
-        examPath.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
+        examPath.setToolTipText("Set where the submission of the examination will be stored.");
+        examPath.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mouseClicked(java.awt.event.MouseEvent evt)
+            {
                 examPathMouseClicked(evt);
             }
         });
@@ -188,13 +198,16 @@ public class SessionCreator extends javax.swing.JFrame
 
         startTimeSpinner.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
         startTimeSpinner.setModel(new javax.swing.SpinnerDateModel(new java.util.Date(), null, null, java.util.Calendar.MINUTE));
+        startTimeSpinner.setToolTipText("Set the start time of the examination.");
 
         pathBrowseButton.setBackground(new java.awt.Color(204, 255, 204));
         pathBrowseButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/folder_chooser.png"))); // NOI18N
         pathBrowseButton.setText("Browse");
         pathBrowseButton.setToolTipText("Browse for path");
-        pathBrowseButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        pathBrowseButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 pathBrowseButtonActionPerformed(evt);
             }
         });
@@ -204,7 +217,7 @@ public class SessionCreator extends javax.swing.JFrame
 
         durationSpinner.setFont(new java.awt.Font("Consolas", 0, 12)); // NOI18N
         durationSpinner.setModel(new javax.swing.SpinnerNumberModel(60, 10, 1000, 10));
-        durationSpinner.setToolTipText("Duration of the examination in minutes");
+        durationSpinner.setToolTipText("Set the duration of the examination in  minutes.");
 
         jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         jLabel5.setText("minutes");
@@ -215,6 +228,7 @@ public class SessionCreator extends javax.swing.JFrame
         totalMarksBox.setEditable(false);
         totalMarksBox.setBackground(new java.awt.Color(246, 255, 231));
         totalMarksBox.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        totalMarksBox.setToolTipText("Shows the total marks of all questions.");
 
         javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
         jPanel11.setLayout(jPanel11Layout);
@@ -222,11 +236,10 @@ public class SessionCreator extends javax.swing.JFrame
             jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel11Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabel13, javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(jLabel13, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(examTitle)
@@ -235,17 +248,17 @@ public class SessionCreator extends javax.swing.JFrame
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(pathBrowseButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel11Layout.createSequentialGroup()
-                        .addComponent(startTimeSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)
+                        .addComponent(startTimeSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 163, Short.MAX_VALUE)
                         .addGap(18, 18, 18)
                         .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(durationSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
+                        .addComponent(durationSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(totalMarksBox, javax.swing.GroupLayout.DEFAULT_SIZE, 169, Short.MAX_VALUE)))
+                        .addComponent(totalMarksBox, javax.swing.GroupLayout.DEFAULT_SIZE, 166, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel11Layout.setVerticalGroup(
@@ -286,28 +299,36 @@ public class SessionCreator extends javax.swing.JFrame
         candidateTable.setBackground(new java.awt.Color(245, 250, 255));
         candidateTable.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
         candidateTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
+            new Object [][]
+            {
 
             },
-            new String [] {
+            new String []
+            {
                 "ID", "Name", "Registration No", "Password"
             }
-        ) {
-            Class[] types = new Class [] {
+        )
+        {
+            Class[] types = new Class []
+            {
                 java.lang.Object.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
-            boolean[] canEdit = new boolean [] {
+            boolean[] canEdit = new boolean []
+            {
                 false, true, true, true
             };
 
-            public Class getColumnClass(int columnIndex) {
+            public Class getColumnClass(int columnIndex)
+            {
                 return types [columnIndex];
             }
 
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
+            public boolean isCellEditable(int rowIndex, int columnIndex)
+            {
                 return canEdit [columnIndex];
             }
         });
+        candidateTable.setToolTipText("");
         candidateTable.setAutoscrolls(false);
         candidateTable.setCellSelectionEnabled(true);
         candidateTable.setFillsViewportHeight(true);
@@ -318,7 +339,8 @@ public class SessionCreator extends javax.swing.JFrame
         candidateTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(candidateTable);
         candidateTable.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-        if (candidateTable.getColumnModel().getColumnCount() > 0) {
+        if (candidateTable.getColumnModel().getColumnCount() > 0)
+        {
             candidateTable.getColumnModel().getColumn(0).setPreferredWidth(80);
             candidateTable.getColumnModel().getColumn(0).setMaxWidth(100);
         }
@@ -326,40 +348,55 @@ public class SessionCreator extends javax.swing.JFrame
         jPanel1.setBackground(new java.awt.Color(222, 234, 238));
 
         randomizePassButton.setText("Randomize Password");
-        randomizePassButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        randomizePassButton.setToolTipText("Assign random password to all candidates.");
+        randomizePassButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 randomizePassButtonActionPerformed(evt);
             }
         });
 
         addCandidateButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/add.png"))); // NOI18N
         addCandidateButton.setText("Add");
-        addCandidateButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        addCandidateButton.setToolTipText("Add a new candidate in the list.");
+        addCandidateButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 addCandidateButtonActionPerformed(evt);
             }
         });
 
         deleteCandidateButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/delete.png"))); // NOI18N
         deleteCandidateButton.setText("Delete");
-        deleteCandidateButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        deleteCandidateButton.setToolTipText("Delete selected candidate from the list.");
+        deleteCandidateButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 deleteCandidateButtonActionPerformed(evt);
             }
         });
 
         saveToTextButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/export.png"))); // NOI18N
         saveToTextButton.setText("Export");
-        saveToTextButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        saveToTextButton.setToolTipText("Export data of candidate to CSV file.");
+        saveToTextButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 saveToTextButtonActionPerformed(evt);
             }
         });
 
         saveToTextButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/import.png"))); // NOI18N
         saveToTextButton1.setText("Import");
-        saveToTextButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        saveToTextButton1.setToolTipText("Import data of candidates from CSV file in this format: \n            Name, RegNo, [Password].\n Pasword field is optional.");
+        saveToTextButton1.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 saveToTextButton1ActionPerformed(evt);
             }
         });
@@ -405,7 +442,7 @@ public class SessionCreator extends javax.swing.JFrame
         jPanel10Layout.setVerticalGroup(
             jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel10Layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 236, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 246, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0))
@@ -452,8 +489,11 @@ public class SessionCreator extends javax.swing.JFrame
 
         setQuestionButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/add.png"))); // NOI18N
         setQuestionButton.setText("Add");
-        setQuestionButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        setQuestionButton.setToolTipText("Add new question to the list.");
+        setQuestionButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 setQuestionButtonActionPerformed(evt);
             }
         });
@@ -463,8 +503,10 @@ public class SessionCreator extends javax.swing.JFrame
         questionList.setBackground(new java.awt.Color(234, 255, 255));
         questionList.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
         questionList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        questionList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+        questionList.addListSelectionListener(new javax.swing.event.ListSelectionListener()
+        {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt)
+            {
                 questionListValueChanged(evt);
             }
         });
@@ -472,8 +514,11 @@ public class SessionCreator extends javax.swing.JFrame
 
         refreshButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/delete.png"))); // NOI18N
         refreshButton1.setText("Delete");
-        refreshButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        refreshButton1.setToolTipText("Delete a question in the list.");
+        refreshButton1.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 refreshButton1ActionPerformed(evt);
             }
         });
@@ -499,7 +544,7 @@ public class SessionCreator extends javax.swing.JFrame
                 .addContainerGap()
                 .addComponent(jLabel10)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 332, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 342, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(refreshButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -515,9 +560,12 @@ public class SessionCreator extends javax.swing.JFrame
         jLabel11.setText("Question Title :");
 
         questionTitle.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        questionTitle.setToolTipText("Set the title of the question");
         questionTitle.setMinimumSize(new java.awt.Dimension(60, 23));
-        questionTitle.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent evt) {
+        questionTitle.addKeyListener(new java.awt.event.KeyAdapter()
+        {
+            public void keyReleased(java.awt.event.KeyEvent evt)
+            {
                 questionTitleKeyReleased(evt);
             }
         });
@@ -527,13 +575,14 @@ public class SessionCreator extends javax.swing.JFrame
 
         markSpinner.setFont(new java.awt.Font("Consolas", 0, 12)); // NOI18N
         markSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(10), Integer.valueOf(0), null, Integer.valueOf(1)));
-        markSpinner.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent evt) {
+        markSpinner.setToolTipText("Set the mark of the question.");
+        markSpinner.addKeyListener(new java.awt.event.KeyAdapter()
+        {
+            public void keyReleased(java.awt.event.KeyEvent evt)
+            {
                 markSpinnerKeyReleased(evt);
             }
         });
-
-        pdfContainerPanel.setPreferredSize(new java.awt.Dimension(10, 10));
 
         javax.swing.GroupLayout pdfContainerPanelLayout = new javax.swing.GroupLayout(pdfContainerPanel);
         pdfContainerPanel.setLayout(pdfContainerPanelLayout);
@@ -548,6 +597,16 @@ public class SessionCreator extends javax.swing.JFrame
 
         jScrollPane3.setViewportView(pdfContainerPanel);
 
+        openPdfFileButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/pdf.png"))); // NOI18N
+        openPdfFileButton.setText("Open PDF File");
+        openPdfFileButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                openPdfFileButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(
@@ -555,15 +614,18 @@ public class SessionCreator extends javax.swing.JFrame
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 542, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
                         .addComponent(jLabel11)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(questionTitle, javax.swing.GroupLayout.DEFAULT_SIZE, 324, Short.MAX_VALUE)
+                        .addComponent(questionTitle, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel12)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(markSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 542, Short.MAX_VALUE))
+                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(openPdfFileButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
+                                .addComponent(jLabel12)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(markSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(
@@ -577,7 +639,9 @@ public class SessionCreator extends javax.swing.JFrame
                         .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(markSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 352, Short.MAX_VALUE)
+                .addComponent(openPdfFileButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 325, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -606,30 +670,42 @@ public class SessionCreator extends javax.swing.JFrame
 
         saveButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/save.png"))); // NOI18N
         saveButton.setText("Save");
-        saveButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        saveButton.setToolTipText("Save candidate data.");
+        saveButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 saveButtonActionPerformed(evt);
             }
         });
 
         nextButton.setText("Next");
-        nextButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        nextButton.setToolTipText("Next page");
+        nextButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 nextButtonActionPerformed(evt);
             }
         });
 
         cancelButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/reload.png"))); // NOI18N
         cancelButton.setText("Cancel Edit");
-        cancelButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        cancelButton.setToolTipText("Cancel all unsaved work.");
+        cancelButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 cancelButtonActionPerformed(evt);
             }
         });
 
         backButton.setText("Back");
-        backButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        backButton.setToolTipText("Previous page");
+        backButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 backButtonActionPerformed(evt);
             }
         });
@@ -683,9 +759,9 @@ public class SessionCreator extends javax.swing.JFrame
     }// </editor-fold>//GEN-END:initComponents
 
     /**
-     * Load all exam information in the frame.
+     * Load all exam information and display them in the frame.
      */
-    private void loadValues()
+    private void loadExamValues()
     {
         try {
             this.setTitle("Edit Lab Exam Session [" + mCurrentExam.getExamPath().getName() + "]");
@@ -696,11 +772,11 @@ public class SessionCreator extends javax.swing.JFrame
             durationSpinner.setValue(mExam.getDuration());
             examPath.setText(mExam.getSubmissionPath().getAbsolutePath());
 
-            //exam values 
-            loadQuestionList();
-
             //user values 
             loadCandidateList();
+
+            //exam values 
+            loadQuestionList();
         }
         catch (Exception ex) {
             Logger.getLogger(SessionCreator.class.getName()).log(Level.SEVERE,
@@ -736,15 +812,12 @@ public class SessionCreator extends javax.swing.JFrame
      *
      * @return True if saving done successfully, False otherwise.
      */
-    private boolean saveValues()
+    private boolean saveExamData()
     {
         try {
-            mExam.setExamTitle(
-                    examTitle.getText().trim());
-            mExam.setStartTime(
-                    (Date) startTimeSpinner.getValue());
-            mExam.setDuration(
-                    (int) durationSpinner.getValue());
+            mExam.setExamTitle(examTitle.getText().trim());
+            mExam.setStartTime((Date) startTimeSpinner.getValue());
+            mExam.setDuration((int) durationSpinner.getValue());
             setCandidates();
 
             mCurrentExam.SaveToFile();
@@ -764,18 +837,18 @@ public class SessionCreator extends javax.swing.JFrame
     {
         for (int i = 0; i < tableModel.getRowCount(); ++i) {
             int uid = (int) tableModel.getValueAt(i, 0);
-            Candidate cd = CurrentExam.curExam.getCandidate(uid);
+            Candidate cd = mExam.getCandidate(uid);
             if (cd == null) {
                 continue;
             }
-            cd.name = ((String) tableModel.getValueAt(i, 1)).trim();
-            cd.regno = ((String) tableModel.getValueAt(i, 2)).trim();
-            cd.password = ((String) tableModel.getValueAt(i, 3)).trim();
+            cd.setName(((String) tableModel.getValueAt(i, 1)).trim());
+            cd.setRegNo(((String) tableModel.getValueAt(i, 2)).trim());
+            cd.setPassword(((String) tableModel.getValueAt(i, 3)).trim());
         }
     }
 
     /**
-     * Save the list of candidates.
+     * Shows a save file dialog to save the candidates list in CSV format.
      */
     private void saveCandidateList()
     {
@@ -784,11 +857,11 @@ public class SessionCreator extends javax.swing.JFrame
             saveFile.setSelectedFile(new File("examinee.csv"));
             saveFile.setFileFilter(new FileNameExtensionFilter("CSV File", "csv"));
             if (saveFile.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-                String data = CurrentExam.getUsers();
+                String data = mCurrentExam.getCandidateCSV();
                 File file = saveFile.getSelectedFile();
-                FileOutputStream fos = new FileOutputStream(file);
-                fos.write(data.getBytes());
-                fos.close();
+                try (FileOutputStream fos = new FileOutputStream(file)) {
+                    fos.write(data.getBytes());
+                }
             }
         }
         catch (HeadlessException | IOException ex) {
@@ -804,19 +877,18 @@ public class SessionCreator extends javax.swing.JFrame
     {
         if (ques == null)
             return;
-
-        ques.Title = questionTitle.getText().trim();
-        ques.Mark = (int) markSpinner.getValue();
-        totalMarksBox.setText(Integer.toString(CurrentExam.curExam.getTotalMarks()));
-
+        ques.setTitle(questionTitle.getText().trim());
+        ques.setMark((int) markSpinner.getValue());
+        totalMarksBox.setText(Integer.toString(mExam.getTotalMarks()));
         try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            pdfController.getDocument().writeToOutputStream(baos);
-            ques.Body = baos.toByteArray();
-            baos.close();
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                pdfController.getDocument().writeToOutputStream(baos);
+                ques.setBody(baos.toByteArray());
+            }
+            mCurrentExam.SaveToFile();
         }
         catch (Exception ex) {
-            ques.Body = null;
+            ques.setBody(null);
         }
     }
 
@@ -839,10 +911,11 @@ public class SessionCreator extends javax.swing.JFrame
             return;
 
         //load new values
-        markSpinner.setValue(ques.Mark);
-        questionTitle.setText(ques.Title);
-        if (ques.Body != null) {
-            pdfController.openDocument(ques.Body, 0, ques.Body.length, ques.Title, null);
+        markSpinner.setValue(ques.getMark());
+        questionTitle.setText(ques.getTitle());
+        if (ques.getBody() != null) {
+            pdfController.openDocument(
+                    ques.getBody(), 0, ques.getBody().length, ques.getTitle(), null);
         }
     }
 
@@ -857,10 +930,10 @@ public class SessionCreator extends javax.swing.JFrame
             openFile.setFileFilter(new FileNameExtensionFilter("CSV File", "csv"));
             if (openFile.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
                 File file = openFile.getSelectedFile();
-                FileInputStream fis = new FileInputStream(file);
-                String data = Functions.readFully(fis, "UTF-8");
-                CurrentExam.loadUsers(data);
-                fis.close();
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    String data = Functions.readFully(fis, "UTF-8");
+                    mCurrentExam.setCandidateCSV(data);
+                }
                 loadCandidateList();
             }
         }
@@ -883,20 +956,49 @@ public class SessionCreator extends javax.swing.JFrame
             if (file.isFile()) {
                 file = file.getParentFile();
             }
-            CurrentExam.curExam.ExamPath = file;
+            mExam.setSubmissionPath(file);
             examPath.setText(file.getAbsolutePath());
         }
     }
 
-//<editor-fold defaultstate="collapsed" desc="Event functions for controls">
+    /**
+     * Opens a PDF file and set it to currently editing question
+     */
+    private void openPdfFile()
+    {
+        try {
+            JFileChooser openFile = new JFileChooser();
+            openFile.setFileFilter(new FileNameExtensionFilter("PDF File", "pdf"));
+            if (openFile.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                File file = openFile.getSelectedFile();
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    mCurrentQuestion.setBody(Functions.readFully(fis));
+                    saveQuestion(mCurrentQuestion);
+                    loadQuestion(mCurrentQuestion);
+                }
+            }
+        }
+        catch (HeadlessException | IOException ex) {
+            Logger.getLogger("LabExam").log(Level.SEVERE,
+                    "Error while opening user list", ex);
+        }
+    }
+    
+ 
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
         if (mParentForm != null) {
             mParentForm.setVisible(true);
+            try {
+                mCurrentExam.SaveToFile();
+            }
+            catch (IOException ex) {
+                Logger.getLogger(SessionCreator.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }//GEN-LAST:event_formWindowClosed
 
     private void nextButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nextButtonActionPerformed
-        if (!saveValues()) {
+        if (!saveExamData()) {
             return;
         }
 
@@ -911,22 +1013,22 @@ public class SessionCreator extends javax.swing.JFrame
     }//GEN-LAST:event_nextButtonActionPerformed
 
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
-        saveValues();
+        saveExamData();
     }//GEN-LAST:event_saveButtonActionPerformed
 
     private void setQuestionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setQuestionButtonActionPerformed
-        CurrentExam.curExam.addQuestion();
+        mExam.addQuestion();
         loadQuestionList();
     }//GEN-LAST:event_setQuestionButtonActionPerformed
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
-        loadValues();
+        loadExamValues();
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void refreshButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButton1ActionPerformed
         Question ques = (Question) questionList.getSelectedValue();
         if (ques != null) {
-            CurrentExam.curExam.deleteQuestion(ques.ID);
+            mExam.deleteQuestion(ques.getId());
         }
         loadQuestionList();
     }//GEN-LAST:event_refreshButton1ActionPerformed
@@ -956,7 +1058,7 @@ public class SessionCreator extends javax.swing.JFrame
 
     private void randomizePassButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_randomizePassButtonActionPerformed
     {//GEN-HEADEREND:event_randomizePassButtonActionPerformed
-        for (Candidate cd : CurrentExam.curExam.allCandidate) {
+        for (Candidate cd : mExam.getAllCandidate()) {
             cd.randomizePassword();
         }
         loadCandidateList();
@@ -964,22 +1066,20 @@ public class SessionCreator extends javax.swing.JFrame
 
     private void addCandidateButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_addCandidateButtonActionPerformed
     {//GEN-HEADEREND:event_addCandidateButtonActionPerformed
-        int last = CurrentExam.curExam.LastUserID;
-        CurrentExam.curExam.addCandidate("", "");
-        Candidate cd = CurrentExam.curExam.getCandidate(last);
+        Candidate cd = mExam.addCandidate("", "");
         tableModel.addRow(new Object[]{
-            cd.uid, cd.name, cd.regno, cd.password
+            cd.getId(), cd.getName(), cd.getRegNo(), cd.getPassword()
         });
     }//GEN-LAST:event_addCandidateButtonActionPerformed
 
     private void deleteCandidateButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_deleteCandidateButtonActionPerformed
     {//GEN-HEADEREND:event_deleteCandidateButtonActionPerformed
         int r = candidateTable.getSelectedRow();
-        if (r < 0)
-            return;
-        int uid = (int) tableModel.getValueAt(r, 0);
-        CurrentExam.curExam.deleteCandidate(uid);
-        tableModel.removeRow(r);
+        if (r > 0) {
+            int uid = (int) tableModel.getValueAt(r, 0);
+            mExam.deleteCandidate(uid);
+            tableModel.removeRow(r);
+        }
     }//GEN-LAST:event_deleteCandidateButtonActionPerformed
 
     private void saveToTextButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_saveToTextButtonActionPerformed
@@ -1004,17 +1104,23 @@ public class SessionCreator extends javax.swing.JFrame
     private void questionTitleKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_questionTitleKeyReleased
     {//GEN-HEADEREND:event_questionTitleKeyReleased
         if (mCurrentQuestion != null) {
-            mCurrentQuestion.Title = questionTitle.getText().trim();
+            mCurrentQuestion.setTitle(questionTitle.getText().trim());
         }
     }//GEN-LAST:event_questionTitleKeyReleased
 
     private void markSpinnerKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_markSpinnerKeyReleased
     {//GEN-HEADEREND:event_markSpinnerKeyReleased
         if (mCurrentQuestion != null) {
-            mCurrentQuestion.Mark = (int) markSpinner.getValue();
+            mCurrentQuestion.setMark((int) markSpinner.getValue());
         }
     }//GEN-LAST:event_markSpinnerKeyReleased
-//</editor-fold>
+
+    private void openPdfFileButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_openPdfFileButtonActionPerformed
+    {//GEN-HEADEREND:event_openPdfFileButtonActionPerformed
+        if (mCurrentQuestion != null) {
+            openPdfFile();
+        }
+    }//GEN-LAST:event_openPdfFileButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addCandidateButton;
@@ -1049,6 +1155,7 @@ public class SessionCreator extends javax.swing.JFrame
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSpinner markSpinner;
     private javax.swing.JButton nextButton;
+    private javax.swing.JButton openPdfFileButton;
     private javax.swing.JButton pathBrowseButton;
     private javax.swing.JPanel pdfContainerPanel;
     private javax.swing.JList questionList;
