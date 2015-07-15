@@ -16,9 +16,9 @@
  */
 package ServerApplication;
 
+import Utilities.AnswerData;
 import Utilities.Candidate;
-import Utilities.Examination;
-import Utilities.Functions;
+import Utilities.Examination; 
 import Utilities.UserChangeEvent;
 import Utilities.UserChangedHandler;
 import java.io.File;
@@ -39,127 +39,170 @@ import java.util.logging.Logger;
  *
  * @author Dipu
  */
-public final class CurrentExam
+public class CurrentExam
 {
-
-    /**
-     * File where the curExam data is saved
-     */
-    public static File examFile = null;
-    /**
-     * Current exam object that is been working with
-     */
-    public static Examination curExam = new Examination();
-    /**
-     * List of logged in clients
-     */
-    public final static HashSet<Integer> logins = new HashSet<>();
-    /**
-     * Announcement messages by id
-     */
-    public final static ArrayList<String> announcements = new ArrayList<>();
-    /**
-     * List of Blacklisted users
-     */
-    public final static ArrayList<Integer> blacklist = new ArrayList<>();
-
-    // <editor-fold defaultstate="collapsed" desc="Open Save and Print password list">     
-    /**
-     * Read a file and extract Examination class information stored in it
-     *
-     * @param file File object to open
-     * @throws FileNotFoundException When specific file is not found
-     * @throws IOException If any error occur while reading the file
-     * @throws ClassNotFoundException If specific file does not have desired
-     * format
-     */
-    public static void Open(File file) throws FileNotFoundException, IOException, ClassNotFoundException
+    CurrentExam()
     {
-        //clear some values
-        logins.clear();
-        examFile = file;
-        announcements.clear();
-        blacklist.clear();
+        mClients = new HashSet<>();
+        mCurExam = new Examination();
+        userChangeListener = new ArrayList<>();
+    }
 
-        //open file
-        try (FileInputStream fin = new FileInputStream(examFile);
+    //file where the exam data is stored
+    private File mExamPath;
+    // Exam modifying currently.
+    private Examination mCurExam;
+    // List of logged in candidates.
+    private final HashSet<Integer> mClients;
+    // To store connected method to this handler
+    private final ArrayList<UserChangedHandler> userChangeListener;
+
+
+    /**
+     * Gets the file where this object is stored.
+     *
+     * @return File in which this object is stored.
+     */
+    public File getExamPath()
+    {
+        return mExamPath;
+    }
+
+    /**
+     * Sets the file where this object is stored.
+     *
+     * @param path File in which this object is stored.
+     */
+    public void setExamPath(File path)
+    {
+        mExamPath = path;
+    }
+
+    /**
+     * Gets the currently opened examination object.
+     *
+     * @return Examination object.
+     */
+    public Examination getExamination()
+    {
+        return mCurExam;
+    }
+
+    /**
+     * Get id of the logged in candidates.
+     *
+     * @return HasSet of the connected candidates.
+     */
+    public HashSet<Integer> getAllClients()
+    {
+        return mClients;
+    }
+
+    /**
+     * Reads a file and extract Examination class information stored in it.
+     *
+     * @param file File object to open.
+     * @throws FileNotFoundException When specific file is not found.
+     * @throws IOException If any error occur while reading the file.
+     * @throws ClassNotFoundException If specific file does not have desired
+     * format.
+     */
+    public void OpenFromFile(File file)
+            throws FileNotFoundException, IOException, ClassNotFoundException
+    {
+        //a little clean up
+        mClients.clear();
+        //load data from file
+        try (FileInputStream fin = new FileInputStream(file);
              ObjectInputStream ois = new ObjectInputStream(fin)) {
-            curExam = (Examination) ois.readObject();
-            curExam.recycleLastID();
+            mCurExam = (Examination) ois.readObject();
+            mCurExam.recycleLastIDs();
+            mExamPath = file;
         }
     }
 
     /**
-     * Write curExam object to a specific file
+     * Writes currently opened examination data to file.
      *
      * @throws FileNotFoundException When file/directory is not found
      * @throws IOException When writing to file is failed due to some reason
      */
-    public static void Save() throws FileNotFoundException, IOException
+    public void SaveToFile()
+            throws FileNotFoundException, IOException
     {
-        try (FileOutputStream fos = new FileOutputStream(examFile);
+        try (FileOutputStream fos = new FileOutputStream(mExamPath);
              ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-            oos.writeObject(curExam);
+            oos.writeObject(mExamPath);
             oos.flush();
         }
     }
 
     /**
-     * Get a list of all users | passwords | IP-address | port
+     * Gets a list of candidates as comma separated values in this format: Name,
+     * RegNo, Password.
      *
-     * @return list of users and passwords
+     * @return Candidate list in CSV format.
      */
-    public static String getUsers()
+    public String getCandidateCSV()
     {
-        String output = "Name,\tRegistration No,\tPasswords\n";
-        for (Candidate c : curExam.allCandidate) {
-            output += c.name + ",\t" + c.regno + ",\t" + c.password + "\n";
+        String output = "";
+        for (Candidate c : mCurExam.getAllCandidate()) {
+            output += String.format("%s,%s,%s\n",
+                    c.getName(), c.getRegNo(), c.getPassword());
         }
         return output;
     }
 
-    public static void loadUsers(String input)
+    /**
+     * Sets the candidates list from comma separated values in this format:
+     * Name, RegNo.
+     *
+     * @param input CSV in this format: Name, RegNo.
+     */
+    public void setCandidateCSV(String input)
     {
-        curExam.allCandidate.clear();
+        mCurExam.getAllCandidate().clear();
         for (String line : input.split("\n")) {
-            String[] can = line.split(",");
-            curExam.addCandidate(can[0].trim(), can[1].trim());
+            if (line.trim().isEmpty())
+                continue;
+            String[] val = line.split(",");
+            Candidate c = mCurExam.addCandidate(val[0].trim(), val[1].trim());
+            if (val.length == 3)
+                c.setPassword(val[2].trim());
         }
     }
 
-    //</editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Add to Remove Users">     
     /**
      * Assign a Socket to specific user.
      *
-     * @param user Registration number of the candidate.
+     * @param regNo Registration number of the candidate.
      * @param pass Password of the user
      * @param ip IP Address of client.
      * @return True on success.
      */
-    public static boolean assignUser(String user, String pass, String ip)
+    public boolean assignUser(String regNo, String pass, String ip)
     {
-        int uid = curExam.getCandidateID(user);
-        if (uid == -1) {
+        //check if candidate exist
+        int uid = mCurExam.getCandidateID(regNo);
+        if (!mCurExam.isCandidateExist(uid))
             return false;
-        }
-        Candidate cand = curExam.getCandidate(uid);
-        if (cand == null) {
-            return false;
-        }
 
-        if (!cand.password.equals(pass)) {
+        //check the candidates password
+        Candidate candy = mCurExam.getCandidate(uid);
+        if (!candy.getPassword().equals(pass)) {
             Logger.getLogger("LabExam").log(Level.WARNING,
-                    String.format("%s(%s) tried to login with wrong password."
-                            + " (attempted password: %s)", cand.name, cand.regno, pass));
+                    String.format("%s[%s] tried to login with wrong password. (attempted password: %s)",
+                            candy.getName(), candy.getRegNo(), pass));
             return false;
         }
 
-        logins.add(uid);
+        //add to connected client list and raise user change event
+        mClients.add(uid);
         invokeUserChanged(new UserChangeEvent(uid, true));
 
         Logger.getLogger("LabExam").log(Level.INFO,
-                String.format("%s(%s) connected via %s", cand.name, user, ip));
+                String.format("%s[%s] connected via %s",
+                        candy.getName(), candy.getRegNo(), ip));
 
         return true;
     }
@@ -167,137 +210,149 @@ public final class CurrentExam
     /**
      * Delete an user from the connected list.
      *
-     * @param user Registration number of the candidate.
+     * @param regNo Registration number of the candidate.
      * @param ip IP Address of the client.
      * @return True if success, False otherwise.
      */
-    public static boolean removeUser(String user, String ip)
+    public boolean removeUser(String regNo, String ip)
     {
-        int uid = curExam.getCandidateID(user);
-        if (uid == -1) {
+        //check if candidate exist
+        int uid = mCurExam.getCandidateID(regNo);
+        if (!mCurExam.isCandidateExist(uid))
             return false;
-        }
 
-        String name = curExam.getCandidate(uid).name;
-        if (!logins.contains(uid)) {
+        //checks if the candidate really was connected
+        String name = mCurExam.getCandidate(uid).getName();
+        if (!mClients.contains(uid)) {
             Logger.getLogger("LabExam").log(Level.WARNING,
-                    String.format("%s(%s) tried to log out but failed.", name, user));
+                    String.format("Something is wrong!! %s[%s] tried to log out but failed!",
+                            name, regNo));
             return false;
         }
 
-        addToBlacklist(uid);
-
-        logins.remove(uid);
+        // remove user from list and raise user changed event
+        mClients.remove(uid);
         invokeUserChanged(new UserChangeEvent(uid, true));
 
         Logger.getLogger("LabExam").log(Level.WARNING,
-                String.format("%s(%s) logged out from %s", name, user, ip));
+                String.format("%s[%s] logged out from %s.",
+                        name, regNo, ip));
 
         return true;
     }
-    //</editor-fold>
 
-    public static File getSubmissionPath(String regno)
+    /**
+     * Gets the path to save submission data of the candidate
+     *
+     * @param regno Registration number of the candidate.
+     * @return Path to save candidate's submissions.
+     */
+    public File getSubmissionPath(String regno)
     {
-        Path par = CurrentExam.curExam.ExamPath.toPath();
+        Path par = mCurExam.getSubmissionPath().toPath();
         par = par.resolve(regno);
         return par.toFile();
     }
 
-    public static File getSubmissionPath(String regno, int qid)
+    /**
+     * Gets the path to save submission of a question.
+     *
+     * @param regno Registration number of the candidate.
+     * @param qid ID of the question involved.
+     * @return Path to save submission to the question.
+     */
+    public File getSubmissionPath(String regno, int qid)
     {
-        Path par = CurrentExam.curExam.ExamPath.toPath();
+        Path par = mCurExam.getSubmissionPath().toPath();
         par = par.resolve(regno);
         par = par.resolve("Question_" + qid);
         return par.toFile();
     }
 
     /**
-     * Submit an answer of a question.
+     * Receive and save an answer of a question.
      *
-     * @param regno Registration no of the student who submitted the answer.
-     * @param qid Question id of the answer.
-     * @param files List of files for the answer.
-     * @param data Data of the answer files.
-     * @return False if answer saving failed, True otherwise.
+     * @param regNo Registration number of the candidate who submitted the
+     * answer.
+     * @param quesId Id of the question.
+     * @param answers Answer data of the submission.
+     * @return True on success False otherwise.
      */
-    public static boolean submitAnswer(String regno, int qid, Object[] files, Object[] data)
+    public boolean receiveAnswer(String regNo, int quesId, ArrayList<AnswerData> answers)
     {
-        if (!CurrentExam.curExam.isRunning()) {
+        // do not take submission if exam is not running
+        if (!mCurExam.isRunning()) {
             return false;
         }
 
-        //get userid and name
-        int uid = curExam.getCandidateID(regno);
-        if (!curExam.candidateExist(uid)) {
+        //convert registration number to id
+        int uid = mCurExam.getCandidateID(regNo);
+        if (!mCurExam.isCandidateExist(uid))
             return false;
-        }
-        String name = curExam.getCandidate(uid).name;
+        String name = mCurExam.getCandidate(uid).getName();
 
-        try {
-            if (!CurrentExam.examFile.exists()) {
-                CurrentExam.examFile.mkdir();
-            }
+        //get path to save answer
+        Path par = this.getSubmissionPath(regNo, quesId).toPath();
 
-            //delete previous data            
-            Functions.deleteDirectory(getSubmissionPath(regno, qid));
-            Path par = getSubmissionPath(regno).toPath();
-            //save submitted data
-            for (int i = 0; i < files.length; ++i) {
-                File f = par.resolve((String) files[i]).toFile();
+        int success = 0;
+        for (AnswerData data : answers) {
+            try {
+                //save submitted data 
+                File f = par.resolve(data.getRelativeFilePath()).toFile();
                 f.getParentFile().mkdirs();
+
+                //save answer data
                 FileOutputStream fos = new FileOutputStream(f);
-                fos.write((byte[]) data[i]);
-                fos.flush();
+                fos.write(data.getFileData());
                 fos.close();
+
+                success++;
             }
+            catch (Exception ex) {
+                Logger.getLogger("LabExam").log(Level.SEVERE,
+                        String.format("Failed to save %s(%s)'s answer %s for Question %02d.",
+                                name, regNo, data.getRelativeFilePath(), quesId));
+            }
+        }
 
-            //tell about the submission
-            invokeUserSubmitted(new UserChangeEvent(uid, qid));
-
+        //tell listeners that an answer is submitted.
+        if (success > 0) {
+            invokeUserSubmitted(new UserChangeEvent(uid, quesId));
             Logger.getLogger("LabExam").log(Level.INFO,
-                    String.format("%s(%s) submitted for Question %02d", name, regno, qid));
-            return true;
+                    String.format("%s(%s) submitted for Question %02d. (%d out of %d data saved)",
+                            name, regNo, quesId, success, answers.size()));
         }
-        catch (Exception ex) {
-            ex.printStackTrace();
-            Logger.getLogger("LabExam").log(Level.SEVERE,
-                    String.format("Failed to receive %s(%s)'s answer for Question.", name, regno));
-            return false;
-        }
+
+        return (success == answers.size());
     }
 
-    public static ArrayList<String> getAnnoucements(int curSiz)
-    {
-        ArrayList<String> nlist = new ArrayList<>();
-        for (int x = curSiz; x < CurrentExam.announcements.size(); ++x) {
-            nlist.add(CurrentExam.announcements.get(x));
-        }
-        return nlist;
-    }
-
-    public static void addToBlacklist(int uid)
-    {
-        if (CurrentExam.curExam.isRunning()) {
-            blacklist.add(uid);
-        }
-    }
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="User Changed Event Trigger">     
-    private static final ArrayList<UserChangedHandler> userChangeListener = new ArrayList<>();
-
-    public static boolean addUserChangedHandler(UserChangedHandler handler)
+    
+   /**
+    * Adds a new event handler to monitor user changed events.
+    * @param handler Event handler to add.
+    * @return True if successfully added; False otherwise.
+    */
+    public boolean addUserChangedHandler(UserChangedHandler handler)
     {
         return userChangeListener.add(handler);
     }
-
-    public static boolean removeUserChangedHandler(UserChangedHandler handler)
+    
+   /**
+    * Removes an event handler from monitoring user changed events.
+    * @param handler Event handler to remove.
+    * @return True if successfully removed; False otherwise.
+    */
+    public boolean removeUserChangedHandler(UserChangedHandler handler)
     {
         return userChangeListener.remove(handler);
     }
 
-    public static void invokeUserChanged(UserChangeEvent uce)
+    
+   /**
+    * Raise all event handler that is currently monitoring user changed events.
+    * @param uce User Change Event to invoke.
+    */
+    public void invokeUserChanged(UserChangeEvent uce)
     {
         // Notify everybody who are connected
         for (UserChangedHandler handler : userChangeListener) {
@@ -305,13 +360,15 @@ public final class CurrentExam
         }
     }
 
-    public static void invokeUserSubmitted(UserChangeEvent uce)
+   /**
+    * Raise all event handler that is currently monitoring user changed events.
+    * @param uce User Change Event to invoke.
+    */
+    public void invokeUserSubmitted(UserChangeEvent uce)
     {
         // Notify everybody who are connected
         for (UserChangedHandler handler : userChangeListener) {
             handler.userSubmitted(uce);
         }
     }
-    //</editor-fold>
-
 }

@@ -24,14 +24,13 @@ import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
 /**
- * Main class of the project
+ * Star point of the application.
  *
  * @author Dipu
  */
 public class Program
 {
-
-    public static final String defExtension = "labex";
+    public static final String FILE_EXTENSION = "labex";
 
     public static void main(String[] args)
     {

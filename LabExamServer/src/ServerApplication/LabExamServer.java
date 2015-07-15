@@ -202,7 +202,7 @@ public final class LabExamServer
                 qid = (int) input.readObject();
                 Object[] files = (Object[]) input.readObject();
                 Object[] data = (Object[]) input.readObject();
-                boolean res = CurrentExam.submitAnswer(user, qid, files, data);
+                boolean res = CurrentExam.receiveAnswer(user, qid, files, data);
                 output.writeObject(res);
                 break;
         }

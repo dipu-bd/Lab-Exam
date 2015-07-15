@@ -35,8 +35,7 @@ public class Examination implements Serializable  {
      */
     public Examination()
     {
-        mExamTitle = "Lab Exam";        
-        mExamPath = new File(mExamTitle); 
+        mExamTitle = "Lab Exam";         
         mStartTime = new Date(System.currentTimeMillis());
         mDuration = 120;
         mAllQuestion = new ArrayList<>(); 
@@ -55,8 +54,8 @@ public class Examination implements Serializable  {
   
     //title of the exam
     private String mExamTitle; 
-    //file where the exam data is stored
-    private File mExamPath; 
+    //path to save submission data
+    private File mSubmissionPath;
     //start time of the examination
     private Date mStartTime; 
     //duration of the examination
@@ -66,9 +65,20 @@ public class Examination implements Serializable  {
     //last used user id
     private int mLastUserID;
     //list of all question
-    private ArrayList<Question> mAllQuestion;
+    private final ArrayList<Question> mAllQuestion;
     //list of all candidates
-    private ArrayList<Candidate> mAllCandidate;
+    private final ArrayList<Candidate> mAllCandidate;
+        
+    /**
+     * Gets the path where candidates submission data is to be saved.
+     * @return Path to save submission data of candidates.
+     */
+    public File getSubmissionPath() { return mSubmissionPath; }    
+    /**
+     * Sets the path where candidates submission data is to be saved.
+     * @param path Path to save submission data of candidates.
+     */
+    public void setSubmissionPath(File path) { mSubmissionPath = path; }
     
     /**
      * Gets title of the examination.
@@ -80,18 +90,7 @@ public class Examination implements Serializable  {
      * @param title Title of the examination.
      */
     public void setExamTitle(String title) { mExamTitle = title; }
-    
-    /**
-     * Gets the file where this object is stored.
-     * @return File in which this object is stored.
-     */
-    public File getExamPath() { return mExamPath; }
-    /**
-     * Sets the file where this object is stored.
-     * @param path File in which this object is stored.
-     */
-    public void setExamPath(File path) { mExamPath = path; }
-    
+        
     /**
      * Gets the start time of the examination.
      * @return Start time of the examination.

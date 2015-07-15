@@ -30,7 +30,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  */
 public class MainForm extends javax.swing.JFrame
 {
-
     /**
      * Creates new form MainForm
      */
@@ -39,6 +38,9 @@ public class MainForm extends javax.swing.JFrame
         initComponents();
         getContentPane().setBackground(getBackground());
     }
+    
+    //holds currently opened exam data
+    private CurrentExam mCurrentExam;
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -67,7 +69,7 @@ public class MainForm extends javax.swing.JFrame
         setResizable(false);
 
         jLabel1.setBackground(new java.awt.Color(114, 217, 217));
-        jLabel1.setFont(new java.awt.Font("Segoe UI Semibold", 0, 18)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Comic Sans MS", 0, 20)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(51, 51, 0));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Welcome to Lab Exam Application");
@@ -241,10 +243,10 @@ public class MainForm extends javax.swing.JFrame
     private void newSessionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newSessionButtonActionPerformed
         try {
             JFileChooser saveFile = new JFileChooser();
-            saveFile.setFileFilter(new FileNameExtensionFilter("Lab Exam File", Program.defExtension));
+            saveFile.setFileFilter(new FileNameExtensionFilter("Lab Exam File", Program.FILE_EXTENSION));
             saveFile.setAcceptAllFileFilterUsed(false);
             saveFile.setMultiSelectionEnabled(false);
-            saveFile.setSelectedFile(new File("exam." + Program.defExtension));
+            saveFile.setSelectedFile(new File("exam." + Program.FILE_EXTENSION));
             if (saveFile.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
                 CurrentExam.curExam = new Examination();
                 CurrentExam.examFile = saveFile.getSelectedFile();
@@ -258,13 +260,12 @@ public class MainForm extends javax.swing.JFrame
     }//GEN-LAST:event_newSessionButtonActionPerformed
 
     private void openSessionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openSessionButtonActionPerformed
-        // TODO add your handling code here:                 
         try {
             JFileChooser openFile = new JFileChooser();
-            openFile.setFileFilter(new FileNameExtensionFilter("Lab Exam File", Program.defExtension));
+            openFile.setFileFilter(new FileNameExtensionFilter("Lab Exam File", Program.FILE_EXTENSION));
             openFile.setAcceptAllFileFilterUsed(false);
             openFile.setMultiSelectionEnabled(false);
-            openFile.setSelectedFile(new File("exam." + Program.defExtension));
+            openFile.setSelectedFile(new File("exam." + Program.FILE_EXTENSION));
             if (openFile.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
                 CurrentExam.Open(openFile.getSelectedFile());
                 OpenFile();
