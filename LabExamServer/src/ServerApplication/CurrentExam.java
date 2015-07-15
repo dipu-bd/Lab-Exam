@@ -108,6 +108,16 @@ public class CurrentExam
     }
 
     /**
+     * Checks if a candidate is logged in or not
+     * @param candidateId Candidate id to check.
+     * @return True if logged in; False otherwise.
+     */
+    public boolean isLoggedIn(int candidateId)
+    {
+        return mClients != null && mClients.contains(candidateId);
+    }
+
+    /**
      * Reads a file and extract Examination class information stored in it.
      *
      * @param file File object to open.
@@ -141,7 +151,7 @@ public class CurrentExam
     {
         try (FileOutputStream fos = new FileOutputStream(mExamPath);
              ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-            oos.writeObject(mExamPath);
+            oos.writeObject(mCurExam);
             oos.flush();
         }
     }
@@ -310,10 +320,10 @@ public class CurrentExam
                 File f = par.resolve(data.getRelativeFilePath()).toFile();
                 f.getParentFile().mkdirs();
 
-                //save answer data
-                FileOutputStream fos = new FileOutputStream(f);
-                fos.write(data.getFileData());
-                fos.close();
+                try ( //save answer data
+                        FileOutputStream fos = new FileOutputStream(f)) {
+                    fos.write(data.getFileData());
+                }
 
                 success++;
             }

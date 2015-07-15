@@ -614,7 +614,7 @@ public class SessionCreator extends javax.swing.JFrame
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 542, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
                         .addComponent(jLabel11)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -640,8 +640,8 @@ public class SessionCreator extends javax.swing.JFrame
                     .addComponent(markSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(openPdfFileButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 325, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 325, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -877,6 +877,7 @@ public class SessionCreator extends javax.swing.JFrame
     {
         if (ques == null)
             return;
+
         ques.setTitle(questionTitle.getText().trim());
         ques.setMark((int) markSpinner.getValue());
         totalMarksBox.setText(Integer.toString(mExam.getTotalMarks()));
@@ -892,6 +893,17 @@ public class SessionCreator extends javax.swing.JFrame
         }
     }
 
+    private void loadPdfFromBytes(byte[] data, String title)
+    {
+        if (data != null) {
+            pdfController.closeDocument();
+            pdfController.openDocument(
+                    data, 0, data.length, title, null);
+            pdfController.setZoom(1.5F);
+            pdfController.setViewerFrame(this);
+        }
+    }
+
     /**
      * After selecting a question, this function shows the information about
      * that question.
@@ -903,7 +915,7 @@ public class SessionCreator extends javax.swing.JFrame
         saveQuestion(mCurrentQuestion);
         mCurrentQuestion = ques;
 
-        //clear prev values        
+        //clear prev values         
         pdfController.closeDocument();
         markSpinner.setValue(0);
         questionTitle.setText("");
@@ -913,10 +925,7 @@ public class SessionCreator extends javax.swing.JFrame
         //load new values
         markSpinner.setValue(ques.getMark());
         questionTitle.setText(ques.getTitle());
-        if (ques.getBody() != null) {
-            pdfController.openDocument(
-                    ques.getBody(), 0, ques.getBody().length, ques.getTitle(), null);
-        }
+        loadPdfFromBytes(ques.getBody(), ques.getTitle());
     }
 
     /**
@@ -973,8 +982,10 @@ public class SessionCreator extends javax.swing.JFrame
                 File file = openFile.getSelectedFile();
                 try (FileInputStream fis = new FileInputStream(file)) {
                     mCurrentQuestion.setBody(Functions.readFully(fis));
-                    saveQuestion(mCurrentQuestion);
-                    loadQuestion(mCurrentQuestion);
+                    mCurrentExam.SaveToFile();
+                    loadPdfFromBytes(
+                            mCurrentQuestion.getBody(),
+                            mCurrentQuestion.getTitle());
                 }
             }
         }
@@ -983,8 +994,8 @@ public class SessionCreator extends javax.swing.JFrame
                     "Error while opening user list", ex);
         }
     }
-    
- 
+
+
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
         if (mParentForm != null) {
             mParentForm.setVisible(true);

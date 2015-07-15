@@ -61,6 +61,7 @@ public class LabExamServer
      */
     public void setCurrentExam(CurrentExam curExam)
     {
+        this.StopListening();
         mCurExam = curExam;
         this.initialize(); //initialize server
     }
@@ -70,7 +71,7 @@ public class LabExamServer
      *
      * @return IP address of the server machine.
      */
-    public static String getIPAddress()
+    public static String getServerIPAddress()
     {
         try {
             InetAddress IP = InetAddress.getLocalHost();
@@ -115,7 +116,7 @@ public class LabExamServer
     {
         try {
             mStopListening = true;
-            mServerSocket.close();
+            mServerSocket.close();            
         }
         catch (IOException ex) {
             Logger.getLogger(LabExamServer.class.getName()).log(Level.SEVERE, null, ex);
@@ -178,7 +179,7 @@ public class LabExamServer
         // Waiting for clients in port -> serverSocket.getLocalPort()                  
         Logger.getLogger("LabExam").log(Level.INFO,
                 String.format("Waitinig at %s on port %d.",
-                        getIPAddress(), mServerSocket.getLocalPort()));
+                        getServerIPAddress(), mServerSocket.getLocalPort()));
 
         while (!mStopListening) {
             (new Thread(new Runnable()

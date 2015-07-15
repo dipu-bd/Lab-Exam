@@ -38,10 +38,11 @@ public class Examination implements Serializable  {
         mExamTitle = "Lab Exam";         
         mStartTime = new Date(System.currentTimeMillis());
         mDuration = 120;
-        mAllQuestion = new ArrayList<>(); 
-        mAllCandidate = new ArrayList<>(); 
         mLastProbID = 0;
         mLastUserID = 0;
+        mSubmissionPath = new File(mExamTitle);
+        mAllQuestion = new ArrayList<>(); 
+        mAllCandidate = new ArrayList<>(); 
     }
 
     //overrides the default toString() method

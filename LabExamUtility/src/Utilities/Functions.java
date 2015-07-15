@@ -68,10 +68,9 @@ public final class Functions {
      */
     public static byte[] readFully(java.io.InputStream inputStream) throws java.io.IOException {
         java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        int length = 0;
-        while ((length = inputStream.read(buffer)) != -1) {
-            baos.write(buffer, 0, length);
+        int buffer;
+        while ((buffer = inputStream.read()) != -1) {
+            baos.write(buffer);
         }
         return baos.toByteArray();
     }
