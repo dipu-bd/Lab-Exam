@@ -12,8 +12,7 @@
  * Lesser General Public License for more details.  
  */
 package ClientApplication;
-
-import com.sun.jna.Native;
+ 
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinUser;
@@ -23,35 +22,43 @@ import com.sun.jna.platform.win32.WinDef.WPARAM;
 import com.sun.jna.platform.win32.WinUser.HHOOK;
 import com.sun.jna.platform.win32.WinUser.KBDLLHOOKSTRUCT;
 import com.sun.jna.platform.win32.WinUser.LowLevelKeyboardProc;
-import com.sun.jna.platform.win32.WinUser.MSG;
-import com.sun.jna.win32.W32APIOptions;
-import java.awt.event.KeyEvent;
+import com.sun.jna.platform.win32.WinUser.MSG; 
 
 /**
  * Sample implementation of a low-level keyboard hook on W32.
+ * For blocking key pass to outside the bound of this application.
  */
-public final class KeyHook
+public class KeyHook
 {
+    //windows hook handler
+    private HHOOK mWinHook;
+    //the value used across threads to notify it to stop
+    private volatile boolean mStopBlocking;
+    //low level keyboard hook
+    private LowLevelKeyboardProc mKeyboardHook;
 
-    private static HHOOK hhk;
-    private static volatile boolean quit;
-    private static LowLevelKeyboardProc keyboardHook;
-
-    public static void unblockWindowsKey()
+    /**
+     * Start blocking key pass to windows.
+     */
+    public void unblockWindowsKey()
     {
-        quit = true;
+        mStopBlocking = true;
     }
 
-    public static void blockWindowsKey()
+    /**
+     * Stop blocking key pass to windows.
+     */
+    public void blockWindowsKey()
     {
-        quit = false;
+        mStopBlocking = false;
         new Thread()
         {
+            @Override
             public void run()
             {
                 final User32 lib = User32.INSTANCE; 
                 HMODULE hMod = Kernel32.INSTANCE.GetModuleHandle(null);
-                keyboardHook = new LowLevelKeyboardProc()
+                mKeyboardHook = new LowLevelKeyboardProc()
                 {
                     @Override
                     public LRESULT callback(int nCode, WPARAM wParam, KBDLLHOOKSTRUCT info)
@@ -68,16 +75,16 @@ public final class KeyHook
                                     return new LRESULT(1);
                             }
                         } 
-                        return lib.CallNextHookEx(hhk, nCode, wParam, info.getPointer());
+                        return lib.CallNextHookEx(mWinHook, nCode, wParam, info.getPointer());
                     }
                 };
-                hhk = lib.SetWindowsHookEx(WinUser.WH_KEYBOARD_LL, keyboardHook, hMod, 0);
+                mWinHook = lib.SetWindowsHookEx(WinUser.WH_KEYBOARD_LL, mKeyboardHook, hMod, 0);
 
                 // This bit never returns from GetMessage
                 int result;
                 MSG msg = new MSG();
                 while ((result = lib.GetMessage(msg, null, 0, 0)) != 0) {
-                    if (result == -1 || quit) {
+                    if (result == -1 || mStopBlocking) {
                         break;
                     }
                     else {
@@ -86,7 +93,7 @@ public final class KeyHook
                         lib.DispatchMessage(msg);
                     }
                 }
-                lib.UnhookWindowsHookEx(hhk);
+                lib.UnhookWindowsHookEx(mWinHook);
             }
         }.start();
     }

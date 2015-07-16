@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package ClientApplication;
-
+ 
 import Utilities.Command;
 import Utilities.Question;
 import java.io.IOException;
@@ -25,15 +25,19 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 /**
+ * Methods to communicate with server application.
  *
  * @author Dipu
  */
-public final class ServerLink
+public class ServerLink
 {
 
-    private static int port;
-    private static String userName;
-    private static String serverName;
+    //port of the server
+    private int mPort;
+    //ip address of the server
+    private String mServerIP;
+    //registration number of candidate
+    private String mRegNo;
 
     /**
      * Connect to the server, send some data, and receive some corresponding
@@ -43,15 +47,16 @@ public final class ServerLink
      * @param var Data to send
      * @return Data received from the server
      */
-    public static Object getResponce(Command command, Object... var)
+    public Object getResponce(Command command, Object... var)
     {
-        try {
-            //connecting to serverName using port                
-            Socket server = new Socket(serverName, port);
-            ObjectOutputStream outToServer = new ObjectOutputStream(server.getOutputStream());
-            ObjectInputStream inFromServer = new ObjectInputStream(server.getInputStream());
+        Object result;
+        try (
+                //connecting to mServerName using mPort
+                Socket server = new Socket(mServerIP, mPort);
+                ObjectOutputStream outToServer = new ObjectOutputStream(server.getOutputStream());
+                ObjectInputStream inFromServer = new ObjectInputStream(server.getInputStream())) {
 
-            //send login info       
+            //send login info
             outToServer.writeObject(command);
             outToServer.flush();
 
@@ -62,28 +67,20 @@ public final class ServerLink
             outToServer.flush();
 
             //get response
-            Object result = inFromServer.readObject();
-
-            //close server
-            outToServer.close();
-            inFromServer.close();
-            server.close();
-
+            result = inFromServer.readObject();
             return result;
         }
         catch (IOException | ClassNotFoundException ex) {
-            ex.printStackTrace();
             return null;
         }
     }
 
-//<editor-fold defaultstate="collapsed" desc="Function to get different data from the server">
     /**
      * Checks if the server is available right now.
      *
      * @return True if server is available; False otherwise.
      */
-    public static boolean isAvailable()
+    public boolean isAvailable()
     {
         Object result = getResponce(Command.EMPTY);
         return (result != null && (boolean) result);
@@ -96,9 +93,9 @@ public final class ServerLink
      * @param pass Password to use to login to the server
      * @return -1 in error; 0 in success; 1 is failure.
      */
-    public static int promptLogin(String pass)
+    public int promptLogin(String pass)
     {
-        Object result = getResponce(Command.LOGIN, userName, pass);
+        Object result = getResponce(Command.LOGIN, mRegNo, pass);
         if (result == null) return -1;
         if ((boolean) result) return 0;
         else return 1;
@@ -109,9 +106,9 @@ public final class ServerLink
      *
      * @return True on success; False otherwise.
      */
-    public static boolean logoutUser()
+    public boolean logoutUser()
     {
-        Object result = getResponce(Command.LOGOUT, userName);
+        Object result = getResponce(Command.LOGOUT, mRegNo);
         if (result == null) return false;
         return (boolean) result;
     }
@@ -121,7 +118,7 @@ public final class ServerLink
      *
      * @return -1 in Error; A UNIX-style time in success.
      */
-    public static long getStartTime()
+    public long getStartTime()
     {
         Object result = getResponce(Command.START_TIME);
         if (result == null) return -1;
@@ -133,7 +130,7 @@ public final class ServerLink
      *
      * @return -1 in Error; A UNIX-style time in success.
      */
-    public static long getStopTime()
+    public long getStopTime()
     {
         Object result = getResponce(Command.STOP_TIME);
         if (result == null) return -1;
@@ -144,13 +141,12 @@ public final class ServerLink
      * Submits an answer to the server.
      *
      * @param qid ID of question to submit answer.
-     * @param files List of files to submit.
-     * @param data Data of files to submit.
+     * @param answers Data of answers to submit.
      * @return True on success; False otherwise.
      */
-    public static boolean submitAnswer(int qid, Object[] files, Object[] data)
+    public boolean submitAnswer(int qid, Object[] answers)
     {
-        Object result = getResponce(Command.SUBMIT, userName, qid, files, data);
+        Object result = getResponce(Command.SUBMIT, mRegNo, qid, answers);
         if (result == null) return false;
         return (boolean) result;
     }
@@ -160,7 +156,7 @@ public final class ServerLink
      *
      * @return "-" on failure; Exam Title on success.
      */
-    public static String getExamTitle()
+    public String getExamTitle()
     {
         Object result = getResponce(Command.EXAM_TITLE);
         if (result == null) return "-";
@@ -173,7 +169,7 @@ public final class ServerLink
      * @return Empty string will return in case failed or exam is not running.
      */
     @SuppressWarnings("unchecked")
-    public static ArrayList<Question> getAllQuestions()
+    public ArrayList<Question> getAllQuestions()
     {
         Object result = getResponce(Command.ALL_QUES);
         if (result == null)
@@ -182,59 +178,43 @@ public final class ServerLink
     }
 
     /**
-     * Get all the announcements that has been made.
+     * Set the mPort address used in connection
      *
-     * @return List of array with desired messages
+     * @param port Integer value for mPort number
      */
-    @SuppressWarnings("unchecked")
-    public static ArrayList<String> getAnnouncements(int curSiz)
+    public void setPort(int port)
     {
-        Object result = getResponce(Command.ANNOUNCEMENT, curSiz);
-        if (result == null)
-            return new ArrayList<>();
-        return (ArrayList<String>) result;
-    }
-
-//</editor-fold>
-//<editor-fold defaultstate="collapsed" desc="Get or Set methods">
-    /**
-     * Set the port address used in connection
-     *
-     * @param port Integer value for port number
-     */
-    public static void setPort(int port)
-    {
-        ServerLink.port = port;
+        mPort = port;
     }
 
     /**
-     * Get the current port number used to connect
+     * Get the current mPort number used to connect
      *
-     * @return Integer port number
+     * @return Integer mPort number
      */
-    public static int getPort()
+    public int getPort()
     {
-        return ServerLink.port;
+        return mPort;
     }
 
     /**
-     * Set the current username used to connect
+     * Sets the current candidates registration no.
      *
-     * @param user Registration number of the user
+     * @param user Registration number of the candidate.
      */
-    public static void setUsername(String user)
+    public void setRegistrationNo(String user)
     {
-        ServerLink.userName = user.trim();
+        mRegNo = user.trim();
     }
 
     /**
-     * Get the currently assigned registration number
+     * Gets the current candidates registration no.
      *
-     * @return Registration number currently in use.
+     * @return Registration number of the candidate.
      */
-    public static String getUsername()
+    public String getRegistrationNo()
     {
-        return ServerLink.userName;
+        return mRegNo;
     }
 
     /**
@@ -242,9 +222,9 @@ public final class ServerLink
      *
      * @param server Address of the server
      */
-    public static void setServerName(String server)
+    public void setServerIP(String server)
     {
-        ServerLink.serverName = server.trim();
+        mServerIP = server.trim();
     }
 
     /**
@@ -252,9 +232,9 @@ public final class ServerLink
      *
      * @return Server address or name.
      */
-    public static String getServerName()
+    public String getServerIP()
     {
-        return ServerLink.serverName;
+        return mServerIP;
     }
-//</editor-fold>
+
 }

@@ -21,37 +21,41 @@ import java.util.TimerTask;
 import javax.swing.JFrame;
 
 /**
- *
- * @author Dipu
+ * Intermediate form to countdown exam start time. 
  */
 @SuppressWarnings("serial")
 public class WaitingForm extends javax.swing.JFrame
 {
-
-    public JFrame ParentForm;
-    public long startTime;
-    private final Timer timer;
-    private final TimerTask refreshTask;
-    private final TimerTask updateTask;
+    public long mStartTime;
+    public final JFrame mParentForm;
+    public final ServerLink mServerLink;
+    private final Timer mTimer;
+    private final TimerTask mRefreshTask;
+    private final TimerTask mUpdateTask;
 
     /**
      * Creates new form WaitingForm
+     * @param parent Parent form to this form.
+     * @param serverLink Server link to connect with server.
      */
-    public WaitingForm()
+    public WaitingForm(JFrame parent, ServerLink serverLink)
     {
+        mParentForm = parent;
+        mServerLink = serverLink;
+        
         initComponents();
         getContentPane().setBackground(getBackground());
 
         //initialize timertask
-        this.refreshTask = new TimerTask()
+        this.mRefreshTask = new TimerTask()
         {
             @Override
             public void run()
             {
-                startTime = ServerLink.getStartTime();
+                mStartTime = mServerLink.getStartTime();
             }
         };
-        this.updateTask = new TimerTask()
+        this.mUpdateTask = new TimerTask()
         {
             @Override
             public void run()
@@ -61,39 +65,38 @@ public class WaitingForm extends javax.swing.JFrame
         };
 
         //initialize timer                
-        this.timer = new Timer();
-        timer.scheduleAtFixedRate(refreshTask, 0, 4550);
-        timer.scheduleAtFixedRate(updateTask, 0, 500);
+        this.mTimer = new Timer();
+        mTimer.scheduleAtFixedRate(mRefreshTask, 0, 4550);
+        mTimer.scheduleAtFixedRate(mUpdateTask, 0, 500);
     }
 
     public void showMainForm()
     {
-        refreshTask.run();
+        mRefreshTask.run();
         long now = System.currentTimeMillis();
-        if (now < startTime) return;
+        if (now < mStartTime) return;
 
         this.dispose();        
-        Program.loadDefaultFolder((startTime / 1000) + "_" + ServerLink.getUsername());
+        Program.loadDefaultFolder(
+                (mStartTime / 1000) + "_" + mServerLink.getRegistrationNo());
         
-        MainForm mf = new MainForm();
-        mf.ParentForm = this.ParentForm;
-        mf.setVisible(true);
+        (new MainForm(mParentForm, mServerLink)).setVisible(true);
     }
 
     public void updateValues()
     {
-        if (startTime < 0) {
+        if (mStartTime < 0) {
             this.dispose();
             return;
         }
 
         long now = System.currentTimeMillis();
-        if (startTime <= now) {
+        if (mStartTime <= now) {
             showMainForm();
             return;
         }
 
-        String res = Utilities.Functions.formatTimeSpan(startTime - now);
+        String res = Utilities.Functions.formatTimeSpan(mStartTime - now);
         intervalToBegin.setText(res);
     }
 
@@ -209,11 +212,11 @@ public class WaitingForm extends javax.swing.JFrame
 
     private void formWindowClosed(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosed
     {//GEN-HEADEREND:event_formWindowClosed
-        timer.cancel();
+        mTimer.cancel();
         long now = System.currentTimeMillis();
-        if (startTime == -1 || now < startTime) {
-            ServerLink.logoutUser();
-            ParentForm.setVisible(true);
+        if (mStartTime == -1 || now < mStartTime) {
+            mServerLink.logoutUser();
+            mParentForm.setVisible(true);
         }
     }//GEN-LAST:event_formWindowClosed
 
@@ -224,7 +227,7 @@ public class WaitingForm extends javax.swing.JFrame
 
     private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_refreshButtonActionPerformed
     {//GEN-HEADEREND:event_refreshButtonActionPerformed
-        refreshTask.run();
+        mRefreshTask.run();
     }//GEN-LAST:event_refreshButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

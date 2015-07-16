@@ -20,8 +20,7 @@ import java.util.ArrayList;
 import javax.swing.DefaultComboBoxModel;
 
 /**
- *
- * @author Dipu
+ * To choose a class to run compiled Java program.
  */
 public class ClassNameChoser extends javax.swing.JDialog
 {

@@ -23,17 +23,23 @@ import java.io.Writer;
 import java.util.ArrayList;
 
 /**
- *
- * @author Dipu
+ * Class for compiling and running source codes.
+ * The machine is assumed to be at least Windows XP or later.
  */
-public final class CompileAndRun
+public class CompileAndRun
 {
 
-    public static boolean CompileCode(File codeFile, Writer writer)
+    /**
+     * Compiles a code and write output to a writer. Supports only Java, C++, and ANSI-C.
+     * @param codeFile Code file to compile.
+     * @param writer Writer to put outputs.
+     * @return True on success; False otherwise.
+     */
+    public boolean CompileCode(File codeFile, Writer writer)
     {
         try {
             //compilation command
-            String commands = null;
+            String commands;
 
             //generate command                      
             String dir = codeFile.getParentFile().toString();
@@ -78,12 +84,18 @@ public final class CompileAndRun
             }
         }
         catch (IOException | InterruptedException ex) {
-            ex.printStackTrace();
             return false;
         }
     }
 
-    public static String getClassName(File codeFile) throws InterruptedException
+    /**
+     * Gets the name of the class for running Java program.
+     * @param codeFile Original source code file path.
+     * @return Chosen class name.
+     * @throws InterruptedException 
+     */
+    public String getClassName(File codeFile) 
+            throws InterruptedException
     {
         ArrayList<String> names = new ArrayList<>();
         for (File f : codeFile.getParentFile().listFiles()) {
@@ -96,7 +108,7 @@ public final class CompileAndRun
             }
         }
 
-        if (names.size() == 0) {
+        if (names.isEmpty()) {
             return null;
         }
         else if (names.size() == 1) {
@@ -110,11 +122,16 @@ public final class CompileAndRun
         }
     }
 
-    public static boolean RunProgram(File codeFile)
+    /**
+     * Runs a Java, C++ or ANSI C program.
+     * @param codeFile Path to source code file.
+     * @return True on success; False otherwise.
+     */
+    public boolean RunProgram(File codeFile)
     {
         try {
             //format of the arguments         
-            String command = null;
+            String command;
             String name = codeFile.getAbsolutePath().toLowerCase();
             if (name.endsWith(".java")) {
                 String className = getClassName(codeFile);
@@ -141,7 +158,6 @@ public final class CompileAndRun
             return true;
         }
         catch (Exception ex) {
-            ex.printStackTrace();
             return false;
         }
     }

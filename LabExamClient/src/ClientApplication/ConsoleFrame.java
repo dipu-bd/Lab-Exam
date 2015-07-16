@@ -23,8 +23,7 @@ import java.io.PrintStream;
 import java.io.StringWriter;
 
 /**
- *
- * @author Dipu
+ * Console frame to run and test a program.
  */
 public class ConsoleFrame extends javax.swing.JDialog
 {

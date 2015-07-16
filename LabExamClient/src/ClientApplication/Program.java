@@ -25,8 +25,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 /**
- *
- * @author Dipu
+ * Start point of the application.
  */
 public class Program
 {

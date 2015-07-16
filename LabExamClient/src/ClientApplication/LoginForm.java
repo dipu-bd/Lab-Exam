@@ -16,20 +16,20 @@
  */
 package ClientApplication;
 
-import ClientApplication.ServerLink;
-
 /**
- *
- * @author Dipu
+ * Startup for to prompt candidates login.
  */
 public class LoginForm extends javax.swing.JFrame
 {
-
+    private final ServerLink mServerLink;
+    
     /**
      * Creates new form LoginForm
      */
     public LoginForm()
     {
+        mServerLink = new ServerLink();
+        
         initComponents();
         getContentPane().setBackground(this.getBackground()); 
     }
@@ -240,33 +240,37 @@ public class LoginForm extends javax.swing.JFrame
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
+    /**
+     * Works to do after candidate logged in successfully.
+     */
     private void loginCompleted()
     {
-        WaitingForm wf = new WaitingForm();
-        wf.setVisible(true);
-        wf.ParentForm = this;
+        (new WaitingForm(this, mServerLink)).setVisible(true);
         this.setVisible(false);
     }
     
+    /**
+     * Connect with server to attempt login.
+     */
     private void attemptLogin()
     {
         // collect data        
-        int result = 2;
+        int result;
         try {
-            ServerLink.setServerName(IPAddressText.getText());
-            ServerLink.setUsername(userNameText.getText());
-            ServerLink.setPort(Integer.parseInt(PortText.getText()));
+            mServerLink.setServerIP(IPAddressText.getText());
+            mServerLink.setRegistrationNo(userNameText.getText());
+            mServerLink.setPort(Integer.parseInt(PortText.getText()));
 
             //attempt to login
             String pass = new String(PasswordField.getPassword());
-            result = ClientApplication.ServerLink.promptLogin(pass);
+            result = mServerLink.promptLogin(pass);
         }
         catch (NumberFormatException ex) {
             result = 2;
         }
 
         //process result
-        String message = "";
+        String message;
         switch (result) {
             case 0:
                 loginCompleted();

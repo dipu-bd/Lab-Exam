@@ -16,6 +16,7 @@
  */
 package ClientApplication;
 
+import Utilities.AnswerData;
 import Utilities.Functions;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -34,6 +35,7 @@ import java.awt.HeadlessException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Writer;
+import javax.swing.JFrame;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -43,29 +45,54 @@ import org.icepdf.ri.common.SwingController;
 import org.icepdf.ri.common.SwingViewBuilder;
 
 /**
- *
- * @author Dipu
+ * Main form for the examination.
  */
 @SuppressWarnings("serial")
-public class MainForm extends javax.swing.JFrame
+public class MainForm extends JFrame
 {
 
-    javax.swing.JFrame ParentForm;
-    private final Timer timer = new Timer();
+    //update interval for server data in milliseconds
+    final int SERVER_UPDATE_INTERVAL = 4200;
+    //refresh rate for form data in milliseconds
+    final int FORM_DATA_REFRESH_INTERVAL = 600;
 
-    long StopTime = -1;
-    ArrayList<Question> allQuestion;
-    private Question selectedQues = null;
-    private DefaultMutableTreeNode selectedNode = null;
-    final SwingController pdfController = new SwingController();
-    private int curannounceID = 0;
-    ArrayList<String> announcements = new ArrayList<>();
+    //parent form to this form
+    private final JFrame mParentForm;
+    //link to server
+    private final ServerLink mServerLink;
+    //keyhook to block key pass
+    private final KeyHook mKeyHook;
+    //class to compile and run codes
+    private final CompileAndRun mCompileAndRun;
+    //timer for periodic tasks
+    private final Timer mTimer;
+    //to display pdf files
+    private final SwingController pdfController;
+
+    //stop time of the examination
+    private long mStopTime = -1;
+    //all question data of the examination
+    private ArrayList<Question> mAllQuestion;
+    //selected question data of the examination
+    private Question mSelectedQues = null;
+    //selected folder node on editor
+    private DefaultMutableTreeNode mSelectedNode = null;
 
     /**
-     * Creates new form MainForm
+     * Creates a new MainForm
+     *
+     * @param parent Parent object to this form
+     * @param serverLink ServerLink to use for communication.
      */
-    public MainForm()
+    public MainForm(JFrame parent, ServerLink serverLink)
     {
+        mParentForm = parent;
+        mServerLink = serverLink;
+        mTimer = new Timer();
+        mKeyHook = new KeyHook();
+        mCompileAndRun = new CompileAndRun();
+        pdfController = new SwingController();
+
         //init form
         initComponents();
         setToFullFocus();
@@ -79,22 +106,28 @@ public class MainForm extends javax.swing.JFrame
         initTimerTasks();
     }
 
+    /**
+     * Ends the exam and closes this form
+     */
     public void endExam()
     {
-        StopTime = ServerLink.getStopTime();
+        mStopTime = mServerLink.getStopTime();
         long now = System.currentTimeMillis();
-        if (StopTime < now) {
-            KeyHook.unblockWindowsKey();
+        if (mStopTime < now) {
+            mKeyHook.unblockWindowsKey();
 
-            timer.cancel();
+            mTimer.cancel();
             this.dispose();
 
             JOptionPane.showMessageDialog(this, "Exam is over.");
-            ServerLink.logoutUser();
-            ParentForm.setVisible(true);
+            mServerLink.logoutUser();
+            mParentForm.setVisible(true);
         }
     }
 
+    /**
+     * Initialize periodic tasks
+     */
     private void initTimerTasks()
     {
         //update data in display 
@@ -106,7 +139,7 @@ public class MainForm extends javax.swing.JFrame
                 updateValues();
             }
         };
-        timer.scheduleAtFixedRate(updateTask, 0, 4200);
+        mTimer.scheduleAtFixedRate(updateTask, 0, SERVER_UPDATE_INTERVAL);
 
         //download data periodically
         TimerTask refreshTask = new TimerTask()
@@ -117,9 +150,12 @@ public class MainForm extends javax.swing.JFrame
                 refreshValues();
             }
         };
-        timer.scheduleAtFixedRate(refreshTask, 0, 600);
+        mTimer.scheduleAtFixedRate(refreshTask, 0, FORM_DATA_REFRESH_INTERVAL);
     }
 
+    /**
+     * Set this frame into full focus and stop all key passing
+     */
     private void setToFullFocus()
     {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -130,9 +166,12 @@ public class MainForm extends javax.swing.JFrame
         this.requestFocusInWindow();
         this.setAlwaysOnTop(true);
 
-        KeyHook.blockWindowsKey();
+        mKeyHook.blockWindowsKey();
     }
 
+    /**
+     * Initialize PDF viewer
+     */
     private void initPdfControl()
     {
         //factory to build all controls
@@ -150,11 +189,15 @@ public class MainForm extends javax.swing.JFrame
         descToolBar.add(factory.buildTextSelectToolButton());
 
         //add pdf viewer panel           
-        javax.swing.JSplitPane jsp = factory.buildUtilityAndDocumentSplitPane(false);
+        javax.swing.JSplitPane jsp
+                = factory.buildUtilityAndDocumentSplitPane(false);
         jsp.setPreferredSize(new Dimension(10, 10));
         pdfPanel.setViewportView(jsp);
     }
 
+    /**
+     * Initializes the file explorer to explorer working directory.
+     */
     private void initFileExplorer()
     {
         explorerTree.setModel(new DefaultTreeModel(null));
@@ -176,10 +219,13 @@ public class MainForm extends javax.swing.JFrame
         explorerPopup.add(deleteMenu);
     }
 
+    /**
+     * Load examination data.
+     */
     private void loadValues()
     {
-        registrationNoLabel.setText("   " + ServerLink.getUsername() + "   ");
-        examTitleLabel.setText(ServerLink.getExamTitle());
+        registrationNoLabel.setText("   " + mServerLink.getRegistrationNo() + "   ");
+        examTitleLabel.setText(mServerLink.getExamTitle());
         downloadQuestions();
 
         double dsz = codeSplitPane.getResizeWeight() * codeSplitPane.getHeight();
@@ -188,89 +234,118 @@ public class MainForm extends javax.swing.JFrame
         mainSplitterPane.setDividerLocation((int) dsz);
     }
 
+    /**
+     * Download and set all questions of this examination.
+     */
     private void downloadQuestions()
     {
-        allQuestion = ServerLink.getAllQuestions();
-        questionList.setListData(allQuestion.toArray());
-        if (!allQuestion.isEmpty()) {
+        mAllQuestion = mServerLink.getAllQuestions();
+        questionList.setListData(mAllQuestion.toArray());
+        if (!mAllQuestion.isEmpty()) {
             questionList.setSelectedIndex(0);
         }
     }
 
+    /**
+     * Download and update some values from server periodically
+     */
     public void updateValues()
     {
-        StopTime = ServerLink.getStopTime();
-        announcements.addAll(ServerLink.getAnnouncements(curannounceID));
-        showAnnouncement();
+        mStopTime = mServerLink.getStopTime();
     }
 
+    /**
+     * Refresh some displayed value periodically.
+     */
     void refreshValues()
     {
         long now = System.currentTimeMillis();
-        if (StopTime < now) {
+        if (mStopTime < now) {
             endExam();
             return;
         }
 
-        String remain = Utilities.Functions.formatTimeSpan(StopTime - now);
+        String remain = Utilities.Functions.formatTimeSpan(mStopTime - now);
         remain = "    " + remain + " remaining.    ";
         remainingTimeLabel.setText(remain);
     }
 
-    void showAnnouncement()
+    /**
+     * Loads a PDF document into viewer from byte data.
+     *
+     * @param data Byte data of PDF document to load.
+     * @param title Title of the PDF document.
+     */
+    private void showPdfDescription(byte[] data, String title)
     {
-        while (curannounceID < announcements.size()) {
-            JOptionPane.showMessageDialog(this,
-                    announcements.get(curannounceID), "Announcement", JOptionPane.INFORMATION_MESSAGE);
-            ++curannounceID;
+        if (data != null) {
+            pdfController.openDocument(data, 0, data.length, title, null);
+            pdfController.setZoom(1.50F);
         }
     }
 
+    /**
+     * Display selected PDF question.
+     *
+     * @param selected Selected Question type object.
+     */
     void loadQuestion(Object selected)
     {
-        selectedQues = (Question) selected;
+        try {
+            mSelectedQues = (Question) selected;
 
-        //clear values
-        questionTitleBox.setText("No Question");
-        markValueBox.setText("0");
-        codeEditor.setText("");
-        codeEditor.setEditable(false);
-        if (selectedQues == null) {
-            return;
+            //clear values
+            questionTitleBox.setText("No Question");
+            markValueBox.setText("0");
+            codeEditor.setText("");
+            codeEditor.setEditable(false);
+            if (mSelectedQues == null) {
+                return;
+            }
+
+            //set new values        
+            questionTitleBox.setText(mSelectedQues.getTitle());
+            markValueBox.setText(Integer.toString(mSelectedQues.getMark()));
+            loadFileExplorer();
+
+            //show pdf description of question
+            showPdfDescription(mSelectedQues.getBody(),
+                    mSelectedQues.getTitle());
         }
-
-        //set new values        
-        questionTitleBox.setText(selectedQues.Title);
-        markValueBox.setText(Integer.toString(selectedQues.Mark));
-        loadFileExplorer();
-
-        //show pdf description of question
-        if (selectedQues.Body != null) {
-            pdfController.openDocument(selectedQues.Body, 0,
-                    selectedQues.Body.length, selectedQues.Title, null);
+        catch (Exception ex) {
         }
     }
 
+    /**
+     * Loads file explorer folders and files.
+     */
     void loadFileExplorer()
     {
-        if (selectedQues == null) {
+        if (mSelectedQues == null) {
             return;
         }
 
         try {
-            File qpath = Program.defaultPath.resolve("Question_" + selectedQues.ID).toFile();
+            File qpath = Program.defaultPath.resolve(
+                    "Question_" + mSelectedQues.getId()).toFile();
             qpath.mkdirs();
 
-            DefaultMutableTreeNode root = new DefaultMutableTreeNode(new TreeNodeData(qpath, selectedQues.Title));
+            DefaultMutableTreeNode root = new DefaultMutableTreeNode(
+                    new TreeNodeData(qpath, mSelectedQues.getTitle()));
             loadFileList(root, qpath);
             explorerTree.setModel(new DefaultTreeModel(root));
             explorerTree.setSelectionRow(0);
         }
         catch (Exception ex) {
-            ex.printStackTrace();
         }
     }
 
+    /**
+     * Loads file list of file explorer.
+     *
+     * @param node Parent node to add file nodes.
+     * @param dir Parent directory to look into.
+     */
     void loadFileList(DefaultMutableTreeNode node, File dir)
     {
         node.setAllowsChildren(true);
@@ -284,7 +359,8 @@ public class MainForm extends javax.swing.JFrame
                 }
             }
             //add child
-            DefaultMutableTreeNode child = new DefaultMutableTreeNode(new TreeNodeData(f));
+            DefaultMutableTreeNode child
+                    = new DefaultMutableTreeNode(new TreeNodeData(f));
             if (f.isDirectory()) {
                 loadFileList(child, f);
             }
@@ -292,6 +368,11 @@ public class MainForm extends javax.swing.JFrame
         }
     }
 
+    /**
+     * Opens the selected file from file explorer into editor to edit.
+     *
+     * @param file File path that has been selected.
+     */
     void openFileInEditor(File file)
     {
         try {
@@ -326,108 +407,115 @@ public class MainForm extends javax.swing.JFrame
             codeEditor.setEditable(true);
             codeEditor.setText(sw.toString());
             paneForCodeEditor.setLineNumbersEnabled(true);
-            questionTitleBox.setText(selectedQues.Title + " >> " + file.getName());
+            questionTitleBox.setText(
+                    mSelectedQues.getTitle() + " >> " + file.getName());
         }
         catch (Exception ex) {
             codeEditor.setText("Create a new file and select it to edit.");
             codeEditor.setEditable(false);
-            questionTitleBox.setText(selectedQues.Title);
+            questionTitleBox.setText(mSelectedQues.getTitle());
         }
     }
 
+    /**
+     * Saves the edited data to the file.
+     */
     void saveFileFromEditor()
     {
         try {
-            if (selectedNode == null) return;
-            File file = ((TreeNodeData) selectedNode.getUserObject()).getFile();
+            if (mSelectedNode == null) return;
+            File file = ((TreeNodeData) mSelectedNode.getUserObject()).getFile();
             if (!file.isFile()) return;
 
             String source = codeEditor.getText();
-            FileOutputStream fos = new FileOutputStream(file);
-            fos.write(source.getBytes());
-            fos.close();
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                fos.write(source.getBytes());
+            }
         }
         catch (Exception ex) {
-            ex.printStackTrace();
         }
     }
 
+    /**
+     * Closes a opened file from editing.
+     */
     void closeOpenedFile()
     {
         codeEditor.setText("");
         codeEditor.setEditable(false);
-        questionTitleBox.setText(selectedQues.Title);
+        questionTitleBox.setText(mSelectedQues.getTitle());
     }
 
+    /**
+     * Compile and run code
+     */
     void compileAndRun()
     {
-        if (selectedNode == null) return;
-        File file = ((TreeNodeData) selectedNode.getUserObject()).getFile();
+        if (mSelectedNode == null) return;
+        File file = ((TreeNodeData) mSelectedNode.getUserObject()).getFile();
         if (!file.isFile()) return;
 
         saveFileFromEditor();
         consolePane.setText("");
         answerSplitterPane.getRightComponent().setVisible(true);
 
-        try {
-
-            //initialize a writer to show output
-            Writer writer = new Writer()
-            {
-                @Override
-                public void close() throws IOException
+        boolean result;
+        try (
+                //initialize a writer to show output
+                Writer writer = new Writer()
                 {
-                }
+                    @Override
+                    public void close() throws IOException
+                    {
+                    }
 
-                @Override
-                public void flush() throws IOException
-                {
-                }
+                    @Override
+                    public void flush() throws IOException
+                    {
+                    }
 
-                @Override
-                public void write(char[] value, int offset, int count) throws IOException
-                {
-                    consolePane.append(new String(value, offset, count));
-                }
-            };
+                    @Override
+                    public void write(char[] value, int offset, int count) throws IOException
+                    {
+                        consolePane.append(new String(value, offset, count));
+                    }
+                }) {
 
-            boolean result = CompileAndRun.CompileCode(file, writer);
-            writer.close();
-
+            result = mCompileAndRun.CompileCode(file, writer);
             if (!result) {
                 JOptionPane.showMessageDialog(this, "Compilation Failed.");
                 return;
             }
         }
         catch (Exception ex) {
-            ex.printStackTrace();
         }
 
-        boolean result = CompileAndRun.RunProgram(file);
+        result = mCompileAndRun.RunProgram(file);
         String status = (result ? "[OK]" : "[Failed]");
         consolePane.append("\nRun Report : " + status + "\n");
     }
 
     private void attemptSubmitAnswer()
     {
-        if (selectedQues == null) {
+        if (mSelectedQues == null) {
             return;
         }
 
         int result = JOptionPane.showConfirmDialog(this,
-                "Are you sure to submit answers to \"" + selectedQues.Title + "\"?\n"
+                "Are you sure to submit answers to \"" + mSelectedQues.getTitle() + "\"?\n"
                 + "Your previous submission(if any) will be overwritten.",
                 "Submit Answer", JOptionPane.YES_NO_OPTION);
         try {
             saveFileFromEditor();
 
-            File qpath = Program.defaultPath.resolve("Question_" + selectedQues.ID).toFile();
-            ArrayList<Object> data = new ArrayList<>();
-            ArrayList<Object> files = new ArrayList<>();
-            listAllFiles(qpath, files, data);
+            File qpath = Program.defaultPath.resolve(
+                    "Question_" + mSelectedQues.getId()).toFile();
+            ArrayList<AnswerData> answers = new ArrayList<>();
+            listAllFiles(qpath, answers);
 
             if (result == JOptionPane.YES_OPTION) {
-                boolean res = ServerLink.submitAnswer(selectedQues.ID, files.toArray(), data.toArray());
+                boolean res = mServerLink.submitAnswer(
+                        mSelectedQues.getId(), answers.toArray());
                 if (res) {
                     JOptionPane.showMessageDialog(this, "Submission Successful.");
                 }
@@ -436,14 +524,23 @@ public class MainForm extends javax.swing.JFrame
                 }
             }
         }
-        catch (IOException | HeadlessException ex) {
-            ex.printStackTrace();
+        catch (IOException | HeadlessException ex) { 
         }
     }
 
-    private void listAllFiles(File f, ArrayList<Object> list, ArrayList<Object> data) throws IOException
+    /**
+     * Gets a list of all files inside a folder using a heuristic search.
+     *
+     * @param f Path to folder.
+     * @param answers Answer data list to store data
+     * @throws IOException
+     */
+    private void listAllFiles(File f, ArrayList<AnswerData> answers)
+            throws IOException
     {
         if (!f.exists()) return;
+
+        //add data if file
         if (f.isFile()) {
             //delete if not valid file
             String nam = f.getName().toLowerCase();
@@ -451,14 +548,17 @@ public class MainForm extends javax.swing.JFrame
                 f.delete();
                 return;
             }
-            //send all other files
-            data.add(Functions.readFully(new FileInputStream(f)));
+            //add if valud
             int deflen = Program.defaultPath.toFile().getAbsolutePath().length();
-            list.add(f.getAbsolutePath().substring(deflen + 1)); //+1 is for separator
+            answers.add(new AnswerData(
+                    f.getAbsolutePath().substring(deflen + 1), //+1 is for separator
+                    Functions.readFully(new FileInputStream(f))));
         }
+
+        //if directory search inside of it
         if (f.isDirectory()) {
             for (File c : f.listFiles()) {
-                listAllFiles(c, list, data);
+                listAllFiles(c, answers);
             }
         }
     }
@@ -466,9 +566,9 @@ public class MainForm extends javax.swing.JFrame
     private void createNewFolder()
     {
         try {
-            if (selectedNode == null) return;
+            if (mSelectedNode == null) return;
 
-            File file = ((TreeNodeData) selectedNode.getUserObject()).getFile();
+            File file = ((TreeNodeData) mSelectedNode.getUserObject()).getFile();
             if (!file.isDirectory()) return;
 
             //create new folder
@@ -483,21 +583,20 @@ public class MainForm extends javax.swing.JFrame
 
             //add node to display
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(new TreeNodeData(f), true);
-            selectedNode.add(node);
-            ((DefaultTreeModel) explorerTree.getModel()).reload(selectedNode);
+            mSelectedNode.add(node);
+            ((DefaultTreeModel) explorerTree.getModel()).reload(mSelectedNode);
         }
         catch (Exception ex) {
-            //JOptionPane.showMessageDialog(this, "SORRY!! Something went wrong. Please try again!");
-            ex.printStackTrace();
+            //JOptionPane.showMessageDialog(this, "SORRY!! Something went wrong. Please try again!"); 
         }
     }
 
     private void createNewFile(String ext)
     {
         try {
-            if (selectedNode == null) return;
+            if (mSelectedNode == null) return;
 
-            File file = ((TreeNodeData) selectedNode.getUserObject()).getFile();
+            File file = ((TreeNodeData) mSelectedNode.getUserObject()).getFile();
             if (!file.isDirectory()) return;
 
             //create new file
@@ -513,12 +612,11 @@ public class MainForm extends javax.swing.JFrame
 
             //add node to display
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(new TreeNodeData(f), true);
-            selectedNode.add(node);
-            ((DefaultTreeModel) explorerTree.getModel()).reload(selectedNode);
+            mSelectedNode.add(node);
+            ((DefaultTreeModel) explorerTree.getModel()).reload(mSelectedNode);
         }
-        catch (Exception ex) {
-            //JOptionPane.showMessageDialog(this, "SORRY!! Something went wrong. Please try again!");
-            ex.printStackTrace();
+        catch (HeadlessException | IOException ex) {
+            //JOptionPane.showMessageDialog(this, "SORRY!! Something went wrong. Please try again!"); 
         }
     }
 
@@ -527,8 +625,8 @@ public class MainForm extends javax.swing.JFrame
         try {
 
             //get the file to rename
-            if (selectedNode == null || selectedNode.getLevel() == 0) return;
-            File file = ((TreeNodeData) selectedNode.getUserObject()).getFile();
+            if (mSelectedNode == null || mSelectedNode.getLevel() == 0) return;
+            File file = ((TreeNodeData) mSelectedNode.getUserObject()).getFile();
 
             //rename the file
             String name = JOptionPane.showInputDialog(this, "Rename a file into another", file.getName());
@@ -541,23 +639,22 @@ public class MainForm extends javax.swing.JFrame
             }
 
             //reload the view
-            selectedNode.setUserObject(new TreeNodeData(newFile));
-            selectedNode.removeAllChildren();
-            loadFileList(selectedNode, newFile);
-            ((DefaultTreeModel) explorerTree.getModel()).reload(selectedNode);
+            mSelectedNode.setUserObject(new TreeNodeData(newFile));
+            mSelectedNode.removeAllChildren();
+            loadFileList(mSelectedNode, newFile);
+            ((DefaultTreeModel) explorerTree.getModel()).reload(mSelectedNode);
         }
         catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "SORRY!! Something went wrong. Please try again!");
-            ex.printStackTrace();
         }
     }
 
     private void deleteSelectedFile()
     {
         try {
-            if (selectedNode == null || selectedNode.getLevel() == 0) return;
+            if (mSelectedNode == null || mSelectedNode.getLevel() == 0) return;
 
-            File file = ((TreeNodeData) selectedNode.getUserObject()).getFile();
+            File file = ((TreeNodeData) mSelectedNode.getUserObject()).getFile();
             if (JOptionPane.showConfirmDialog(this,
                     "Are you sure to delete \"" + file.getName() + "\"?") == JOptionPane.NO_OPTION) {
                 return;
@@ -569,12 +666,11 @@ public class MainForm extends javax.swing.JFrame
 
             //remove node from view
             DefaultTreeModel model = (DefaultTreeModel) explorerTree.getModel();
-            model.removeNodeFromParent(selectedNode);
-            selectedNode = null;
+            model.removeNodeFromParent(mSelectedNode);
+            mSelectedNode = null;
         }
         catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "SORRY!! Something went wrong. Please try again!");
-            ex.printStackTrace();
         }
     }
 
@@ -585,8 +681,7 @@ public class MainForm extends javax.swing.JFrame
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents()
-    {
+    private void initComponents() {
 
         newFolderMenu = new javax.swing.JMenuItem();
         newFileMenu = new javax.swing.JMenuItem();
@@ -645,70 +740,56 @@ public class MainForm extends javax.swing.JFrame
 
         newFolderMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/folder.png"))); // NOI18N
         newFolderMenu.setText("New Folder");
-        newFolderMenu.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        newFolderMenu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 newFolderMenuActionPerformed(evt);
             }
         });
 
         newFileMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/file.png"))); // NOI18N
         newFileMenu.setText("New File");
-        newFileMenu.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        newFileMenu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 newFileMenuActionPerformed(evt);
             }
         });
 
         newCPPMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/cpp.png"))); // NOI18N
         newCPPMenu.setText("New C++ File");
-        newCPPMenu.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        newCPPMenu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 newCPPMenuActionPerformed(evt);
             }
         });
 
         newJavaMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/java.png"))); // NOI18N
         newJavaMenu.setText("New Java File");
-        newJavaMenu.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        newJavaMenu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 newJavaMenuActionPerformed(evt);
             }
         });
 
         newCMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/ansi_c.png"))); // NOI18N
         newCMenu.setText("New Ansi C File");
-        newCMenu.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        newCMenu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 newCMenuActionPerformed(evt);
             }
         });
 
         renameMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/rename.png"))); // NOI18N
         renameMenu.setText("Rename");
-        renameMenu.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        renameMenu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 renameMenuActionPerformed(evt);
             }
         });
 
         deleteMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/delete.png"))); // NOI18N
         deleteMenu.setText("Delete");
-        deleteMenu.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        deleteMenu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 deleteMenuActionPerformed(evt);
             }
         });
@@ -719,20 +800,15 @@ public class MainForm extends javax.swing.JFrame
         setBackground(new java.awt.Color(0, 204, 204));
         setUndecorated(true);
         setResizable(false);
-        addWindowFocusListener(new java.awt.event.WindowFocusListener()
-        {
-            public void windowGainedFocus(java.awt.event.WindowEvent evt)
-            {
+        addWindowFocusListener(new java.awt.event.WindowFocusListener() {
+            public void windowGainedFocus(java.awt.event.WindowEvent evt) {
             }
-            public void windowLostFocus(java.awt.event.WindowEvent evt)
-            {
+            public void windowLostFocus(java.awt.event.WindowEvent evt) {
                 formWindowLostFocus(evt);
             }
         });
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosing(java.awt.event.WindowEvent evt)
-            {
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
             }
         });
@@ -750,10 +826,8 @@ public class MainForm extends javax.swing.JFrame
         logoutButton.setFont(logoutButton.getFont().deriveFont(logoutButton.getFont().getSize()+2f));
         logoutButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/logout.png"))); // NOI18N
         logoutButton.setText("Logout");
-        logoutButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        logoutButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 logoutButtonActionPerformed(evt);
             }
         });
@@ -816,10 +890,8 @@ public class MainForm extends javax.swing.JFrame
 
         submitAnswerButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/reload.png"))); // NOI18N
         submitAnswerButton1.setText("Redownload");
-        submitAnswerButton1.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        submitAnswerButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 submitAnswerButton1ActionPerformed(evt);
             }
         });
@@ -855,10 +927,8 @@ public class MainForm extends javax.swing.JFrame
         questionList.setBackground(new java.awt.Color(255, 249, 255));
         questionList.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 3, 3, 3));
         questionList.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        questionList.addListSelectionListener(new javax.swing.event.ListSelectionListener()
-        {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt)
-            {
+        questionList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
                 questionListValueChanged(evt);
             }
         });
@@ -939,10 +1009,8 @@ public class MainForm extends javax.swing.JFrame
 
         fullscreenButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/fullscreen.png"))); // NOI18N
         fullscreenButton.setText("Extend");
-        fullscreenButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        fullscreenButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 fullscreenButtonActionPerformed(evt);
             }
         });
@@ -979,30 +1047,24 @@ public class MainForm extends javax.swing.JFrame
 
         submitAnswerButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/submit.png"))); // NOI18N
         submitAnswerButton.setText("Submit");
-        submitAnswerButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        submitAnswerButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 submitAnswerButtonActionPerformed(evt);
             }
         });
 
         compileAndRunButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/runtest.png"))); // NOI18N
         compileAndRunButton.setText("Compile and Run");
-        compileAndRunButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        compileAndRunButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 compileAndRunButtonActionPerformed(evt);
             }
         });
 
         saveCodeButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/save.png"))); // NOI18N
         saveCodeButton.setText("Save");
-        saveCodeButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        saveCodeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveCodeButtonActionPerformed(evt);
             }
         });
@@ -1011,10 +1073,8 @@ public class MainForm extends javax.swing.JFrame
         themeLabel.setText("Theme :");
 
         themeChooser.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Light", "Dark" }));
-        themeChooser.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        themeChooser.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 themeChooserActionPerformed(evt);
             }
         });
@@ -1063,17 +1123,13 @@ public class MainForm extends javax.swing.JFrame
         explorerTree.setAutoscrolls(true);
         explorerTree.setRowHeight(22);
         explorerTree.setShowsRootHandles(true);
-        explorerTree.addMouseListener(new java.awt.event.MouseAdapter()
-        {
-            public void mouseClicked(java.awt.event.MouseEvent evt)
-            {
+        explorerTree.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
                 explorerTreeMouseClicked(evt);
             }
         });
-        explorerTree.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener()
-        {
-            public void valueChanged(javax.swing.event.TreeSelectionEvent evt)
-            {
+        explorerTree.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
+            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
                 explorerTreeValueChanged(evt);
             }
         });
@@ -1082,13 +1138,11 @@ public class MainForm extends javax.swing.JFrame
         jPanel10.setLayout(new java.awt.GridLayout(3, 0, 1, 1));
 
         newFolderToolButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/folder.png"))); // NOI18N
-        newFolderToolButton.setText("Create");
+        newFolderToolButton.setText("Folder");
         newFolderToolButton.setToolTipText("Create a new folder under selected folder");
         newFolderToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
-        newFolderToolButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        newFolderToolButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 newFolderToolButtonActionPerformed(evt);
             }
         });
@@ -1098,10 +1152,8 @@ public class MainForm extends javax.swing.JFrame
         deleteToolButton.setText("Delete");
         deleteToolButton.setToolTipText("Delete the selected file or folder");
         deleteToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
-        deleteToolButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        deleteToolButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 deleteToolButtonActionPerformed(evt);
             }
         });
@@ -1111,10 +1163,8 @@ public class MainForm extends javax.swing.JFrame
         newJavaToolButton.setText("Java");
         newJavaToolButton.setToolTipText("Create a new Java file under selected folder");
         newJavaToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
-        newJavaToolButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        newJavaToolButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 newJavaToolButtonActionPerformed(evt);
             }
         });
@@ -1124,10 +1174,8 @@ public class MainForm extends javax.swing.JFrame
         newCPPToolButton.setText("C++");
         newCPPToolButton.setToolTipText("Create a new C++ file under selected folder");
         newCPPToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
-        newCPPToolButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        newCPPToolButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 newCPPToolButtonActionPerformed(evt);
             }
         });
@@ -1137,10 +1185,8 @@ public class MainForm extends javax.swing.JFrame
         newCToolButton.setText("Ansi C");
         newCToolButton.setToolTipText("Create a new C file under selected folder");
         newCToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
-        newCToolButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        newCToolButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 newCToolButtonActionPerformed(evt);
             }
         });
@@ -1150,10 +1196,8 @@ public class MainForm extends javax.swing.JFrame
         newFileToolButton.setText("Text");
         newFileToolButton.setToolTipText("Create a new text file under selected folder");
         newFileToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
-        newFileToolButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        newFileToolButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 newFileToolButtonActionPerformed(evt);
             }
         });
@@ -1226,10 +1270,8 @@ public class MainForm extends javax.swing.JFrame
         codeEditor.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
         codeEditor.setPaintMarkOccurrencesBorder(true);
         codeEditor.setPaintMatchedBracketPair(true);
-        codeEditor.addKeyListener(new java.awt.event.KeyAdapter()
-        {
-            public void keyTyped(java.awt.event.KeyEvent evt)
-            {
+        codeEditor.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
                 codeEditorKeyTyped(evt);
             }
         });
@@ -1302,18 +1344,18 @@ public class MainForm extends javax.swing.JFrame
                 + "Are you ABSOLUTELY sure you want to logout?\n",
                 "LOGOUT", JOptionPane.YES_NO_OPTION);
         if (result == JOptionPane.YES_OPTION) {
-            ServerLink.logoutUser();
-            ParentForm.setLocationRelativeTo(null);
-            ParentForm.setVisible(true);
+            mServerLink.logoutUser();
+            mParentForm.setLocationRelativeTo(null);
+            mParentForm.setVisible(true);
             this.dispose();
         }
     }//GEN-LAST:event_logoutButtonActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
     {//GEN-HEADEREND:event_formWindowClosing
-        StopTime = ServerLink.getStopTime();
+        mStopTime = mServerLink.getStopTime();
         long now = System.currentTimeMillis();
-        if (now < StopTime) {
+        if (now < mStopTime) {
             JOptionPane.showMessageDialog(this,
                     "Don't try to exit. Otherwise you will be marked as suspicious.",
                     "Lab Exam", JOptionPane.WARNING_MESSAGE);
@@ -1352,6 +1394,7 @@ public class MainForm extends javax.swing.JFrame
 
     private void themeChooserActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_themeChooserActionPerformed
     {//GEN-HEADEREND:event_themeChooserActionPerformed
+        //load theme for editor from file
         try {
             if (themeChooser.getSelectedIndex() == 0) {
                 Theme.load(getClass().getResourceAsStream("/Resources/light.xml")).apply(codeEditor);
@@ -1368,10 +1411,12 @@ public class MainForm extends javax.swing.JFrame
 
     private void explorerTreeValueChanged(javax.swing.event.TreeSelectionEvent evt)//GEN-FIRST:event_explorerTreeValueChanged
     {//GEN-HEADEREND:event_explorerTreeValueChanged
+        //ckise the opened file
         closeOpenedFile();
-        if (selectedQues != null && explorerTree.getSelectionPath() != null) {
-            selectedNode = (DefaultMutableTreeNode) explorerTree.getLastSelectedPathComponent();
-            File file = ((TreeNodeData) selectedNode.getUserObject()).getFile();
+        //open selected file if valid
+        if (mSelectedQues != null && explorerTree.getSelectionPath() != null) {
+            mSelectedNode = (DefaultMutableTreeNode) explorerTree.getLastSelectedPathComponent();
+            File file = ((TreeNodeData) mSelectedNode.getUserObject()).getFile();
             if (file.isFile()) {
                 openFileInEditor(file);
             }
@@ -1415,7 +1460,8 @@ public class MainForm extends javax.swing.JFrame
 
     private void explorerTreeMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_explorerTreeMouseClicked
     {//GEN-HEADEREND:event_explorerTreeMouseClicked
-        if (SwingUtilities.isRightMouseButton(evt)) {
+        //select node on right mouse button click too
+        if (SwingUtilities.isRightMouseButton(evt)) {            
             int row = explorerTree.getClosestRowForLocation(evt.getX(), evt.getY());
             explorerTree.setSelectionRow(row);
             explorerPopup.show(evt.getComponent(), evt.getX(), evt.getY());
