@@ -345,14 +345,15 @@ public class SessionViewer extends javax.swing.JFrame
 
     void addExtraFiveMinutes()
     {
+        final int MIN_TO_ADD = 5;
         try {
             long time = mExam.getStartTime().getTime();
             long now = System.currentTimeMillis();
             if (now > time) {
-                mExam.setDuration(mExam.getDuration() + 5);
+                mExam.setDuration(mExam.getDuration() + MIN_TO_ADD);
             }
             else {
-                time += 10 * 60 * 1000; //10 min in milis
+                time += MIN_TO_ADD * 60 * 1000; //MIN_TO_ADD min in milis
                 mExam.getStartTime().setTime(time);
                 startTimeBox.setText(mExam.getStartTime().toString());
             }

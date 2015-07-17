@@ -297,7 +297,7 @@ public class CurrentExam
      * @param answers Answer data of the submission.
      * @return True on success False otherwise.
      */
-    public boolean receiveAnswer(String regNo, int quesId, AnswerData[] answers)
+    public boolean receiveAnswer(String regNo, int quesId, Object[] answers)
     {
         // do not take submission if exam is not running
         if (!mCurExam.isRunning()) {
@@ -311,26 +311,28 @@ public class CurrentExam
         String name = mCurExam.getCandidate(uid).getName();
 
         //get path to save answer
-        Path par = this.getSubmissionPath(regNo, quesId).toPath();
+        Path par = this.getSubmissionPath(regNo).toPath();
 
         int success = 0;
-        for (AnswerData data : answers) {
+        for (Object data : answers) {            
+            AnswerData ans = AnswerData.class.cast(data);
             try {
                 //save submitted data 
-                File f = par.resolve(data.getRelativeFilePath()).toFile();
+                File f = par.resolve(ans.getRelativeFilePath()).toFile();
                 f.getParentFile().mkdirs();
 
                 try ( //save answer data
                         FileOutputStream fos = new FileOutputStream(f)) {
-                    fos.write(data.getFileData());
+                    fos.write(ans.getFileData());
                 }
 
                 success++;
             }
             catch (Exception ex) {
+                ex.printStackTrace();
                 Logger.getLogger("LabExam").log(Level.SEVERE,
                         String.format("Failed to save %s(%s)'s answer %s for Question %02d.",
-                                name, regNo, data.getRelativeFilePath(), quesId));
+                                name, regNo, ans.getRelativeFilePath(), quesId));
             }
         }
 

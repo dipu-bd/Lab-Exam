@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package ClientApplication;
- 
+
 import Utilities.Command;
 import Utilities.Question;
 import java.io.IOException;
@@ -171,10 +171,14 @@ public class ServerLink
     @SuppressWarnings("unchecked")
     public ArrayList<Question> getAllQuestions()
     {
-        Object result = getResponce(Command.ALL_QUES);
-        if (result == null)
-            return new ArrayList<>();
-        return (ArrayList<Question>) result;
+        Object result = getResponce(Command.ALL_QUESTION);
+        ArrayList<Question> ret = new ArrayList<Question>();
+        if (result == null) return ret;
+        //add all question
+        for (Object q : ((Object[]) result)) {
+            ret.add(Question.class.cast(q));
+        }
+        return ret;
     }
 
     /**

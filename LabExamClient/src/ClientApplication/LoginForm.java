@@ -142,6 +142,7 @@ public class LoginForm extends javax.swing.JFrame
         LoginButton.setFont(LoginButton.getFont().deriveFont(LoginButton.getFont().getStyle() | java.awt.Font.BOLD, LoginButton.getFont().getSize()+1));
         LoginButton.setForeground(new java.awt.Color(0, 51, 102));
         LoginButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/login.png"))); // NOI18N
+        LoginButton.setText("Login");
         LoginButton.setToolTipText("Fill up all boxes and click to login");
         LoginButton.setMargin(new java.awt.Insets(2, 3, 2, 3));
         LoginButton.setPreferredSize(new java.awt.Dimension(80, 28));

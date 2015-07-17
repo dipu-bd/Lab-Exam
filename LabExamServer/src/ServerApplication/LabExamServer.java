@@ -115,8 +115,10 @@ public class LabExamServer
     public void StopListening()
     {
         try {
-            mStopListening = true;
-            mServerSocket.close();            
+            if (mServerSocket != null && mServerSocket.isBound()) {
+                mStopListening = true;
+                mServerSocket.close();
+            }
         }
         catch (IOException ex) {
             Logger.getLogger(LabExamServer.class.getName()).log(Level.SEVERE, null, ex);
@@ -182,25 +184,18 @@ public class LabExamServer
                         getServerIPAddress(), mServerSocket.getLocalPort()));
 
         while (!mStopListening) {
-            (new Thread(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    try {
-                        Socket clientSocket = mServerSocket.accept();
-                        ProcessCommand(clientSocket);
-                        clientSocket.close();
-                    }
-                    catch (IOException | ClassNotFoundException ex) {
-                        ex.printStackTrace();
-                        if (!mStopListening) {
-                            Logger.getLogger("LabExam").log(Level.SEVERE,
-                                    "Error while listening to the socket.", ex);
-                        }
-                    }
+            try {
+                Socket clientSocket = mServerSocket.accept();
+                ProcessCommand(clientSocket);
+                clientSocket.close();
+            }
+            catch (IOException | ClassNotFoundException ex) { 
+                ex.printStackTrace();
+                if (!mStopListening) {
+                    Logger.getLogger("LabExam").log(Level.SEVERE,
+                            "Error while listening to the socket.", ex);
                 }
-            })).start();
+            }
         }
 
         Logger.getLogger("LabExam").log(Level.INFO, "Exam server stopped.");
@@ -208,6 +203,7 @@ public class LabExamServer
 
     /**
      * Receive and process the command from client sockets
+     *
      * @param client Client socket to work with.
      */
     private void ProcessCommand(Socket client)
@@ -247,19 +243,19 @@ public class LabExamServer
                 result = mCurExam.assignUser(regNo, pass, getClientIP(client));
                 output.writeObject(result);
                 break;
-            case ALL_QUES:
+            case ALL_QUESTION:
                 if (exam.isRunning()) {
                     output.writeObject(exam.getAllQuestion().toArray());
                 }
                 else {
-                    output.writeObject(new ArrayList<Question>());
+                    output.writeObject((new ArrayList<Question>()).toArray());
                 }
                 break;
             case SUBMIT:
                 regNo = (String) input.readObject();
                 qid = (int) input.readObject();
-                AnswerData[] answers = (AnswerData[]) input.readObject();
-                boolean res = mCurExam.receiveAnswer(regNo, qid, answers);
+                Object[] data = (Object[]) input.readObject();                
+                boolean res = mCurExam.receiveAnswer(regNo, qid, data);
                 output.writeObject(res);
                 break;
         }

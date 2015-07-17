@@ -681,7 +681,8 @@ public class MainForm extends JFrame
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    private void initComponents()
+    {
 
         newFolderMenu = new javax.swing.JMenuItem();
         newFileMenu = new javax.swing.JMenuItem();
@@ -740,56 +741,70 @@ public class MainForm extends JFrame
 
         newFolderMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/folder.png"))); // NOI18N
         newFolderMenu.setText("New Folder");
-        newFolderMenu.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        newFolderMenu.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 newFolderMenuActionPerformed(evt);
             }
         });
 
         newFileMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/file.png"))); // NOI18N
         newFileMenu.setText("New File");
-        newFileMenu.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        newFileMenu.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 newFileMenuActionPerformed(evt);
             }
         });
 
         newCPPMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/cpp.png"))); // NOI18N
         newCPPMenu.setText("New C++ File");
-        newCPPMenu.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        newCPPMenu.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 newCPPMenuActionPerformed(evt);
             }
         });
 
         newJavaMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/java.png"))); // NOI18N
         newJavaMenu.setText("New Java File");
-        newJavaMenu.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        newJavaMenu.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 newJavaMenuActionPerformed(evt);
             }
         });
 
         newCMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/ansi_c.png"))); // NOI18N
         newCMenu.setText("New Ansi C File");
-        newCMenu.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        newCMenu.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 newCMenuActionPerformed(evt);
             }
         });
 
         renameMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/rename.png"))); // NOI18N
         renameMenu.setText("Rename");
-        renameMenu.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        renameMenu.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 renameMenuActionPerformed(evt);
             }
         });
 
         deleteMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/delete.png"))); // NOI18N
         deleteMenu.setText("Delete");
-        deleteMenu.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        deleteMenu.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 deleteMenuActionPerformed(evt);
             }
         });
@@ -800,15 +815,20 @@ public class MainForm extends JFrame
         setBackground(new java.awt.Color(0, 204, 204));
         setUndecorated(true);
         setResizable(false);
-        addWindowFocusListener(new java.awt.event.WindowFocusListener() {
-            public void windowGainedFocus(java.awt.event.WindowEvent evt) {
+        addWindowFocusListener(new java.awt.event.WindowFocusListener()
+        {
+            public void windowGainedFocus(java.awt.event.WindowEvent evt)
+            {
             }
-            public void windowLostFocus(java.awt.event.WindowEvent evt) {
+            public void windowLostFocus(java.awt.event.WindowEvent evt)
+            {
                 formWindowLostFocus(evt);
             }
         });
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosing(java.awt.event.WindowEvent evt)
+            {
                 formWindowClosing(evt);
             }
         });
@@ -826,13 +846,15 @@ public class MainForm extends JFrame
         logoutButton.setFont(logoutButton.getFont().deriveFont(logoutButton.getFont().getSize()+2f));
         logoutButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/logout.png"))); // NOI18N
         logoutButton.setText("Logout");
-        logoutButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        logoutButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 logoutButtonActionPerformed(evt);
             }
         });
 
-        examTitleLabel.setFont(new java.awt.Font("Segoe UI Semibold", 0, 24)); // NOI18N
+        examTitleLabel.setFont(new java.awt.Font("Segoe UI Semibold", 0, 22)); // NOI18N
         examTitleLabel.setForeground(new java.awt.Color(153, 255, 255));
         examTitleLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         examTitleLabel.setText("Exam Title");
@@ -890,8 +912,10 @@ public class MainForm extends JFrame
 
         submitAnswerButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/reload.png"))); // NOI18N
         submitAnswerButton1.setText("Redownload");
-        submitAnswerButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        submitAnswerButton1.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 submitAnswerButton1ActionPerformed(evt);
             }
         });
@@ -927,8 +951,10 @@ public class MainForm extends JFrame
         questionList.setBackground(new java.awt.Color(255, 249, 255));
         questionList.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 3, 3, 3));
         questionList.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        questionList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+        questionList.addListSelectionListener(new javax.swing.event.ListSelectionListener()
+        {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt)
+            {
                 questionListValueChanged(evt);
             }
         });
@@ -968,7 +994,7 @@ public class MainForm extends JFrame
             .addGroup(descPanelLayout.createSequentialGroup()
                 .addComponent(descToolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(pdfPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 227, Short.MAX_VALUE))
+                .addComponent(pdfPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 228, Short.MAX_VALUE))
         );
 
         questionSplitterPane.setRightComponent(descPanel);
@@ -1009,8 +1035,10 @@ public class MainForm extends JFrame
 
         fullscreenButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/fullscreen.png"))); // NOI18N
         fullscreenButton.setText("Extend");
-        fullscreenButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        fullscreenButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 fullscreenButtonActionPerformed(evt);
             }
         });
@@ -1047,24 +1075,30 @@ public class MainForm extends JFrame
 
         submitAnswerButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/submit.png"))); // NOI18N
         submitAnswerButton.setText("Submit");
-        submitAnswerButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        submitAnswerButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 submitAnswerButtonActionPerformed(evt);
             }
         });
 
         compileAndRunButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/runtest.png"))); // NOI18N
         compileAndRunButton.setText("Compile and Run");
-        compileAndRunButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        compileAndRunButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 compileAndRunButtonActionPerformed(evt);
             }
         });
 
         saveCodeButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/save.png"))); // NOI18N
         saveCodeButton.setText("Save");
-        saveCodeButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        saveCodeButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 saveCodeButtonActionPerformed(evt);
             }
         });
@@ -1073,8 +1107,10 @@ public class MainForm extends JFrame
         themeLabel.setText("Theme :");
 
         themeChooser.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Light", "Dark" }));
-        themeChooser.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        themeChooser.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 themeChooserActionPerformed(evt);
             }
         });
@@ -1123,13 +1159,17 @@ public class MainForm extends JFrame
         explorerTree.setAutoscrolls(true);
         explorerTree.setRowHeight(22);
         explorerTree.setShowsRootHandles(true);
-        explorerTree.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
+        explorerTree.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mouseClicked(java.awt.event.MouseEvent evt)
+            {
                 explorerTreeMouseClicked(evt);
             }
         });
-        explorerTree.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
-            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
+        explorerTree.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener()
+        {
+            public void valueChanged(javax.swing.event.TreeSelectionEvent evt)
+            {
                 explorerTreeValueChanged(evt);
             }
         });
@@ -1141,8 +1181,10 @@ public class MainForm extends JFrame
         newFolderToolButton.setText("Folder");
         newFolderToolButton.setToolTipText("Create a new folder under selected folder");
         newFolderToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
-        newFolderToolButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        newFolderToolButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 newFolderToolButtonActionPerformed(evt);
             }
         });
@@ -1152,8 +1194,10 @@ public class MainForm extends JFrame
         deleteToolButton.setText("Delete");
         deleteToolButton.setToolTipText("Delete the selected file or folder");
         deleteToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
-        deleteToolButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        deleteToolButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 deleteToolButtonActionPerformed(evt);
             }
         });
@@ -1163,8 +1207,10 @@ public class MainForm extends JFrame
         newJavaToolButton.setText("Java");
         newJavaToolButton.setToolTipText("Create a new Java file under selected folder");
         newJavaToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
-        newJavaToolButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        newJavaToolButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 newJavaToolButtonActionPerformed(evt);
             }
         });
@@ -1174,8 +1220,10 @@ public class MainForm extends JFrame
         newCPPToolButton.setText("C++");
         newCPPToolButton.setToolTipText("Create a new C++ file under selected folder");
         newCPPToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
-        newCPPToolButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        newCPPToolButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 newCPPToolButtonActionPerformed(evt);
             }
         });
@@ -1185,8 +1233,10 @@ public class MainForm extends JFrame
         newCToolButton.setText("Ansi C");
         newCToolButton.setToolTipText("Create a new C file under selected folder");
         newCToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
-        newCToolButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        newCToolButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 newCToolButtonActionPerformed(evt);
             }
         });
@@ -1196,8 +1246,10 @@ public class MainForm extends JFrame
         newFileToolButton.setText("Text");
         newFileToolButton.setToolTipText("Create a new text file under selected folder");
         newFileToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
-        newFileToolButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        newFileToolButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 newFileToolButtonActionPerformed(evt);
             }
         });
@@ -1217,7 +1269,7 @@ public class MainForm extends JFrame
         explorerContainerLayout.setVerticalGroup(
             explorerContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(explorerContainerLayout.createSequentialGroup()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 234, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 235, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
                 .addComponent(jPanel10, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0))
@@ -1257,7 +1309,7 @@ public class MainForm extends JFrame
             consoleContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, consoleContainerLayout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 168, Short.MAX_VALUE))
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 111, Short.MAX_VALUE))
         );
 
         codeSplitPane.setRightComponent(consoleContainer);
@@ -1270,8 +1322,10 @@ public class MainForm extends JFrame
         codeEditor.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
         codeEditor.setPaintMarkOccurrencesBorder(true);
         codeEditor.setPaintMatchedBracketPair(true);
-        codeEditor.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
+        codeEditor.addKeyListener(new java.awt.event.KeyAdapter()
+        {
+            public void keyTyped(java.awt.event.KeyEvent evt)
+            {
                 codeEditorKeyTyped(evt);
             }
         });
@@ -1331,7 +1385,7 @@ public class MainForm extends JFrame
             .addGroup(layout.createSequentialGroup()
                 .addComponent(topPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(mainSplitterPane, javax.swing.GroupLayout.DEFAULT_SIZE, 425, Short.MAX_VALUE))
+                .addComponent(mainSplitterPane, javax.swing.GroupLayout.DEFAULT_SIZE, 426, Short.MAX_VALUE))
         );
 
         pack();

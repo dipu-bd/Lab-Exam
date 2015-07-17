@@ -23,6 +23,8 @@ public enum Command {
 
     /**
      * Empty command
+     *//**
+     * Empty command
      */
     EMPTY,
     /**
@@ -44,11 +46,7 @@ public enum Command {
     /**
      * Submit answer to an specific question
      */
-    SUBMIT,
-    /**
-     * Get the last announcement id
-     */
-    ANNOUNCEMENT,
+    SUBMIT, 
     /**
      * Get the ending time of the exam
      */
@@ -56,5 +54,5 @@ public enum Command {
     /**
      * Get list of all questions
      */
-    ALL_QUES
+    ALL_QUESTION
 }
