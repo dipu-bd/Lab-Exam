@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package ServerApplication;
-
-import Utilities.AnswerData;
+ 
 import Utilities.Command;
 import Utilities.Examination;
 import Utilities.Question;
@@ -185,9 +184,9 @@ public class LabExamServer
 
         while (!mStopListening) {
             try {
-                Socket clientSocket = mServerSocket.accept();
-                ProcessCommand(clientSocket);
-                clientSocket.close();
+                try (Socket clientSocket = mServerSocket.accept()) {
+                    ProcessCommand(clientSocket);
+                }
             }
             catch (IOException | ClassNotFoundException ex) { 
                 ex.printStackTrace();
@@ -224,25 +223,35 @@ public class LabExamServer
             case EMPTY:
                 output.writeObject(true);
                 break;
+                
             case START_TIME:
                 output.writeObject(exam.getStartTime().getTime());
                 break;
+                
             case STOP_TIME:
                 output.writeObject(exam.getStopTime().getTime());
                 break;
+                
+            case CURRENT_TIME:
+                output.writeObject(System.currentTimeMillis());
+                break;
+                
             case EXAM_TITLE:
                 output.writeObject(exam.getExamTitle());
                 break;
+                
             case LOGOUT:
                 regNo = (String) input.readObject();
                 output.writeObject(mCurExam.removeUser(regNo, getClientIP(client)));
                 break;
+                
             case LOGIN:
                 regNo = (String) input.readObject();
                 pass = (String) input.readObject();
                 result = mCurExam.assignUser(regNo, pass, getClientIP(client));
                 output.writeObject(result);
                 break;
+                
             case ALL_QUESTION:
                 if (exam.isRunning()) {
                     output.writeObject(exam.getAllQuestion().toArray());
@@ -251,12 +260,17 @@ public class LabExamServer
                     output.writeObject((new ArrayList<Question>()).toArray());
                 }
                 break;
+                
             case SUBMIT:
                 regNo = (String) input.readObject();
                 qid = (int) input.readObject();
                 Object[] data = (Object[]) input.readObject();                
                 boolean res = mCurExam.receiveAnswer(regNo, qid, data);
                 output.writeObject(res);
+                break;
+                
+            default:
+                output.writeObject(null);
                 break;
         }
 

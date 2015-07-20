@@ -136,6 +136,17 @@ public class ServerLink
         if (result == null) return -1;
         return (long) result;
     }
+    
+    /**
+     * Gets the current time at server clock
+     * @return Current time in milliseconds
+     */
+    public long getServerTime()
+    {
+        Object result = getResponce(Command.CURRENT_TIME);
+        if(result == null) return System.currentTimeMillis();
+        return (long) result;
+    }
 
     /**
      * Submits an answer to the server.

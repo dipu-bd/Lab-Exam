@@ -52,6 +52,10 @@ public enum Command {
      */
     STOP_TIME,
     /**
+     * Get the current time in server
+     */
+    CURRENT_TIME,
+    /**
      * Get list of all questions
      */
     ALL_QUESTION

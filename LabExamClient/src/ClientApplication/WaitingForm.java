@@ -15,17 +15,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package ClientApplication;
-  
+
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.JFrame;
 
 /**
- * Intermediate form to countdown exam start time. 
+ * Intermediate form to countdown exam start time.
  */
 @SuppressWarnings("serial")
 public class WaitingForm extends javax.swing.JFrame
 {
+
+    public long mTimeDiff;
     public long mStartTime;
     public final JFrame mParentForm;
     public final ServerLink mServerLink;
@@ -35,6 +37,7 @@ public class WaitingForm extends javax.swing.JFrame
 
     /**
      * Creates new form WaitingForm
+     *
      * @param parent Parent form to this form.
      * @param serverLink Server link to connect with server.
      */
@@ -42,9 +45,12 @@ public class WaitingForm extends javax.swing.JFrame
     {
         mParentForm = parent;
         mServerLink = serverLink;
-        
+
         initComponents();
         getContentPane().setBackground(getBackground());
+
+        //initialize timer                
+        mTimer = new Timer();
 
         //initialize timertask
         this.mRefreshTask = new TimerTask()
@@ -52,9 +58,12 @@ public class WaitingForm extends javax.swing.JFrame
             @Override
             public void run()
             {
+                mTimeDiff = mServerLink.getServerTime() - System.currentTimeMillis();
                 mStartTime = mServerLink.getStartTime();
             }
         };
+        mTimer.scheduleAtFixedRate(mRefreshTask, 0, 4550);
+
         this.mUpdateTask = new TimerTask()
         {
             @Override
@@ -63,23 +72,19 @@ public class WaitingForm extends javax.swing.JFrame
                 updateValues();
             }
         };
-
-        //initialize timer                
-        this.mTimer = new Timer();
-        mTimer.scheduleAtFixedRate(mRefreshTask, 0, 4550);
         mTimer.scheduleAtFixedRate(mUpdateTask, 0, 500);
     }
 
     public void showMainForm()
     {
         mRefreshTask.run();
-        long now = System.currentTimeMillis();
+        long now = System.currentTimeMillis() + mTimeDiff;
         if (now < mStartTime) return;
 
-        this.dispose();        
+        this.dispose();
         Program.loadDefaultFolder(
                 (mStartTime / 1000) + "_" + mServerLink.getRegistrationNo());
-        
+
         (new MainForm(mParentForm, mServerLink)).setVisible(true);
     }
 
@@ -90,7 +95,7 @@ public class WaitingForm extends javax.swing.JFrame
             return;
         }
 
-        long now = System.currentTimeMillis();
+        long now = System.currentTimeMillis() + mTimeDiff;;
         if (mStartTime <= now) {
             showMainForm();
             return;
@@ -213,7 +218,7 @@ public class WaitingForm extends javax.swing.JFrame
     private void formWindowClosed(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosed
     {//GEN-HEADEREND:event_formWindowClosed
         mTimer.cancel();
-        long now = System.currentTimeMillis();
+        long now = System.currentTimeMillis() + mTimeDiff;;
         if (mStartTime == -1 || now < mStartTime) {
             mServerLink.logoutUser();
             mParentForm.setVisible(true);

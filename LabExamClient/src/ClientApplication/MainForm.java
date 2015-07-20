@@ -69,6 +69,9 @@ public class MainForm extends JFrame
     //to display pdf files
     private final SwingController pdfController;
 
+    //current server time
+    private long mTimeDiff = 0;
+    ;
     //stop time of the examination
     private long mStopTime = -1;
     //all question data of the examination
@@ -77,6 +80,8 @@ public class MainForm extends JFrame
     private Question mSelectedQues = null;
     //selected folder node on editor
     private DefaultMutableTreeNode mSelectedNode = null;
+    //task to update time
+    private TimerTask mServerClock = null;
 
     /**
      * Creates a new MainForm
@@ -112,7 +117,7 @@ public class MainForm extends JFrame
     public void endExam()
     {
         mStopTime = mServerLink.getStopTime();
-        long now = System.currentTimeMillis();
+        long now = System.currentTimeMillis() + mTimeDiff;
         if (mStopTime < now) {
             mKeyHook.unblockWindowsKey();
 
@@ -252,14 +257,15 @@ public class MainForm extends JFrame
     public void updateValues()
     {
         mStopTime = mServerLink.getStopTime();
+        mTimeDiff = mServerLink.getServerTime() - System.currentTimeMillis();
     }
 
     /**
      * Refresh some displayed value periodically.
      */
     void refreshValues()
-    {
-        long now = System.currentTimeMillis();
+    {        
+        long now = System.currentTimeMillis() + mTimeDiff;
         if (mStopTime < now) {
             endExam();
             return;
@@ -524,7 +530,7 @@ public class MainForm extends JFrame
                 }
             }
         }
-        catch (IOException | HeadlessException ex) { 
+        catch (IOException | HeadlessException ex) {
         }
     }
 
@@ -1408,7 +1414,7 @@ public class MainForm extends JFrame
     private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
     {//GEN-HEADEREND:event_formWindowClosing
         mStopTime = mServerLink.getStopTime();
-        long now = System.currentTimeMillis();
+        long now = System.currentTimeMillis() + mTimeDiff;
         if (now < mStopTime) {
             JOptionPane.showMessageDialog(this,
                     "Don't try to exit. Otherwise you will be marked as suspicious.",
@@ -1515,7 +1521,7 @@ public class MainForm extends JFrame
     private void explorerTreeMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_explorerTreeMouseClicked
     {//GEN-HEADEREND:event_explorerTreeMouseClicked
         //select node on right mouse button click too
-        if (SwingUtilities.isRightMouseButton(evt)) {            
+        if (SwingUtilities.isRightMouseButton(evt)) {
             int row = explorerTree.getClosestRowForLocation(evt.getX(), evt.getY());
             explorerTree.setSelectionRow(row);
             explorerPopup.show(evt.getComponent(), evt.getX(), evt.getY());

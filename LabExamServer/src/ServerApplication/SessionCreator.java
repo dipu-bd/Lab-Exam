@@ -20,17 +20,20 @@ import Utilities.Candidate;
 import Utilities.Examination;
 import Utilities.Functions;
 import Utilities.Question;
+import java.awt.Dimension;
 import java.awt.HeadlessException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JToolBar;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import org.icepdf.ri.common.SwingController;
@@ -58,7 +61,9 @@ public class SessionCreator extends javax.swing.JFrame
 
         initComponents();
         initPdfViewer();
+        initDateTimePicker();
 
+        this.setExtendedState(JFrame.MAXIMIZED_BOTH);
         tableModel = (DefaultTableModel) candidateTable.getModel();
         loadExamValues();
     }
@@ -73,6 +78,8 @@ public class SessionCreator extends javax.swing.JFrame
     private final DefaultTableModel tableModel;
     //pdf controllerr
     private final SwingController pdfController = new SwingController();
+    //date time picker
+    private final DateTimePicker startTimePicker = new DateTimePicker();    
     //current question under editing
     private Question mCurrentQuestion;
 
@@ -85,8 +92,31 @@ public class SessionCreator extends javax.swing.JFrame
         SwingViewBuilder factory = new SwingViewBuilder(pdfController);
         pdfController.setPageViewMode(2, true);
 
-        //add pdf viewer panel       \
-        factory.buildContents(pdfContainerPanel, false);
+        //build tool bar         
+        descToolBar.add(new JToolBar.Separator());
+        descToolBar.add(factory.buildAnnotationlToolBar());
+        descToolBar.add(factory.buildZoomOutButton());
+        descToolBar.add(factory.buildZoomCombBox());
+        descToolBar.add(factory.buildZoomInButton());
+        descToolBar.add(factory.buildFitWidthButton());
+        descToolBar.add(factory.buildFitPageButton());
+        descToolBar.add(factory.buildFitActualSizeButton());
+        descToolBar.add(factory.buildPanToolButton());
+        descToolBar.add(factory.buildTextSelectToolButton());
+
+        //add pdf viewer panel           
+        javax.swing.JSplitPane jsp
+                = factory.buildUtilityAndDocumentSplitPane(false);
+        jsp.setPreferredSize(new Dimension(10, 10));
+        pdfPanel.setViewportView(jsp);
+    }
+    
+    private void initDateTimePicker()
+    {
+        startTimePicker.setFormats(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM));
+        startTimePicker.setTimeFormat(DateFormat.getTimeInstance(DateFormat.MEDIUM));
+        startTimePicker.setDate(new Date(System.currentTimeMillis()));
+        dateTimePickPane.setViewportView(startTimePicker);
     }
 
     /**
@@ -107,13 +137,13 @@ public class SessionCreator extends javax.swing.JFrame
         jLabel13 = new javax.swing.JLabel();
         examPath = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
-        startTimeSpinner = new javax.swing.JSpinner();
         pathBrowseButton = new javax.swing.JButton();
         jLabel4 = new javax.swing.JLabel();
         durationSpinner = new javax.swing.JSpinner();
         jLabel5 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
         totalMarksBox = new javax.swing.JTextField();
+        dateTimePickPane = new javax.swing.JScrollPane();
         jPanel4 = new javax.swing.JPanel();
         jPanel10 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -137,8 +167,8 @@ public class SessionCreator extends javax.swing.JFrame
         questionTitle = new javax.swing.JTextField();
         jLabel12 = new javax.swing.JLabel();
         markSpinner = new javax.swing.JSpinner();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        pdfContainerPanel = new javax.swing.JPanel();
+        pdfPanel = new javax.swing.JScrollPane();
+        descToolBar = new javax.swing.JToolBar();
         openPdfFileButton = new javax.swing.JButton();
         jPanel8 = new javax.swing.JPanel();
         saveButton = new javax.swing.JButton();
@@ -196,10 +226,6 @@ public class SessionCreator extends javax.swing.JFrame
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel3.setText("Start Time :");
 
-        startTimeSpinner.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
-        startTimeSpinner.setModel(new javax.swing.SpinnerDateModel(new java.util.Date(), null, null, java.util.Calendar.MINUTE));
-        startTimeSpinner.setToolTipText("Set the start time of the examination.");
-
         pathBrowseButton.setBackground(new java.awt.Color(204, 255, 204));
         pathBrowseButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/folder_chooser.png"))); // NOI18N
         pathBrowseButton.setText("Browse");
@@ -248,17 +274,17 @@ public class SessionCreator extends javax.swing.JFrame
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(pathBrowseButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel11Layout.createSequentialGroup()
-                        .addComponent(startTimeSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 163, Short.MAX_VALUE)
-                        .addGap(18, 18, 18)
+                        .addComponent(dateTimePickPane, javax.swing.GroupLayout.DEFAULT_SIZE, 159, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(durationSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
+                        .addComponent(durationSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 130, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(totalMarksBox, javax.swing.GroupLayout.DEFAULT_SIZE, 166, Short.MAX_VALUE)))
+                        .addComponent(totalMarksBox, javax.swing.GroupLayout.DEFAULT_SIZE, 172, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel11Layout.setVerticalGroup(
@@ -273,21 +299,24 @@ public class SessionCreator extends javax.swing.JFrame
                     .addComponent(jLabel13)
                     .addComponent(examPath, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(pathBrowseButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(4, 4, 4)
                 .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel11Layout.createSequentialGroup()
-                        .addGap(1, 1, 1)
+                        .addGap(5, 5, 5)
                         .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(startTimeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                    .addComponent(durationSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(totalMarksBox, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(5, 5, 5))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel11Layout.createSequentialGroup()
+                                .addGap(1, 1, 1)
+                                .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(durationSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(totalMarksBox, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(5, 5, 5))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel11Layout.createSequentialGroup()
+                        .addGap(4, 4, 4)
+                        .addComponent(dateTimePickPane, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(6, 6, 6))))
         );
 
         examPath.setEditable(false);
@@ -410,7 +439,7 @@ public class SessionCreator extends javax.swing.JFrame
                 .addComponent(addCandidateButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(deleteCandidateButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 164, Short.MAX_VALUE)
                 .addComponent(saveToTextButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(saveToTextButton, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -436,14 +465,15 @@ public class SessionCreator extends javax.swing.JFrame
         jPanel10.setLayout(jPanel10Layout);
         jPanel10Layout.setHorizontalGroup(
             jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1)
+            .addGroup(jPanel10Layout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addComponent(jScrollPane1))
             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         jPanel10Layout.setVerticalGroup(
             jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel10Layout.createSequentialGroup()
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 246, Short.MAX_VALUE)
-                .addGap(0, 0, 0)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0))
         );
@@ -544,7 +574,7 @@ public class SessionCreator extends javax.swing.JFrame
                 .addContainerGap()
                 .addComponent(jLabel10)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 342, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 345, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(refreshButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -584,21 +614,10 @@ public class SessionCreator extends javax.swing.JFrame
             }
         });
 
-        javax.swing.GroupLayout pdfContainerPanelLayout = new javax.swing.GroupLayout(pdfContainerPanel);
-        pdfContainerPanel.setLayout(pdfContainerPanelLayout);
-        pdfContainerPanelLayout.setHorizontalGroup(
-            pdfContainerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 543, Short.MAX_VALUE)
-        );
-        pdfContainerPanelLayout.setVerticalGroup(
-            pdfContainerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 350, Short.MAX_VALUE)
-        );
-
-        jScrollPane3.setViewportView(pdfContainerPanel);
+        descToolBar.setRollover(true);
 
         openPdfFileButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/pdf.png"))); // NOI18N
-        openPdfFileButton.setText("Open PDF File");
+        openPdfFileButton.setText("Load PDF File");
         openPdfFileButton.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -606,6 +625,7 @@ public class SessionCreator extends javax.swing.JFrame
                 openPdfFileButtonActionPerformed(evt);
             }
         });
+        descToolBar.add(openPdfFileButton);
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
@@ -614,18 +634,16 @@ public class SessionCreator extends javax.swing.JFrame
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3)
+                    .addComponent(pdfPanel)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
                         .addComponent(jLabel11)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(questionTitle, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(openPdfFileButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
-                                .addComponent(jLabel12)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(markSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                        .addComponent(questionTitle, javax.swing.GroupLayout.DEFAULT_SIZE, 312, Short.MAX_VALUE)
+                        .addGap(31, 31, 31)
+                        .addComponent(jLabel12)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(markSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(descToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(
@@ -638,10 +656,10 @@ public class SessionCreator extends javax.swing.JFrame
                         .addComponent(questionTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(markSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(openPdfFileButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 325, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(descToolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(pdfPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 334, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -653,7 +671,7 @@ public class SessionCreator extends javax.swing.JFrame
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(jSplitPane1)
+                .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 795, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
         jPanel3Layout.setVerticalGroup(
@@ -768,7 +786,7 @@ public class SessionCreator extends javax.swing.JFrame
 
             //general values   
             examTitle.setText(mExam.getExamTitle());
-            startTimeSpinner.setValue(mExam.getStartTime());
+            startTimePicker.setDate(mExam.getStartTime());
             durationSpinner.setValue(mExam.getDuration());
             examPath.setText(mExam.getSubmissionPath().getAbsolutePath());
 
@@ -816,7 +834,7 @@ public class SessionCreator extends javax.swing.JFrame
     {
         try {
             mExam.setExamTitle(examTitle.getText().trim());
-            mExam.setStartTime((Date) startTimeSpinner.getValue());
+            mExam.setStartTime(startTimePicker.getDate());
             mExam.setDuration((int) durationSpinner.getValue());
             setCandidates();
 
@@ -1138,7 +1156,9 @@ public class SessionCreator extends javax.swing.JFrame
     private javax.swing.JButton backButton;
     private javax.swing.JButton cancelButton;
     private javax.swing.JTable candidateTable;
+    private javax.swing.JScrollPane dateTimePickPane;
     private javax.swing.JButton deleteCandidateButton;
+    private javax.swing.JToolBar descToolBar;
     private javax.swing.JSpinner durationSpinner;
     private javax.swing.JTextField examPath;
     private javax.swing.JTextField examTitle;
@@ -1162,13 +1182,12 @@ public class SessionCreator extends javax.swing.JFrame
     private javax.swing.JPanel jPanel8;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSpinner markSpinner;
     private javax.swing.JButton nextButton;
     private javax.swing.JButton openPdfFileButton;
     private javax.swing.JButton pathBrowseButton;
-    private javax.swing.JPanel pdfContainerPanel;
+    private javax.swing.JScrollPane pdfPanel;
     private javax.swing.JList questionList;
     private javax.swing.JTextField questionTitle;
     private javax.swing.JButton randomizePassButton;
@@ -1177,7 +1196,6 @@ public class SessionCreator extends javax.swing.JFrame
     private javax.swing.JButton saveToTextButton;
     private javax.swing.JButton saveToTextButton1;
     private javax.swing.JButton setQuestionButton;
-    private javax.swing.JSpinner startTimeSpinner;
     private javax.swing.JTabbedPane tabbedPane;
     private javax.swing.JTextField totalMarksBox;
     // End of variables declaration//GEN-END:variables
