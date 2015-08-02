@@ -189,7 +189,7 @@ public class LabExamServer
                 }
             }
             catch (IOException | ClassNotFoundException ex) { 
-                ex.printStackTrace();
+                //ex.printStackTrace();
                 if (!mStopListening) {
                     Logger.getLogger("LabExam").log(Level.SEVERE,
                             "Error while listening to the socket.", ex);

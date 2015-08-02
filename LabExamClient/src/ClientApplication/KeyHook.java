@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.  
  */
 package ClientApplication;
- 
+
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinUser;
@@ -22,25 +22,27 @@ import com.sun.jna.platform.win32.WinDef.WPARAM;
 import com.sun.jna.platform.win32.WinUser.HHOOK;
 import com.sun.jna.platform.win32.WinUser.KBDLLHOOKSTRUCT;
 import com.sun.jna.platform.win32.WinUser.LowLevelKeyboardProc;
-import com.sun.jna.platform.win32.WinUser.MSG; 
+import com.sun.jna.platform.win32.WinUser.MSG;
 
 /**
- * Sample implementation of a low-level keyboard hook on W32.
- * For blocking key pass to outside the bound of this application.
+ * Sample implementation of a low-level keyboard hook on W32. For blocking key
+ * pass to outside the bound of this application. This class should not have any
+ * instance,
  */
-public class KeyHook
+public abstract class KeyHook
 {
+
     //windows hook handler
-    private HHOOK mWinHook;
+    private static HHOOK mWinHook;
     //the value used across threads to notify it to stop
-    private volatile boolean mStopBlocking;
+    private static boolean mStopBlocking;
     //low level keyboard hook
-    private LowLevelKeyboardProc mKeyboardHook;
+    private static LowLevelKeyboardProc mKeyboardHook;
 
     /**
      * Start blocking key pass to windows.
      */
-    public void unblockWindowsKey()
+    public static void unblockWindowsKey()
     {
         mStopBlocking = true;
     }
@@ -48,7 +50,7 @@ public class KeyHook
     /**
      * Stop blocking key pass to windows.
      */
-    public void blockWindowsKey()
+    public static void blockWindowsKey()
     {
         mStopBlocking = false;
         new Thread()
@@ -56,7 +58,7 @@ public class KeyHook
             @Override
             public void run()
             {
-                final User32 lib = User32.INSTANCE; 
+                final User32 lib = User32.INSTANCE;
                 HMODULE hMod = Kernel32.INSTANCE.GetModuleHandle(null);
                 mKeyboardHook = new LowLevelKeyboardProc()
                 {
@@ -74,7 +76,7 @@ public class KeyHook
                                 case 0x1B: //escape key
                                     return new LRESULT(1);
                             }
-                        } 
+                        }
                         return lib.CallNextHookEx(mWinHook, nCode, wParam, info.getPointer());
                     }
                 };

@@ -23,39 +23,50 @@ import java.io.Writer;
 import java.util.ArrayList;
 
 /**
- * Class for compiling and running source codes.
- * The machine is assumed to be at least Windows XP or later.
+ * Class for compiling and running source codes. The machine is assumed to be at
+ * least Windows XP or later. This class should not have any instance.
  */
-public class CompileAndRun
+public abstract class CompileAndRun
 {
 
     /**
-     * Compiles a code and write output to a writer. Supports only Java, C++, and ANSI-C.
+     * Compiles a code and write output to a writer. Supports only Java, C++,
+     * and ANSI-C.
+     *
      * @param codeFile Code file to compile.
      * @param writer Writer to put outputs.
      * @return True on success; False otherwise.
      */
-    public boolean CompileCode(File codeFile, Writer writer)
+    public static boolean CompileCode(File codeFile, Writer writer)
     {
         try {
             //compilation command
             String commands;
+            String javac = AppSettings.getJavaCompiler();
+            String gpp = AppSettings.getGppCompiler();
+            String gcc = AppSettings.getGccCompiler();
+            String javaOptions = AppSettings.getJavaOptions();
+            String gppOptions = AppSettings.getGppOptions();
+            String gccOptions = AppSettings.getGccOptions();
 
             //generate command                      
             String dir = codeFile.getParentFile().toString();
             String name = codeFile.getAbsolutePath().toLowerCase();
             if (name.endsWith(".java")) {
-                commands = String.format("javac -g -d \"%s\" \"%s\"", dir, codeFile.toString());
+                commands = String.format("\"%s\" %s \"%s\" \"%s\"",
+                        javac, javaOptions, dir, codeFile.toString());
                 writer.write("Compiling Java file... ");
             }
             else if (name.endsWith(".cpp")) {
                 name = name.substring(0, name.length() - ".cpp".length()) + ".exe";
-                commands = String.format("g++ -Wall -std=c++11 -o \"%s\" \"%s\"", name, codeFile.toString());
+                commands = String.format("\"%s\" %s \"%s\" \"%s\"",
+                        gpp, gppOptions, name, codeFile.toString());
                 writer.write("Compiling C++ file... ");
             }
             else if (name.endsWith(".c")) {
                 name = name.substring(0, name.length() - ".c".length()) + ".exe";
-                commands = String.format("gcc -Wall -ansi -o \"%s\" \"%s\"", name, codeFile.toString());
+                commands = String.format("\"%s\" %s \"%s\" \"%s\"",
+                        gcc, gccOptions, name, codeFile.toString());
                 writer.write("Compiling C file... ");
             }
             else {
@@ -68,7 +79,7 @@ public class CompileAndRun
             p.waitFor();
 
             String err = Functions.readFully(p.getErrorStream(), "UTF-8");
-            err = err.replace(Program.defaultPath.toString() + "\\", "");
+            err = err.replace(AppSettings.getDefaultPath().toString() + "\\", "");
             if (err.length() > 0) writer.write("\n" + err + "\n");
 
             String inn = Functions.readFully(p.getInputStream(), "UTF-8");
@@ -90,11 +101,12 @@ public class CompileAndRun
 
     /**
      * Gets the name of the class for running Java program.
+     *
      * @param codeFile Original source code file path.
      * @return Chosen class name.
-     * @throws InterruptedException 
+     * @throws InterruptedException
      */
-    public String getClassName(File codeFile) 
+    public static String getClassName(File codeFile)
             throws InterruptedException
     {
         ArrayList<String> names = new ArrayList<>();
@@ -124,19 +136,23 @@ public class CompileAndRun
 
     /**
      * Runs a Java, C++ or ANSI C program.
+     *
      * @param codeFile Path to source code file.
      * @return True on success; False otherwise.
      */
-    public boolean RunProgram(File codeFile)
+    public static boolean RunProgram(File codeFile)
     {
         try {
             //format of the arguments         
             String command;
+            String java = AppSettings.getJavaExePath();
+
             String name = codeFile.getAbsolutePath().toLowerCase();
             if (name.endsWith(".java")) {
                 String className = getClassName(codeFile);
                 if (className == null) return false;
-                command = String.format("java -classpath \"%s\" %s", codeFile.getParent(), className);
+                command = String.format("%s -classpath \"%s\" %s",
+                        java, codeFile.getParent(), className);
             }
             else if (name.endsWith(".cpp")) {
                 name = name.substring(0, name.length() - ".cpp".length()) + ".exe";

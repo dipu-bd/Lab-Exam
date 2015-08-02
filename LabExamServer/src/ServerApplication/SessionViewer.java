@@ -219,8 +219,8 @@ public class SessionViewer extends javax.swing.JFrame
         header[3] = "Status";
         //add questions as headers
         int row = PRE_HEADER;
-        for (Candidate candy : mExam.getAllCandidate()) {
-            header[row++] = String.format("Question %02d", candy.getId());
+        for (Question ques : mExam.getAllQuestion()) {
+            header[row++] = String.format("Question %02d", ques.getId());
         }
 
         //add items

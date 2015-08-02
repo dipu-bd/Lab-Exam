@@ -61,6 +61,9 @@ public class MainForm extends javax.swing.JFrame
         currentSessionBox = new javax.swing.JTextField();
         editSessionButton = new javax.swing.JButton();
         startExamButton = new javax.swing.JButton();
+        exitButton = new javax.swing.JButton();
+        aboutButton = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Lab Exam");
@@ -70,7 +73,7 @@ public class MainForm extends javax.swing.JFrame
         setResizable(false);
 
         jLabel1.setBackground(new java.awt.Color(114, 217, 217));
-        jLabel1.setFont(new java.awt.Font("Comic Sans MS", 0, 20)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Segoe Print", 0, 20)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(51, 51, 0));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Welcome to Lab Exam Application");
@@ -78,7 +81,7 @@ public class MainForm extends javax.swing.JFrame
         jLabel1.setOpaque(true);
 
         newSessionButton.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
-        newSessionButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/Files-New-Window-icon.png"))); // NOI18N
+        newSessionButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/new_file.png"))); // NOI18N
         newSessionButton.setText("New Session");
         newSessionButton.addActionListener(new java.awt.event.ActionListener()
         {
@@ -151,9 +154,11 @@ public class MainForm extends javax.swing.JFrame
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(currentSessionBox))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(editSessionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(startExamButton, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(20, 20, 20)
+                        .addComponent(editSessionButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(30, 30, 30)
+                        .addComponent(startExamButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(20, 20, 20)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -170,6 +175,28 @@ public class MainForm extends javax.swing.JFrame
                 .addContainerGap())
         );
 
+        exitButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/exit.png"))); // NOI18N
+        exitButton.setText("Exit");
+        exitButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                exitButtonActionPerformed(evt);
+            }
+        });
+
+        aboutButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/about.png"))); // NOI18N
+        aboutButton.setLabel("About");
+        aboutButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                aboutButtonActionPerformed(evt);
+            }
+        });
+
+        jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/main_img.gif"))); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -178,11 +205,16 @@ public class MainForm extends javax.swing.JFrame
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(newSessionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(newSessionButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(30, 30, 30)
+                        .addComponent(openSessionButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(aboutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(openSessionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(exitButton, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -190,11 +222,17 @@ public class MainForm extends javax.swing.JFrame
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(newSessionButton, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE)
                     .addComponent(openSessionButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(exitButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(aboutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -286,11 +324,24 @@ public class MainForm extends javax.swing.JFrame
         showSessionViewer();
     }//GEN-LAST:event_startExamButtonActionPerformed
 
+    private void exitButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_exitButtonActionPerformed
+    {//GEN-HEADEREND:event_exitButtonActionPerformed
+        this.dispose();
+    }//GEN-LAST:event_exitButtonActionPerformed
+
+    private void aboutButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_aboutButtonActionPerformed
+    {//GEN-HEADEREND:event_aboutButtonActionPerformed
+          (new AboutBox()).setVisible(true);
+    }//GEN-LAST:event_aboutButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton aboutButton;
     private javax.swing.JTextField currentSessionBox;
     private javax.swing.JButton editSessionButton;
+    private javax.swing.JButton exitButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JButton newSessionButton;
     private javax.swing.JButton openSessionButton;

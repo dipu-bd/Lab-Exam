@@ -60,10 +60,6 @@ public class MainForm extends JFrame
     private final JFrame mParentForm;
     //link to server
     private final ServerLink mServerLink;
-    //keyhook to block key pass
-    private final KeyHook mKeyHook;
-    //class to compile and run codes
-    private final CompileAndRun mCompileAndRun;
     //timer for periodic tasks
     private final Timer mTimer;
     //to display pdf files
@@ -80,11 +76,9 @@ public class MainForm extends JFrame
     private Question mSelectedQues = null;
     //selected folder node on editor
     private DefaultMutableTreeNode mSelectedNode = null;
-    //task to update time
-    private TimerTask mServerClock = null;
 
     /**
-     * Creates a new MainForm
+     * Creates a new MazinForm
      *
      * @param parent Parent object to this form
      * @param serverLink ServerLink to use for communication.
@@ -94,8 +88,6 @@ public class MainForm extends JFrame
         mParentForm = parent;
         mServerLink = serverLink;
         mTimer = new Timer();
-        mKeyHook = new KeyHook();
-        mCompileAndRun = new CompileAndRun();
         pdfController = new SwingController();
 
         //init form
@@ -106,6 +98,7 @@ public class MainForm extends JFrame
 
         //load default values
         loadValues();
+        loadEditorTheme(1);
 
         //set up timer to begin timer task  
         initTimerTasks();
@@ -119,7 +112,7 @@ public class MainForm extends JFrame
         mStopTime = mServerLink.getStopTime();
         long now = System.currentTimeMillis() + mTimeDiff;
         if (mStopTime < now) {
-            mKeyHook.unblockWindowsKey();
+            KeyHook.unblockWindowsKey();
 
             mTimer.cancel();
             this.dispose();
@@ -170,8 +163,7 @@ public class MainForm extends JFrame
         this.requestFocus();
         this.requestFocusInWindow();
         this.setAlwaysOnTop(true);
-
-        mKeyHook.blockWindowsKey();
+        KeyHook.blockWindowsKey();
     }
 
     /**
@@ -252,7 +244,7 @@ public class MainForm extends JFrame
     }
 
     /**
-     * Download and update some values from server periodically
+     * Download and update some values from server periodically.
      */
     public void updateValues()
     {
@@ -264,7 +256,7 @@ public class MainForm extends JFrame
      * Refresh some displayed value periodically.
      */
     void refreshValues()
-    {        
+    {
         long now = System.currentTimeMillis() + mTimeDiff;
         if (mStopTime < now) {
             endExam();
@@ -332,7 +324,7 @@ public class MainForm extends JFrame
         }
 
         try {
-            File qpath = Program.defaultPath.resolve(
+            File qpath = AppSettings.getDefaultPath().resolve(
                     "Question_" + mSelectedQues.getId()).toFile();
             qpath.mkdirs();
 
@@ -487,7 +479,7 @@ public class MainForm extends JFrame
                     }
                 }) {
 
-            result = mCompileAndRun.CompileCode(file, writer);
+            result = CompileAndRun.CompileCode(file, writer);
             if (!result) {
                 JOptionPane.showMessageDialog(this, "Compilation Failed.");
                 return;
@@ -496,11 +488,14 @@ public class MainForm extends JFrame
         catch (Exception ex) {
         }
 
-        result = mCompileAndRun.RunProgram(file);
+        result = CompileAndRun.RunProgram(file);
         String status = (result ? "[OK]" : "[Failed]");
         consolePane.append("\nRun Report : " + status + "\n");
     }
 
+    /**
+     * Try to submit answer to a question. Notify on failure.
+     */
     private void attemptSubmitAnswer()
     {
         if (mSelectedQues == null) {
@@ -514,7 +509,7 @@ public class MainForm extends JFrame
         try {
             saveFileFromEditor();
 
-            File qpath = Program.defaultPath.resolve(
+            File qpath = AppSettings.getDefaultPath().resolve(
                     "Question_" + mSelectedQues.getId()).toFile();
             ArrayList<AnswerData> answers = new ArrayList<>();
             listAllFiles(qpath, answers);
@@ -538,7 +533,7 @@ public class MainForm extends JFrame
      * Gets a list of all files inside a folder using a heuristic search.
      *
      * @param f Path to folder.
-     * @param answers Answer data list to store data
+     * @param answers Answer data list to store data.
      * @throws IOException
      */
     private void listAllFiles(File f, ArrayList<AnswerData> answers)
@@ -555,7 +550,7 @@ public class MainForm extends JFrame
                 return;
             }
             //add if valud
-            int deflen = Program.defaultPath.toFile().getAbsolutePath().length();
+            int deflen = AppSettings.getDefaultPath().toFile().getAbsolutePath().length();
             answers.add(new AnswerData(
                     f.getAbsolutePath().substring(deflen + 1), //+1 is for separator
                     Functions.readFully(new FileInputStream(f))));
@@ -569,6 +564,9 @@ public class MainForm extends JFrame
         }
     }
 
+    /**
+     * Creates new folder in selected path.
+     */
     private void createNewFolder()
     {
         try {
@@ -597,6 +595,11 @@ public class MainForm extends JFrame
         }
     }
 
+    /**
+     * Create new file in selected file.
+     *
+     * @param ext Extension of the file.
+     */
     private void createNewFile(String ext)
     {
         try {
@@ -626,6 +629,9 @@ public class MainForm extends JFrame
         }
     }
 
+    /**
+     * Rename selected file into new one.
+     */
     private void renameSelectedFile()
     {
         try {
@@ -655,6 +661,9 @@ public class MainForm extends JFrame
         }
     }
 
+    /**
+     * Delete a selected file.
+     */
     private void deleteSelectedFile()
     {
         try {
@@ -677,6 +686,31 @@ public class MainForm extends JFrame
         }
         catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "SORRY!! Something went wrong. Please try again!");
+        }
+    }
+
+    /**
+     * Load theme for code editor.
+     *
+     * @param index Index of the theme (0 = LIGHT, 1 = BLACK).
+     */
+    private void loadEditorTheme(int index)
+    {
+        //load theme for editor from file        
+        try {
+            switch (index) {
+                case 0:
+                    Theme.load(getClass().getResourceAsStream("/Resources/light.xml")).apply(codeEditor);
+                    codeEditor.setFont(new Font("Consolas", Font.PLAIN, 14));
+                    break;
+                case 1:
+                    Theme.load(getClass().getResourceAsStream("/Resources/dark.xml")).apply(codeEditor);
+                    codeEditor.setFont(new Font("Consolas", Font.PLAIN, 14));
+                    break;
+            }
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -1126,9 +1160,7 @@ public class MainForm extends JFrame
         submitToolBarLayout.setHorizontalGroup(
             submitToolBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(submitToolBarLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(submitAnswerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(themeLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(themeChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1136,6 +1168,8 @@ public class MainForm extends JFrame
                 .addComponent(saveCodeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(compileAndRunButton, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(submitAnswerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         submitToolBarLayout.setVerticalGroup(
@@ -1308,7 +1342,7 @@ public class MainForm extends JFrame
             consoleContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(consoleContainerLayout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 312, Short.MAX_VALUE)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 310, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
         consoleContainerLayout.setVerticalGroup(
@@ -1322,6 +1356,7 @@ public class MainForm extends JFrame
 
         paneForCodeEditor.setLineNumbersEnabled(true);
 
+        codeEditor.setEditable(false);
         codeEditor.setColumns(20);
         codeEditor.setRows(5);
         codeEditor.setCodeFoldingEnabled(true);
@@ -1454,19 +1489,7 @@ public class MainForm extends JFrame
 
     private void themeChooserActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_themeChooserActionPerformed
     {//GEN-HEADEREND:event_themeChooserActionPerformed
-        //load theme for editor from file
-        try {
-            if (themeChooser.getSelectedIndex() == 0) {
-                Theme.load(getClass().getResourceAsStream("/Resources/light.xml")).apply(codeEditor);
-                codeEditor.setFont(new Font("Consolas", Font.PLAIN, 14));
-            }
-            else {
-                Theme.load(getClass().getResourceAsStream("/Resources/dark.xml")).apply(codeEditor);
-                codeEditor.setFont(new Font("Consolas", Font.PLAIN, 14));
-            }
-        }
-        catch (Exception ex) {
-        }
+        loadEditorTheme(themeChooser.getSelectedIndex());
     }//GEN-LAST:event_themeChooserActionPerformed
 
     private void explorerTreeValueChanged(javax.swing.event.TreeSelectionEvent evt)//GEN-FIRST:event_explorerTreeValueChanged

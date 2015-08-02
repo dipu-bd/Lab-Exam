@@ -16,6 +16,8 @@
  */
 package ClientApplication;
 
+import java.awt.Dimension;
+import java.awt.Toolkit; 
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.JFrame;
@@ -26,14 +28,19 @@ import javax.swing.JFrame;
 @SuppressWarnings("serial")
 public class WaitingForm extends javax.swing.JFrame
 {
-
     public long mTimeDiff;
+    //start time of the exam
     public long mStartTime;
+    //parent form to this
     public final JFrame mParentForm;
+    //server link to download from server
     public final ServerLink mServerLink;
+    //timer to handle periodic tasks
     private final Timer mTimer;
+    //refresh displayed values
     private final TimerTask mRefreshTask;
-    private final TimerTask mUpdateTask;
+    //update values from server
+    private final TimerTask mUpdateTask; 
 
     /**
      * Creates new form WaitingForm
@@ -43,15 +50,18 @@ public class WaitingForm extends javax.swing.JFrame
      */
     public WaitingForm(JFrame parent, ServerLink serverLink)
     {
+        mTimeDiff = 0;
+        mStartTime = 0;
         mParentForm = parent;
-        mServerLink = serverLink;
+        mServerLink = serverLink;         
+        mTimer = new Timer(); 
 
         initComponents();
+        setToFullFocus();
         getContentPane().setBackground(getBackground());
 
-        //initialize timer                
-        mTimer = new Timer();
-
+        titleLabel.setText(mServerLink.getExamTitle());
+        
         //initialize timertask
         this.mRefreshTask = new TimerTask()
         {
@@ -73,21 +83,48 @@ public class WaitingForm extends javax.swing.JFrame
             }
         };
         mTimer.scheduleAtFixedRate(mUpdateTask, 0, 500);
+        
     }
-
+    
+    /**
+     * Set this frame into full focus and stop all key passing
+     */
+    private void setToFullFocus()
+    {
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        this.setExtendedState(MainForm.MAXIMIZED_BOTH);
+        this.toFront();
+        this.setSize(screenSize);
+        this.requestFocus();
+        this.requestFocusInWindow();
+        this.setAlwaysOnTop(true);        
+        KeyHook.blockWindowsKey();
+    }
+        
+    /**
+     * Hides this form and shows main form when exam starts
+     */
     public void showMainForm()
     {
+        KeyHook.unblockWindowsKey();
+        
         mRefreshTask.run();
         long now = System.currentTimeMillis() + mTimeDiff;
         if (now < mStartTime) return;
-
-        this.dispose();
-        Program.loadDefaultFolder(
-                (mStartTime / 1000) + "_" + mServerLink.getRegistrationNo());
-
+        
+        //load current folder
+        AppSettings.getDefaultPath().toFile().mkdirs();             
+        
+        //show main form
         (new MainForm(mParentForm, mServerLink)).setVisible(true);
+         
+        mTimer.cancel();
+        this.dispose();
     }
 
+    /**
+     * Update values from server
+     */
     public void updateValues()
     {
         if (mStartTime < 0) {
@@ -95,7 +132,7 @@ public class WaitingForm extends javax.swing.JFrame
             return;
         }
 
-        long now = System.currentTimeMillis() + mTimeDiff;;
+        long now = System.currentTimeMillis() + mTimeDiff;
         if (mStartTime <= now) {
             showMainForm();
             return;
@@ -115,16 +152,21 @@ public class WaitingForm extends javax.swing.JFrame
     private void initComponents()
     {
 
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
+        jPanel1 = new javax.swing.JPanel();
+        jLabel3 = new javax.swing.JLabel();
+        titleLabel = new javax.swing.JLabel();
         intervalToBegin = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        jPanel2 = new javax.swing.JPanel();
         refreshButton = new javax.swing.JButton();
         logoutButton = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Lab Exam - Lobby");
         setAlwaysOnTop(true);
-        setBackground(new java.awt.Color(0, 51, 51));
+        setBackground(new java.awt.Color(0, 95, 95));
+        setUndecorated(true);
         addWindowListener(new java.awt.event.WindowAdapter()
         {
             public void windowClosed(java.awt.event.WindowEvent evt)
@@ -133,24 +175,30 @@ public class WaitingForm extends javax.swing.JFrame
             }
         });
 
-        jLabel1.setBackground(new java.awt.Color(225, 238, 247));
-        jLabel1.setFont(new java.awt.Font("Segoe UI Light", 0, 24)); // NOI18N
-        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Please wait....");
-        jLabel1.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 2, 0, new java.awt.Color(56, 204, 219)));
-        jLabel1.setOpaque(true);
+        jPanel1.setBackground(new java.awt.Color(0, 102, 102));
+        jPanel1.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
-        jLabel2.setFont(new java.awt.Font("Segoe UI Semibold", 2, 14)); // NOI18N
-        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setText("Exam will start in");
+        jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/loading.gif"))); // NOI18N
 
-        intervalToBegin.setBackground(new java.awt.Color(230, 253, 236));
+        titleLabel.setFont(new java.awt.Font("Segoe UI Semibold", 0, 32)); // NOI18N
+        titleLabel.setForeground(new java.awt.Color(204, 204, 0));
+        titleLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        titleLabel.setText("Title");
+        titleLabel.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new java.awt.Color(0, 153, 153)));
+
+        intervalToBegin.setBackground(new java.awt.Color(203, 255, 203));
         intervalToBegin.setFont(new java.awt.Font("Segoe UI Semibold", 0, 24)); // NOI18N
         intervalToBegin.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         intervalToBegin.setText("0 seconds");
         intervalToBegin.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(146, 192, 208), 3));
         intervalToBegin.setOpaque(true);
+
+        jLabel4.setFont(new java.awt.Font("Segoe UI Semibold", 2, 14)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel4.setText("Exam will start in...");
+
+        jPanel2.setBackground(new java.awt.Color(13, 75, 75));
 
         refreshButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/reload.png"))); // NOI18N
         refreshButton.setText("Refresh");
@@ -173,52 +221,103 @@ public class WaitingForm extends javax.swing.JFrame
             }
         });
 
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(refreshButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(logoutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+
+        jPanel2Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {logoutButton, refreshButton});
+
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(10, 10, 10)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(refreshButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(logoutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(12, 12, 12))
+        );
+
+        jPanel2Layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {logoutButton, refreshButton});
+
+        jLabel1.setBackground(new java.awt.Color(0, 204, 204));
+        jLabel1.setFont(new java.awt.Font("Segoe UI Light", 0, 30)); // NOI18N
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel1.setText("Please wait....");
+        jLabel1.setBorder(javax.swing.BorderFactory.createMatteBorder(2, 2, 3, 2, new java.awt.Color(0, 153, 153)));
+        jLabel1.setOpaque(true);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(jLabel3)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(intervalToBegin, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(titleLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 410, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addContainerGap())))
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(0, 0, 0))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addComponent(jLabel1)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jLabel3)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(titleLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(intervalToBegin, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addGap(50, 50, 50)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(intervalToBegin, javax.swing.GroupLayout.PREFERRED_SIZE, 333, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 333, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(refreshButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(logoutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(50, 50, 50))
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
-
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {intervalToBegin, jLabel2});
-
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {logoutButton, refreshButton});
-
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, Short.MAX_VALUE)
-                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(1, 1, 1)
-                .addComponent(intervalToBegin, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(refreshButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(logoutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(20, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
-        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {logoutButton, refreshButton});
-
         pack();
-        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void formWindowClosed(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosed
     {//GEN-HEADEREND:event_formWindowClosed
         mTimer.cancel();
-        long now = System.currentTimeMillis() + mTimeDiff;;
+        long now = System.currentTimeMillis() + mTimeDiff;
         if (mStartTime == -1 || now < mStartTime) {
             mServerLink.logoutUser();
             mParentForm.setVisible(true);
@@ -238,8 +337,12 @@ public class WaitingForm extends javax.swing.JFrame
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel intervalToBegin;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JButton logoutButton;
     private javax.swing.JButton refreshButton;
+    private javax.swing.JLabel titleLabel;
     // End of variables declaration//GEN-END:variables
 }

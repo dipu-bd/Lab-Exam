@@ -17,6 +17,7 @@
 package ClientApplication;
 
 import java.awt.Insets;
+import java.io.File;
 import java.nio.file.Path;
 import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
@@ -29,8 +30,6 @@ import javax.swing.UnsupportedLookAndFeelException;
  */
 public class Program
 {
-
-    public static Path defaultPath;
 
     /**
      * @param args the command line arguments
@@ -57,7 +56,8 @@ public class Program
             uidef.put("TabbedPane.tabInsets", new Insets(5, 25, 5, 25));
             uidef.put("TabbedPane.tabBorderInsets", new Insets(0, 0, 0, 0));
         }
-        catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+        catch (ClassNotFoundException | InstantiationException |
+               IllegalAccessException | UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(Program.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
@@ -71,15 +71,5 @@ public class Program
                 loginForm.setVisible(true);
             }
         });
-    }
-
-    public static void loadDefaultFolder(String key)
-    {
-        JFileChooser fr = new JFileChooser();
-        defaultPath = fr.getFileSystemView().getDefaultDirectory().toPath();
-        defaultPath = defaultPath.resolve("Lab Exam");
-        if (!(key == null || key.isEmpty()))
-            defaultPath = defaultPath.resolve(key);
-        defaultPath.toFile().mkdirs();
-    }
+    } 
 }
