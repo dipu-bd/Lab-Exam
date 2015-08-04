@@ -183,7 +183,7 @@ public class ServerLink
     public ArrayList<Question> getAllQuestions()
     {
         Object result = getResponce(Command.ALL_QUESTION);
-        ArrayList<Question> ret = new ArrayList<Question>();
+        ArrayList<Question> ret = new ArrayList<>();
         if (result == null) return ret;
         //add all question
         for (Object q : ((Object[]) result)) {

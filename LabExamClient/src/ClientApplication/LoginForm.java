@@ -21,17 +21,19 @@ package ClientApplication;
  */
 public class LoginForm extends javax.swing.JFrame
 {
+
     private final ServerLink mServerLink;
-    
+
     /**
      * Creates new form LoginForm
      */
     public LoginForm()
     {
-        mServerLink = new ServerLink();
-        
         initComponents();
-        getContentPane().setBackground(this.getBackground()); 
+        getContentPane().setBackground(this.getBackground());
+        
+        mServerLink = new ServerLink();
+        PortText.setText(String.valueOf(AppSettings.getDefaultPort()));
     }
 
     /**
@@ -96,6 +98,13 @@ public class LoginForm extends javax.swing.JFrame
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
                 PortTextActionPerformed(evt);
+            }
+        });
+        PortText.addKeyListener(new java.awt.event.KeyAdapter()
+        {
+            public void keyTyped(java.awt.event.KeyEvent evt)
+            {
+                PortTextKeyTyped(evt);
             }
         });
 
@@ -280,7 +289,7 @@ public class LoginForm extends javax.swing.JFrame
         (new WaitingForm(this, mServerLink)).setVisible(true);
         this.setVisible(false);
     }
-    
+
     /**
      * Connect with server to attempt login.
      */
@@ -347,7 +356,12 @@ public class LoginForm extends javax.swing.JFrame
     {//GEN-HEADEREND:event_LoginButton1ActionPerformed
         (new SettingsForm()).setVisible(true);
     }//GEN-LAST:event_LoginButton1ActionPerformed
-     
+
+    private void PortTextKeyTyped(java.awt.event.KeyEvent evt)//GEN-FIRST:event_PortTextKeyTyped
+    {//GEN-HEADEREND:event_PortTextKeyTyped
+        AppSettings.setDefaultPort(Integer.parseInt(PortText.getText()));
+    }//GEN-LAST:event_PortTextKeyTyped
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField IPAddressText;
     private javax.swing.JButton LoginButton;

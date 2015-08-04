@@ -32,6 +32,10 @@ import javax.swing.text.DefaultCaret;
 import Utilities.Question;
 import java.awt.Font;
 import java.awt.HeadlessException;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Writer;
@@ -41,8 +45,14 @@ import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import org.fife.ui.rsyntaxtextarea.Theme;
+import org.icepdf.core.views.DocumentViewController;
 import org.icepdf.ri.common.SwingController;
-import org.icepdf.ri.common.SwingViewBuilder;
+import org.icepdf.ri.common.SwingViewBuilder; 
+import java.io.ByteArrayInputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 
 /**
  * Main form for the examination.
@@ -63,7 +73,7 @@ public class MainForm extends JFrame
     //timer for periodic tasks
     private final Timer mTimer;
     //to display pdf files
-    private final SwingController pdfController;
+    private final SwingController mPdfViewer;
 
     //current server time
     private long mTimeDiff = 0;
@@ -88,7 +98,7 @@ public class MainForm extends JFrame
         mParentForm = parent;
         mServerLink = serverLink;
         mTimer = new Timer();
-        pdfController = new SwingController();
+        mPdfViewer = new SwingController();
 
         //init form
         initComponents();
@@ -112,8 +122,6 @@ public class MainForm extends JFrame
         mStopTime = mServerLink.getStopTime();
         long now = System.currentTimeMillis() + mTimeDiff;
         if (mStopTime < now) {
-            KeyHook.unblockWindowsKey();
-
             mTimer.cancel();
             this.dispose();
 
@@ -163,7 +171,6 @@ public class MainForm extends JFrame
         this.requestFocus();
         this.requestFocusInWindow();
         this.setAlwaysOnTop(true);
-        KeyHook.blockWindowsKey();
     }
 
     /**
@@ -172,9 +179,9 @@ public class MainForm extends JFrame
     private void initPdfControl()
     {
         //factory to build all controls
-        SwingViewBuilder factory = new SwingViewBuilder(pdfController);
-        pdfController.setPageViewMode(2, true);
-
+        SwingViewBuilder factory = new SwingViewBuilder(mPdfViewer);
+        mPdfViewer.setPageViewMode(2, true);
+        
         //build tool bar        
         descToolBar.add(factory.buildZoomOutButton());
         descToolBar.add(factory.buildZoomCombBox());
@@ -184,10 +191,9 @@ public class MainForm extends JFrame
         descToolBar.add(factory.buildFitActualSizeButton());
         descToolBar.add(factory.buildPanToolButton());
         descToolBar.add(factory.buildTextSelectToolButton());
-
+        
         //add pdf viewer panel           
-        javax.swing.JSplitPane jsp
-                = factory.buildUtilityAndDocumentSplitPane(false);
+        JSplitPane jsp = factory.buildUtilityAndDocumentSplitPane(false);
         jsp.setPreferredSize(new Dimension(10, 10));
         pdfPanel.setViewportView(jsp);
     }
@@ -277,8 +283,8 @@ public class MainForm extends JFrame
     private void showPdfDescription(byte[] data, String title)
     {
         if (data != null) {
-            pdfController.openDocument(data, 0, data.length, title, null);
-            pdfController.setZoom(1.50F);
+            mPdfViewer.openDocument(data, 0, data.length, title, null);
+            mPdfViewer.setZoom(1.50F);
         }
     }
 
@@ -1026,7 +1032,7 @@ public class MainForm extends JFrame
         descPanel.setLayout(descPanelLayout);
         descPanelLayout.setHorizontalGroup(
             descPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(descToolBar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 232, Short.MAX_VALUE)
+            .addComponent(descToolBar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 235, Short.MAX_VALUE)
             .addComponent(pdfPanel, javax.swing.GroupLayout.Alignment.TRAILING)
         );
         descPanelLayout.setVerticalGroup(

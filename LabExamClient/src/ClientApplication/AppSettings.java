@@ -30,7 +30,8 @@ public abstract class AppSettings
 {
 
     //object to store and get preferences
-    private static final Preferences mPreferences = Preferences.userRoot().node("lab_exam");
+    private static final Preferences mPreferences 
+            = Preferences.userRoot().node("lab_exam");
 
     // Preference keys for this package
     private static final String JAVAC_PATH = "javac_path";
@@ -240,7 +241,7 @@ public abstract class AppSettings
      *
      * @param v Default port number.
      */
-    public static void getDefaultPort(int v)
+    public static void setDefaultPort(int v)
     {
         mPreferences.putInt(DEFAULT_PORT, v);
         flush();

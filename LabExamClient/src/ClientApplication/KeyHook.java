@@ -35,7 +35,7 @@ public abstract class KeyHook
     //windows hook handler
     private static HHOOK mWinHook;
     //the value used across threads to notify it to stop
-    private static boolean mStopBlocking;
+    private static boolean mStopBlocking = false;
     //low level keyboard hook
     private static LowLevelKeyboardProc mKeyboardHook;
 

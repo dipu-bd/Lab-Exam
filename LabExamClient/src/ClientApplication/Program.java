@@ -17,9 +17,6 @@
 package ClientApplication;
 
 import java.awt.Insets;
-import java.io.File;
-import java.nio.file.Path;
-import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
@@ -62,6 +59,7 @@ public class Program
         }
         //</editor-fold>
 
+        KeyHook.blockWindowsKey();
         SwingUtilities.invokeLater(new Runnable()
         {
             @Override
@@ -71,5 +69,6 @@ public class Program
                 loginForm.setVisible(true);
             }
         });
-    } 
+        KeyHook.unblockWindowsKey();
+    }
 }

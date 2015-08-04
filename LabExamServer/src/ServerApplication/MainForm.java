@@ -326,7 +326,7 @@ public class MainForm extends javax.swing.JFrame
 
     private void exitButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_exitButtonActionPerformed
     {//GEN-HEADEREND:event_exitButtonActionPerformed
-        this.dispose();
+        System.exit(0);
     }//GEN-LAST:event_exitButtonActionPerformed
 
     private void aboutButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_aboutButtonActionPerformed

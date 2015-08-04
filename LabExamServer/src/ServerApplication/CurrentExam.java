@@ -18,6 +18,7 @@ package ServerApplication;
 
 import Utilities.AnswerData;
 import Utilities.Candidate;
+import Utilities.CandidateStatus;
 import Utilities.Examination;
 import Utilities.UserChangeEvent;
 import Utilities.UserChangedHandler;
@@ -30,6 +31,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,7 +45,7 @@ public class CurrentExam
 {
     CurrentExam()
     {
-        mClients = new HashSet<>();
+        mClients = new HashMap<>();
         mCurExam = new Examination();
         userChangeListener = new ArrayList<>();
     }
@@ -53,7 +55,7 @@ public class CurrentExam
     // Exam modifying currently.
     private Examination mCurExam;
     // List of logged in candidates.
-    private final HashSet<Integer> mClients;
+    private final HashMap<Integer, CandidateStatus> mClients;
     // To store connected method to this handler
     private final ArrayList<UserChangedHandler> userChangeListener;
 
@@ -102,19 +104,42 @@ public class CurrentExam
      *
      * @return HasSet of the connected candidates.
      */
-    public HashSet<Integer> getAllClients()
+    public HashMap<Integer, CandidateStatus> getAllClients()
     {
         return mClients;
     }
 
     /**
-     * Checks if a candidate is logged in or not
+     * Checks if a candidate is available or not.
+     *
      * @param candidateId Candidate id to check.
-     * @return True if logged in; False otherwise.
+     * @return True if the candidate logged in once before; False otherwise.
+     */
+    public boolean isAvaiable(int candidateId)
+    {
+        return mClients != null && mClients.containsKey(candidateId);
+    }
+
+    /**
+     * Checks if a candidate is logged in or not.
+     *
+     * @param candidateId Candidate id to check.
+     * @return True if the candidate logged in now; False otherwise.
      */
     public boolean isLoggedIn(int candidateId)
     {
-        return mClients != null && mClients.contains(candidateId);
+        return isAvaiable(candidateId) && mClients.get(candidateId).isConnected();
+    }
+
+    /**
+     * Gets the CandidateStatus for given candidate id.
+     *
+     * @param candidateId Candidate id to check.
+     * @return CandidateStatus object.
+     */
+    public CandidateStatus getCandidateStatus(int candidateId)
+    {
+        return mClients.get(candidateId);
     }
 
     /**
@@ -215,14 +240,27 @@ public class CurrentExam
             return false;
         }
 
+        //checks if already connected
+        if (isLoggedIn(uid)) {
+            Logger.getLogger("LabExam").log(Level.WARNING,
+                    String.format("%s[%s] tried to connect again via %s",
+                            candy.getName(), candy.getRegNo(), ip));
+            return false;
+        }
+
         //add to connected client list and raise user change event
-        mClients.add(uid);
+        if (mClients.containsKey(uid)) {
+            mClients.get(uid).increaseLoginCount();
+            System.out.println(mClients.get(uid).getLoginCount());
+        }
+        else {
+            mClients.put(uid, new CandidateStatus(uid, true));
+        }
         invokeUserChanged(new UserChangeEvent(uid, true));
 
         Logger.getLogger("LabExam").log(Level.INFO,
                 String.format("%s[%s] connected via %s",
                         candy.getName(), candy.getRegNo(), ip));
-
         return true;
     }
 
@@ -240,24 +278,25 @@ public class CurrentExam
         if (!mCurExam.isCandidateExist(uid))
             return false;
 
-        //checks if the candidate really was connected
         String name = mCurExam.getCandidate(uid).getName();
-        if (!mClients.contains(uid)) {
+        if (mClients.containsKey(uid)) {
+            // remove user from list and raise user changed event.
+            mClients.get(uid).setConnected(false);
+            invokeUserChanged(new UserChangeEvent(uid, true));
+
+            Logger.getLogger("LabExam").log(Level.WARNING,
+                    String.format("%s[%s] logged out from %s.",
+                            name, regNo, ip));
+            return true;
+        }
+        else {
+            //log irregular log out attempt.
             Logger.getLogger("LabExam").log(Level.WARNING,
                     String.format("Something is wrong!! %s[%s] tried to log out but failed!",
                             name, regNo));
             return false;
         }
 
-        // remove user from list and raise user changed event
-        mClients.remove(uid);
-        invokeUserChanged(new UserChangeEvent(uid, true));
-
-        Logger.getLogger("LabExam").log(Level.WARNING,
-                String.format("%s[%s] logged out from %s.",
-                        name, regNo, ip));
-
-        return true;
     }
 
     /**
@@ -314,7 +353,7 @@ public class CurrentExam
         Path par = this.getSubmissionPath(regNo).toPath();
 
         int success = 0;
-        for (Object data : answers) {            
+        for (Object data : answers) {
             AnswerData ans = AnswerData.class.cast(data);
             try {
                 //save submitted data 

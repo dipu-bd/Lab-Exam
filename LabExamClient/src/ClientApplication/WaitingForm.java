@@ -97,8 +97,7 @@ public class WaitingForm extends javax.swing.JFrame
         this.setSize(screenSize);
         this.requestFocus();
         this.requestFocusInWindow();
-        this.setAlwaysOnTop(true);        
-        KeyHook.blockWindowsKey();
+        this.setAlwaysOnTop(true);    
     }
         
     /**
@@ -106,8 +105,6 @@ public class WaitingForm extends javax.swing.JFrame
      */
     public void showMainForm()
     {
-        KeyHook.unblockWindowsKey();
-        
         mRefreshTask.run();
         long now = System.currentTimeMillis() + mTimeDiff;
         if (now < mStartTime) return;

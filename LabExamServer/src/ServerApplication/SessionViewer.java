@@ -25,6 +25,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import Utilities.Candidate;
+import Utilities.CandidateStatus;
 import Utilities.Examination;
 import Utilities.Functions;
 import Utilities.Question;
@@ -208,7 +209,7 @@ public class SessionViewer extends javax.swing.JFrame
     private void loadCandidateList()
     {
         //number of predefined headers
-        final int PRE_HEADER = 4;
+        final int PRE_HEADER = 6;
 
         //add headers
         int qcount = mExam.getQuestionCount();
@@ -216,7 +217,9 @@ public class SessionViewer extends javax.swing.JFrame
         header[0] = "ID";
         header[1] = "Name";
         header[2] = "Reg No";
-        header[3] = "Status";
+        header[3] = "Password";
+        header[4] = "Status";
+        header[5] = "Login \r\nAttempts";
         //add questions as headers
         int row = PRE_HEADER;
         for (Question ques : mExam.getAllQuestion()) {
@@ -228,10 +231,22 @@ public class SessionViewer extends javax.swing.JFrame
         Object data[][] = new Object[siz][qcount + PRE_HEADER];
         row = 0;
         for (Candidate cd : mExam.getAllCandidate()) {
+            //set general data
             data[row][0] = cd.getId();
             data[row][1] = cd.getName();
             data[row][2] = cd.getRegNo();
-            data[row][3] = mCurrentExam.isLoggedIn(cd.getId()) ? "Connected" : "Disconnected";
+            data[row][3] = cd.getPassword();
+
+            //set candidate status
+            if (mCurrentExam.isAvaiable(cd.getId())) {
+                CandidateStatus cs = mCurrentExam.getCandidateStatus(cd.getId());
+                data[row][4] = cs.isConnected() ? "Connected" : "Disconnected";
+                data[row][5] = cs.getLoginCount();
+            }
+            else {
+                data[row][4] = "Disconnected";
+                data[row][5] = 0;
+            }
 
             //set question data
             int col = PRE_HEADER;
