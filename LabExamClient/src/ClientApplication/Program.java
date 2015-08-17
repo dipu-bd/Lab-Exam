@@ -59,7 +59,6 @@ public class Program
         }
         //</editor-fold>
 
-        KeyHook.blockWindowsKey();
         SwingUtilities.invokeLater(new Runnable()
         {
             @Override
@@ -69,6 +68,5 @@ public class Program
                 loginForm.setVisible(true);
             }
         });
-        KeyHook.unblockWindowsKey();
     }
 }

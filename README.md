@@ -9,6 +9,15 @@ After the exam begins question description will be shown to the participants. Th
 Server application will listen to all clients and download and store submitted solutions into separate folders in the server PC.   
 
 
+### Setup Client PC   
+1. Install the latest JDK and GCC.   
+2. Run LabExamClient as Administrator and click settings.    
+3. Setup compilers default folder.   
+4. Click Disable Keys. If it does not work run block.reg to block Windows and Alt keys.   
+5. Delete old files and folders from document folder.   
+6. Now Restart the computer and run LabExamClient.   
+
+
 ### Developer
 [Sudipto Chandra Dipu](https://github.com/dipu-bd)     
 <dipu.sudipta@gmail.com>     

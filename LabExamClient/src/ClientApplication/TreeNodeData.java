@@ -24,9 +24,10 @@ import java.io.File;
  */
 public class TreeNodeData extends Object
 {
-
-    private File file;
-    private String name;
+    //file path
+    private File mFile;
+    //name of file
+    private String mName;
 
     /**
      * Initialize a new instance for TreeNodeObject
@@ -35,8 +36,8 @@ public class TreeNodeData extends Object
      */
     public TreeNodeData(File f)
     {
-        file = f;
-        name = f.getName();
+        mFile = f;
+        mName = f.getName();
     }
 
     /**
@@ -47,8 +48,8 @@ public class TreeNodeData extends Object
      */
     public TreeNodeData(File f, String label)
     {
-        file = f;
-        name = label;
+        mFile = f;
+        mName = label;
     }
 
     /**
@@ -59,16 +60,26 @@ public class TreeNodeData extends Object
     @Override
     public String toString()
     {
-        return name;
+        return mName;
     }
 
     /**
-     * Gets the file assigned in this object.
+     * Gets the mFile assigned in this object.
      *
      * @return File assigned to this object.
      */
     public File getFile()
     {
-        return file;
+        return mFile;
+    }
+    /**
+     * Sets the mFile assigned in this object.
+     *
+     * @param file File assigned to this object.
+     */
+    public void setFile(File file)
+    {
+        mFile = file;
+        mName = file.getName();
     }
 }

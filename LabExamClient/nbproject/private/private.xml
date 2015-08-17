@@ -3,7 +3,12 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/Projects/GitHub/Lab-Exam/LabExamClient/src/ClientApplication/ServerLink.java</file>
+            <file>file:/D:/Projects/GitHub/Lab-Exam/LabExamClient/src/ClientApplication/Program.java</file>
+            <file>file:/D:/Projects/GitHub/Lab-Exam/LabExamClient/src/ClientApplication/MainForm.java</file>
+            <file>file:/D:/Projects/GitHub/Lab-Exam/LabExamClient/src/ClientApplication/AppSettings.java</file>
+            <file>file:/D:/Projects/GitHub/Lab-Exam/LabExamClient/src/ClientApplication/WaitingForm.java</file>
+            <file>file:/D:/Projects/GitHub/Lab-Exam/LabExamClient/src/ClientApplication/TreeNodeData.java</file>
+            <file>file:/D:/Projects/GitHub/Lab-Exam/LabExamClient/src/ClientApplication/SettingsForm.java</file>
         </group>
     </open-files>
 </project-private>

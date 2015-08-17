@@ -16,8 +16,7 @@
  */
 package ClientApplication;
 
-import java.awt.Dimension;
-import java.awt.Toolkit; 
+import Utilities.Functions;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.JFrame;
@@ -28,6 +27,7 @@ import javax.swing.JFrame;
 @SuppressWarnings("serial")
 public class WaitingForm extends javax.swing.JFrame
 {
+
     public long mTimeDiff;
     //start time of the exam
     public long mStartTime;
@@ -40,7 +40,7 @@ public class WaitingForm extends javax.swing.JFrame
     //refresh displayed values
     private final TimerTask mRefreshTask;
     //update values from server
-    private final TimerTask mUpdateTask; 
+    private final TimerTask mUpdateTask;
 
     /**
      * Creates new form WaitingForm
@@ -53,15 +53,15 @@ public class WaitingForm extends javax.swing.JFrame
         mTimeDiff = 0;
         mStartTime = 0;
         mParentForm = parent;
-        mServerLink = serverLink;         
-        mTimer = new Timer(); 
-
-        initComponents();
-        setToFullFocus();
-        getContentPane().setBackground(getBackground());
-
-        titleLabel.setText(mServerLink.getExamTitle());
+        mServerLink = serverLink;        
+        mTimer = new Timer();        
         
+        initComponents();
+        
+        Functions.setToFullFocus(this);        
+        getContentPane().setBackground(getBackground());        
+        titleLabel.setText(mServerLink.getExamTitle());
+
         //initialize timertask
         this.mRefreshTask = new TimerTask()
         {
@@ -73,7 +73,7 @@ public class WaitingForm extends javax.swing.JFrame
             }
         };
         mTimer.scheduleAtFixedRate(mRefreshTask, 0, 4550);
-
+        
         this.mUpdateTask = new TimerTask()
         {
             @Override
@@ -82,24 +82,9 @@ public class WaitingForm extends javax.swing.JFrame
                 updateValues();
             }
         };
-        mTimer.scheduleAtFixedRate(mUpdateTask, 0, 500);
-        
+        mTimer.scheduleAtFixedRate(mUpdateTask, 0, 500);        
     }
-    
-    /**
-     * Set this frame into full focus and stop all key passing
-     */
-    private void setToFullFocus()
-    {
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        this.setExtendedState(MainForm.MAXIMIZED_BOTH);
-        this.toFront();
-        this.setSize(screenSize);
-        this.requestFocus();
-        this.requestFocusInWindow();
-        this.setAlwaysOnTop(true);    
-    }
-        
+
     /**
      * Hides this form and shows main form when exam starts
      */
@@ -108,13 +93,13 @@ public class WaitingForm extends javax.swing.JFrame
         mRefreshTask.run();
         long now = System.currentTimeMillis() + mTimeDiff;
         if (now < mStartTime) return;
-        
+
         //load current folder
-        AppSettings.getDefaultPath().toFile().mkdirs();             
-        
+        AppSettings.getDefaultPath().toFile().mkdirs();
+
         //show main form
         (new MainForm(mParentForm, mServerLink)).setVisible(true);
-         
+        
         mTimer.cancel();
         this.dispose();
     }
@@ -128,13 +113,13 @@ public class WaitingForm extends javax.swing.JFrame
             this.dispose();
             return;
         }
-
+        
         long now = System.currentTimeMillis() + mTimeDiff;
         if (mStartTime <= now) {
             showMainForm();
             return;
         }
-
+        
         String res = Utilities.Functions.formatTimeSpan(mStartTime - now);
         intervalToBegin.setText(res);
     }

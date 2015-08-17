@@ -16,7 +16,9 @@
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/Resources/folder.png"/>
         </Property>
+        <Property name="mnemonic" type="int" value="78"/>
         <Property name="text" type="java.lang.String" value="New Folder"/>
+        <Property name="toolTipText" type="java.lang.String" value="Create a new folder inside selected folder"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="newFolderMenuActionPerformed"/>
@@ -27,7 +29,9 @@
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/Resources/file.png"/>
         </Property>
+        <Property name="mnemonic" type="int" value="70"/>
         <Property name="text" type="java.lang.String" value="New File"/>
+        <Property name="toolTipText" type="java.lang.String" value="Create a new text file inside selected folder"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="newFileMenuActionPerformed"/>
@@ -38,7 +42,9 @@
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/Resources/cpp.png"/>
         </Property>
+        <Property name="mnemonic" type="int" value="67"/>
         <Property name="text" type="java.lang.String" value="New C++ File"/>
+        <Property name="toolTipText" type="java.lang.String" value="Create a new C++ file inside selected folder"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="newCPPMenuActionPerformed"/>
@@ -49,7 +55,9 @@
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/Resources/java.png"/>
         </Property>
+        <Property name="mnemonic" type="int" value="74"/>
         <Property name="text" type="java.lang.String" value="New Java File"/>
+        <Property name="toolTipText" type="java.lang.String" value="Create a new Java file inside selected folder"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="newJavaMenuActionPerformed"/>
@@ -60,7 +68,9 @@
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/Resources/ansi_c.png"/>
         </Property>
+        <Property name="mnemonic" type="int" value="65"/>
         <Property name="text" type="java.lang.String" value="New Ansi C File"/>
+        <Property name="toolTipText" type="java.lang.String" value="Create a new C file inside selected folder"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="newCMenuActionPerformed"/>
@@ -71,7 +81,9 @@
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/Resources/rename.png"/>
         </Property>
+        <Property name="mnemonic" type="int" value="69"/>
         <Property name="text" type="java.lang.String" value="Rename"/>
+        <Property name="toolTipText" type="java.lang.String" value="Rename selected node"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="renameMenuActionPerformed"/>
@@ -82,10 +94,25 @@
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/Resources/delete.png"/>
         </Property>
+        <Property name="mnemonic" type="int" value="68"/>
         <Property name="text" type="java.lang.String" value="Delete"/>
+        <Property name="toolTipText" type="java.lang.String" value="Delete selected node"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="deleteMenuActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JMenuItem" name="refreshMenu">
+      <Properties>
+        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+          <Image iconType="3" name="/Resources/reload.png"/>
+        </Property>
+        <Property name="mnemonic" type="int" value="82"/>
+        <Property name="text" type="java.lang.String" value="Refresh"/>
+        <Property name="toolTipText" type="java.lang.String" value="Reload the folder explorer"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="refreshMenuActionPerformed"/>
       </Events>
     </Component>
   </NonVisualComponents>
@@ -104,7 +131,6 @@
     <SyntheticProperty name="generateCenter" type="boolean" value="false"/>
   </SyntheticProperties>
   <Events>
-    <EventHandler event="windowLostFocus" listener="java.awt.event.WindowFocusListener" parameters="java.awt.event.WindowEvent" handler="formWindowLostFocus"/>
     <EventHandler event="windowClosing" listener="java.awt.event.WindowListener" parameters="java.awt.event.WindowEvent" handler="formWindowClosing"/>
   </Events>
   <AuxValues>
@@ -594,7 +620,8 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/Resources/fullscreen.png"/>
                     </Property>
-                    <Property name="text" type="java.lang.String" value="Extend"/>
+                    <Property name="text" type="java.lang.String" value="Full Screen"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Hides the problem descriptions."/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fullscreenButtonActionPerformed"/>
@@ -688,8 +715,8 @@
                   <Properties>
                     <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
                       <StringArray count="2">
-                        <StringItem index="0" value="Light"/>
-                        <StringItem index="1" value="Dark"/>
+                        <StringItem index="0" value="Dark"/>
+                        <StringItem index="1" value="Light"/>
                       </StringArray>
                     </Property>
                   </Properties>
@@ -768,12 +795,14 @@
                             </Property>
                             <Property name="toolTipText" type="java.lang.String" value=""/>
                             <Property name="autoscrolls" type="boolean" value="true"/>
+                            <Property name="doubleBuffered" type="boolean" value="true"/>
                             <Property name="rowHeight" type="int" value="22"/>
                             <Property name="showsRootHandles" type="boolean" value="true"/>
                           </Properties>
                           <Events>
                             <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="explorerTreeMouseClicked"/>
                             <EventHandler event="valueChanged" listener="javax.swing.event.TreeSelectionListener" parameters="javax.swing.event.TreeSelectionEvent" handler="explorerTreeValueChanged"/>
+                            <EventHandler event="keyReleased" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="explorerTreeKeyReleased"/>
                           </Events>
                         </Component>
                       </SubComponents>
@@ -787,21 +816,6 @@
                         <Property name="verticalGap" type="int" value="1"/>
                       </Layout>
                       <SubComponents>
-                        <Component class="javax.swing.JButton" name="newFolderToolButton">
-                          <Properties>
-                            <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                              <Image iconType="3" name="/Resources/folder.png"/>
-                            </Property>
-                            <Property name="text" type="java.lang.String" value="Folder"/>
-                            <Property name="toolTipText" type="java.lang.String" value="Create a new folder under selected folder"/>
-                            <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-                              <Dimension value="[110, 25]"/>
-                            </Property>
-                          </Properties>
-                          <Events>
-                            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="newFolderToolButtonActionPerformed"/>
-                          </Events>
-                        </Component>
                         <Component class="javax.swing.JButton" name="deleteToolButton">
                           <Properties>
                             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
@@ -817,13 +831,43 @@
                             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="deleteToolButtonActionPerformed"/>
                           </Events>
                         </Component>
+                        <Component class="javax.swing.JButton" name="refreshViewButton">
+                          <Properties>
+                            <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                              <Image iconType="3" name="/Resources/reload.png"/>
+                            </Property>
+                            <Property name="text" type="java.lang.String" value="Refresh"/>
+                            <Property name="toolTipText" type="java.lang.String" value="Reload the folder explorer"/>
+                            <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                              <Dimension value="[110, 25]"/>
+                            </Property>
+                          </Properties>
+                          <Events>
+                            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="refreshViewButtonActionPerformed"/>
+                          </Events>
+                        </Component>
+                        <Component class="javax.swing.JButton" name="newFolderToolButton">
+                          <Properties>
+                            <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                              <Image iconType="3" name="/Resources/folder.png"/>
+                            </Property>
+                            <Property name="text" type="java.lang.String" value="Folder"/>
+                            <Property name="toolTipText" type="java.lang.String" value="Create a new folder inside selected folder"/>
+                            <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                              <Dimension value="[110, 25]"/>
+                            </Property>
+                          </Properties>
+                          <Events>
+                            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="newFolderToolButtonActionPerformed"/>
+                          </Events>
+                        </Component>
                         <Component class="javax.swing.JButton" name="newJavaToolButton">
                           <Properties>
                             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                               <Image iconType="3" name="/Resources/java.png"/>
                             </Property>
                             <Property name="text" type="java.lang.String" value="Java"/>
-                            <Property name="toolTipText" type="java.lang.String" value="Create a new Java file under selected folder"/>
+                            <Property name="toolTipText" type="java.lang.String" value="Create a new Java file inside selected folder"/>
                             <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
                               <Dimension value="[110, 25]"/>
                             </Property>
@@ -838,7 +882,7 @@
                               <Image iconType="3" name="/Resources/cpp.png"/>
                             </Property>
                             <Property name="text" type="java.lang.String" value="C++"/>
-                            <Property name="toolTipText" type="java.lang.String" value="Create a new C++ file under selected folder"/>
+                            <Property name="toolTipText" type="java.lang.String" value="Create a new C++ file inside selected folder"/>
                             <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
                               <Dimension value="[110, 25]"/>
                             </Property>
@@ -853,28 +897,13 @@
                               <Image iconType="3" name="/Resources/ansi_c.png"/>
                             </Property>
                             <Property name="text" type="java.lang.String" value="Ansi C"/>
-                            <Property name="toolTipText" type="java.lang.String" value="Create a new C file under selected folder"/>
+                            <Property name="toolTipText" type="java.lang.String" value="Create a new C file inside selected folder"/>
                             <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
                               <Dimension value="[110, 25]"/>
                             </Property>
                           </Properties>
                           <Events>
                             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="newCToolButtonActionPerformed"/>
-                          </Events>
-                        </Component>
-                        <Component class="javax.swing.JButton" name="newFileToolButton">
-                          <Properties>
-                            <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                              <Image iconType="3" name="/Resources/file.png"/>
-                            </Property>
-                            <Property name="text" type="java.lang.String" value="Text"/>
-                            <Property name="toolTipText" type="java.lang.String" value="Create a new text file under selected folder"/>
-                            <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-                              <Dimension value="[110, 25]"/>
-                            </Property>
-                          </Properties>
-                          <Events>
-                            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="newFileToolButtonActionPerformed"/>
                           </Events>
                         </Component>
                       </SubComponents>

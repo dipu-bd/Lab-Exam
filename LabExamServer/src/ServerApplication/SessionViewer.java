@@ -59,10 +59,10 @@ public class SessionViewer extends javax.swing.JFrame
         mTimer = new Timer();
         mLogger = Logger.getLogger("LabExam");
         mLabExamServer = new LabExamServer();
-
-        initComponents();
-
+        
+        initComponents();        
         setToFullFocus();
+        
         initiateOthers();
         loadValues();
     }
@@ -97,7 +97,7 @@ public class SessionViewer extends javax.swing.JFrame
                 String msg = (new Date(lr.getMillis())).toString() + " : ";
                 msg += lr.getLevel().getName() + " : ";
                 msg += lr.getMessage() + "\n";
-                statusBox.append(msg);
+                processLogs(msg);
                 return msg;
             }
         }));
@@ -127,7 +127,7 @@ public class SessionViewer extends javax.swing.JFrame
             {
                 loadCandidateList();
             }
-
+            
             @Override
             public void userSubmitted(UserChangeEvent ae)
             {
@@ -158,7 +158,7 @@ public class SessionViewer extends javax.swing.JFrame
             long now = System.currentTimeMillis();
             long start = mExam.getStartTime().getTime();
             long stop = start + mExam.getDuration() * 60000;
-
+            
             String msg;
             if (now < start) //exam waiting
             {
@@ -201,6 +201,16 @@ public class SessionViewer extends javax.swing.JFrame
                 (new SessionCreator(null, mCurrentExam)).setVisible(true);
             }
         });
+    }
+
+    /**
+     * Process messages by logger.
+     *
+     * @param msg Log message to process.
+     */
+    private void processLogs(String msg)
+    {
+        statusBox.append(msg);        
     }
 
     /**
@@ -268,7 +278,7 @@ public class SessionViewer extends javax.swing.JFrame
                     }
                 }
         );
-
+        
     }
 
     /**
@@ -279,7 +289,7 @@ public class SessionViewer extends javax.swing.JFrame
         try {
             int r = submissionTable.getSelectedRow();
             int c = submissionTable.getSelectedColumn();
-
+            
             File path = mExam.getSubmissionPath();
             if (r >= 0 && c > 2) {
                 String regno = (String) submissionTable.getValueAt(r, 2);
@@ -329,7 +339,7 @@ public class SessionViewer extends javax.swing.JFrame
             mParentForm.setVisible(true);
         }
     }
-
+    
     void addExtraFiveMinutes()
     {
         final int MIN_TO_ADD = 5;

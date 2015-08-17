@@ -179,7 +179,7 @@ public class LabExamServer
     {
         // Waiting for clients in port -> serverSocket.getLocalPort()                  
         Logger.getLogger("LabExam").log(Level.INFO,
-                String.format("Waitinig at %s on port %d.",
+                String.format("Waitinig on %s on port %d.",
                         getServerIPAddress(), mServerSocket.getLocalPort()));
 
         while (!mStopListening) {

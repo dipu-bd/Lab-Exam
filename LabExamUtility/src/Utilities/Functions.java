@@ -16,16 +16,36 @@
  */
 package Utilities;
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import javax.swing.JFrame;
 
 /**
  * Useful multipurpose methods
+ *
  * @author Dipu
  */
-public final class Functions {
+public abstract class Functions {
+
+    /**
+     * Set this frame into full focus and stop all key passing
+     *
+     * @param frame Frame to set full focus.
+     */
+    public static void setToFullFocus(JFrame frame) {
+        frame.toFront();
+        frame.requestFocus();
+        frame.requestFocusInWindow();
+        frame.setAlwaysOnTop(true);
+        frame.setResizable(false);
+        frame.setUndecorated(true);
+        frame.setSize(Toolkit.getDefaultToolkit().getScreenSize());
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+    }
 
     /**
      * Recursively delete all files and folders from a directory

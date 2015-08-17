@@ -31,8 +31,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.HashMap; 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -236,7 +235,7 @@ public class CurrentExam
         if (!candy.getPassword().equals(pass)) {
             Logger.getLogger("LabExam").log(Level.WARNING,
                     String.format("%s[%s] tried to login with wrong password. (attempted password: %s)",
-                            candy.getName(), candy.getRegNo(), pass));
+                            candy.getName(), candy.getRegNo(), (pass.isEmpty() ? "{EMPTY}" : pass)));
             return false;
         }
 

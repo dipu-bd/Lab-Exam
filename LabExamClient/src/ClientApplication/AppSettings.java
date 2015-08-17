@@ -21,6 +21,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+import com.sun.jna.platform.win32.Advapi32Util;
+import com.sun.jna.platform.win32.WinReg;
 
 /**
  * Class to get or set various application settings. All methods are static and
@@ -29,8 +31,13 @@ import java.util.prefs.Preferences;
 public abstract class AppSettings
 {
 
+    public static final int HKEY_CURRENT_USER = 0x80000001;
+    public static final int HKEY_LOCAL_MACHINE = 0x80000002;
+    public static final String KEYBOARD_LAYOUT_KEY
+            = "SYSTEM\\CurrentControlSet\\Control\\Keyboard Layout";
+
     //object to store and get preferences
-    private static final Preferences mPreferences 
+    private static final Preferences mPreferences
             = Preferences.userRoot().node("lab_exam");
 
     // Preference keys for this package
@@ -43,17 +50,21 @@ public abstract class AppSettings
     private static final String GCC_OPTIONS = "gcc_options";
     private static final String DEFAULT_PATH = "dafault_path";
     private static final String DEFAULT_PORT = "default_port";
+    private static final String KEYLAYOUT_ENABLED = "keylayout_enabled";
+    private static final String KEYLAYOUT_BACKUP = "keylayout_backup";
+    private static final String SCANCODE_MAP = "Scancode Map";
 
-    public static void flush()
-    {
-        try {
-            mPreferences.flush();
-        }
-        catch (BackingStoreException ex) {
-            Logger.getLogger(AppSettings.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
+    /* Experimental
+     public static void flush()
+     {
+     try {
+     mPreferences.flush();
+     }
+     catch (BackingStoreException ex) {
+     Logger.getLogger(AppSettings.class.getName()).log(Level.SEVERE, null, ex);
+     }
+     }
+     */
     /**
      * Gets the path where java.exe is located.
      *
@@ -72,7 +83,6 @@ public abstract class AppSettings
     public static void setJavaExePath(String v)
     {
         mPreferences.put(JAVA_PATH, v);
-        flush();
     }
 
     /**
@@ -93,7 +103,6 @@ public abstract class AppSettings
     public static void setJavaCompiler(String v)
     {
         mPreferences.put(JAVAC_PATH, v);
-        flush();
     }
 
     /**
@@ -114,7 +123,6 @@ public abstract class AppSettings
     public static void setJavaOptions(String v)
     {
         mPreferences.put(JAVA_OPTIONS, v);
-        flush();
     }
 
     /**
@@ -135,7 +143,6 @@ public abstract class AppSettings
     public static void setGppCompiler(String v)
     {
         mPreferences.put(GPP_PATH, v);
-        flush();
     }
 
     /**
@@ -156,7 +163,6 @@ public abstract class AppSettings
     public static void setGppOptions(String v)
     {
         mPreferences.put(GPP_OPTIONS, v);
-        flush();
     }
 
     /**
@@ -177,7 +183,6 @@ public abstract class AppSettings
     public static void setGccCompiler(String v)
     {
         mPreferences.put(GCC_PATH, v);
-        flush();
     }
 
     /**
@@ -198,7 +203,6 @@ public abstract class AppSettings
     public static void setGccOptions(String v)
     {
         mPreferences.put(GCC_OPTIONS, v);
-        flush();
     }
 
     /**
@@ -223,7 +227,6 @@ public abstract class AppSettings
     public static void setDefaultPath(java.nio.file.Path v)
     {
         mPreferences.put(DEFAULT_PATH, v.toString());
-        flush();
     }
 
     /**
@@ -244,6 +247,76 @@ public abstract class AppSettings
     public static void setDefaultPort(int v)
     {
         mPreferences.putInt(DEFAULT_PORT, v);
-        flush();
     }
+
+    /**
+     * Gets whether the key layout has been configured.
+     *
+     * @return True if configured; False otherwise.
+     */
+    public static boolean getKeyLayoutEnabled()
+    {
+        return mPreferences.getBoolean(KEYLAYOUT_ENABLED, true);
+    }
+
+    /**
+     * Sets whether the key layout has been configured.
+     *
+     * @param v True if configured; False otherwise.
+     */
+    public static void setKeyLayoutEnabled(boolean v)
+    {
+        mPreferences.putBoolean(KEYLAYOUT_BACKUP, v);
+    }
+
+    /**
+     * Gets the backup data of keyboard layout.
+     *
+     * @return Byte array representing backup data.
+     */
+    public static byte[] getKeyLayoutBackup()
+    {
+        return mPreferences.getByteArray(KEYLAYOUT_BACKUP, null);
+    }
+
+    /**
+     * Sets the backup data of keyboard layout.
+     *
+     * @param v Byte array representing backup data.
+     */
+    public static void setKeyLayoutBackup(byte[] v)
+    {
+        if (v == null) v = new byte[0];
+        mPreferences.putByteArray(KEYLAYOUT_BACKUP, v);
+    }
+
+    /**
+     * Gets the scan code data of keyboard layout from windows registry.
+     *
+     * @return Byte array representing data.
+     */
+    public static byte[] getScanCodeMap()
+    {
+        try {
+            return Advapi32Util.registryGetBinaryValue(
+                    WinReg.HKEY_LOCAL_MACHINE, KEYBOARD_LAYOUT_KEY, SCANCODE_MAP);
+        }
+        catch (Exception ex) {
+            return null;
+        }
+    }
+
+    /**
+     * Sets the scan code data of keyboard layout to windows registry.
+     *
+     * @param v Byte array representing data.
+     */
+    public static void setScanCodeMap(byte[] v)
+    {
+        if (v != null) {
+            Advapi32Util.registrySetBinaryValue(
+                    WinReg.HKEY_LOCAL_MACHINE, KEYBOARD_LAYOUT_KEY, SCANCODE_MAP, v);
+        }
+    }
+
 }

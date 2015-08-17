@@ -19,7 +19,6 @@ package ClientApplication;
 import Utilities.AnswerData;
 import Utilities.Functions;
 import java.awt.Dimension;
-import java.awt.Toolkit;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -32,10 +31,7 @@ import javax.swing.text.DefaultCaret;
 import Utilities.Question;
 import java.awt.Font;
 import java.awt.HeadlessException;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Writer;
@@ -45,13 +41,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import org.fife.ui.rsyntaxtextarea.Theme;
-import org.icepdf.core.views.DocumentViewController;
 import org.icepdf.ri.common.SwingController;
-import org.icepdf.ri.common.SwingViewBuilder; 
-import java.io.ByteArrayInputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JScrollPane;
+import org.icepdf.ri.common.SwingViewBuilder;
 import javax.swing.JSplitPane;
 
 /**
@@ -102,13 +93,14 @@ public class MainForm extends JFrame
 
         //init form
         initComponents();
-        setToFullFocus();
         initPdfControl();
         initFileExplorer();
 
+        Functions.setToFullFocus(this);
+
         //load default values
         loadValues();
-        loadEditorTheme(1);
+        loadEditorTheme(0);
 
         //set up timer to begin timer task  
         initTimerTasks();
@@ -160,20 +152,6 @@ public class MainForm extends JFrame
     }
 
     /**
-     * Set this frame into full focus and stop all key passing
-     */
-    private void setToFullFocus()
-    {
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        this.setExtendedState(MainForm.MAXIMIZED_BOTH);
-        this.toFront();
-        this.setSize(screenSize);
-        this.requestFocus();
-        this.requestFocusInWindow();
-        this.setAlwaysOnTop(true);
-    }
-
-    /**
      * Initialize PDF viewer
      */
     private void initPdfControl()
@@ -181,7 +159,7 @@ public class MainForm extends JFrame
         //factory to build all controls
         SwingViewBuilder factory = new SwingViewBuilder(mPdfViewer);
         mPdfViewer.setPageViewMode(2, true);
-        
+
         //build tool bar        
         descToolBar.add(factory.buildZoomOutButton());
         descToolBar.add(factory.buildZoomCombBox());
@@ -191,7 +169,7 @@ public class MainForm extends JFrame
         descToolBar.add(factory.buildFitActualSizeButton());
         descToolBar.add(factory.buildPanToolButton());
         descToolBar.add(factory.buildTextSelectToolButton());
-        
+
         //add pdf viewer panel           
         JSplitPane jsp = factory.buildUtilityAndDocumentSplitPane(false);
         jsp.setPreferredSize(new Dimension(10, 10));
@@ -209,7 +187,7 @@ public class MainForm extends JFrame
         explorerTree.getSelectionModel().setSelectionMode(1); //javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION        
         //explorerTree.setComponentPopupMenu(explorerPopup);
 
-        //build up popup menu
+        //build up popup menu 
         explorerPopup.add(newFolderMenu);
         explorerPopup.add(new JPopupMenu.Separator());
         explorerPopup.add(newFileMenu);
@@ -218,8 +196,9 @@ public class MainForm extends JFrame
         explorerPopup.add(newCMenu);
         explorerPopup.add(new JPopupMenu.Separator());
         explorerPopup.add(renameMenu);
-        explorerPopup.add(new JPopupMenu.Separator());
         explorerPopup.add(deleteMenu);
+        explorerPopup.add(new JPopupMenu.Separator());
+        explorerPopup.add(refreshMenu);
     }
 
     /**
@@ -317,6 +296,7 @@ public class MainForm extends JFrame
                     mSelectedQues.getTitle());
         }
         catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -341,6 +321,7 @@ public class MainForm extends JFrame
             explorerTree.setSelectionRow(0);
         }
         catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -352,6 +333,8 @@ public class MainForm extends JFrame
      */
     void loadFileList(DefaultMutableTreeNode node, File dir)
     {
+        if (!dir.isDirectory()) return;
+
         node.setAllowsChildren(true);
         for (File f : dir.listFiles()) {
             //if file then check if valid
@@ -418,6 +401,7 @@ public class MainForm extends JFrame
             codeEditor.setText("Create a new file and select it to edit.");
             codeEditor.setEditable(false);
             questionTitleBox.setText(mSelectedQues.getTitle());
+            ex.printStackTrace();
         }
     }
 
@@ -437,6 +421,7 @@ public class MainForm extends JFrame
             }
         }
         catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -492,6 +477,7 @@ public class MainForm extends JFrame
             }
         }
         catch (Exception ex) {
+            ex.printStackTrace();
         }
 
         result = CompileAndRun.RunProgram(file);
@@ -532,6 +518,7 @@ public class MainForm extends JFrame
             }
         }
         catch (IOException | HeadlessException ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -576,7 +563,10 @@ public class MainForm extends JFrame
     private void createNewFolder()
     {
         try {
-            if (mSelectedNode == null) return;
+            if (mSelectedNode == null) {
+                JOptionPane.showMessageDialog(this, "Select a folder first.");
+                return;
+            }
 
             File file = ((TreeNodeData) mSelectedNode.getUserObject()).getFile();
             if (!file.isDirectory()) return;
@@ -597,6 +587,7 @@ public class MainForm extends JFrame
             ((DefaultTreeModel) explorerTree.getModel()).reload(mSelectedNode);
         }
         catch (Exception ex) {
+            ex.printStackTrace();
             //JOptionPane.showMessageDialog(this, "SORRY!! Something went wrong. Please try again!"); 
         }
     }
@@ -609,15 +600,21 @@ public class MainForm extends JFrame
     private void createNewFile(String ext)
     {
         try {
-            if (mSelectedNode == null) return;
+            if (mSelectedNode == null) {
+                JOptionPane.showMessageDialog(this, "Select a folder first.");
+                return;
+            }
 
             File file = ((TreeNodeData) mSelectedNode.getUserObject()).getFile();
             if (!file.isDirectory()) return;
 
-            //create new file
+            //get name of the file
             if (ext == null || ext.isEmpty()) ext = ".txt";
             String name = JOptionPane.showInputDialog(this, "Name of the file to create", "New File" + ext);
             name = name.replaceAll("[\\\\/:*?\\\"<>|]", "").trim();
+            if (!name.endsWith(ext)) name += ext;
+
+            //create new file
             File f = (file.toPath().resolve(name)).toFile();
             if (name.isEmpty() || f.exists()) {
                 JOptionPane.showMessageDialog(this, "Another file with name \"" + name + "\" already exists!");
@@ -631,6 +628,7 @@ public class MainForm extends JFrame
             ((DefaultTreeModel) explorerTree.getModel()).reload(mSelectedNode);
         }
         catch (HeadlessException | IOException ex) {
+            ex.printStackTrace();
             //JOptionPane.showMessageDialog(this, "SORRY!! Something went wrong. Please try again!"); 
         }
     }
@@ -641,14 +639,21 @@ public class MainForm extends JFrame
     private void renameSelectedFile()
     {
         try {
+            if (mSelectedNode == null) {
+                JOptionPane.showMessageDialog(this, "Select a folder first.");
+                return;
+            }
+            if (mSelectedNode.getLevel() == 0) {
+                JOptionPane.showMessageDialog(this, "You can not rename this folder.");
+                return;
+            }
 
-            //get the file to rename
-            if (mSelectedNode == null || mSelectedNode.getLevel() == 0) return;
+            //get new name            
             File file = ((TreeNodeData) mSelectedNode.getUserObject()).getFile();
-
-            //rename the file
             String name = JOptionPane.showInputDialog(this, "Rename a file into another", file.getName());
             name = name.replaceAll("[\\\\:*?\\\"<>|/]", "").trim();
+
+            //rename file
             File newFile = file.toPath().resolveSibling(name).toFile();
             closeOpenedFile();
             if (!file.renameTo(newFile)) {
@@ -658,11 +663,14 @@ public class MainForm extends JFrame
 
             //reload the view
             mSelectedNode.setUserObject(new TreeNodeData(newFile));
-            mSelectedNode.removeAllChildren();
-            loadFileList(mSelectedNode, newFile);
+            if (newFile.isDirectory()) {
+                mSelectedNode.removeAllChildren();
+                loadFileList(mSelectedNode, newFile);
+            }
             ((DefaultTreeModel) explorerTree.getModel()).reload(mSelectedNode);
         }
         catch (Exception ex) {
+            ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "SORRY!! Something went wrong. Please try again!");
         }
     }
@@ -673,7 +681,14 @@ public class MainForm extends JFrame
     private void deleteSelectedFile()
     {
         try {
-            if (mSelectedNode == null || mSelectedNode.getLevel() == 0) return;
+            if (mSelectedNode == null) {
+                JOptionPane.showMessageDialog(this, "Select a folder first.");
+                return;
+            }
+            if (mSelectedNode.getLevel() == 0) {
+                JOptionPane.showMessageDialog(this, "You can not rename this folder.");
+                return;
+            }
 
             File file = ((TreeNodeData) mSelectedNode.getUserObject()).getFile();
             if (JOptionPane.showConfirmDialog(this,
@@ -691,6 +706,7 @@ public class MainForm extends JFrame
             mSelectedNode = null;
         }
         catch (Exception ex) {
+            ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "SORRY!! Something went wrong. Please try again!");
         }
     }
@@ -705,12 +721,12 @@ public class MainForm extends JFrame
         //load theme for editor from file        
         try {
             switch (index) {
-                case 0:
-                    Theme.load(getClass().getResourceAsStream("/Resources/light.xml")).apply(codeEditor);
+                case 0: //Dark
+                    Theme.load(getClass().getResourceAsStream("/Resources/dark.xml")).apply(codeEditor);
                     codeEditor.setFont(new Font("Consolas", Font.PLAIN, 14));
                     break;
-                case 1:
-                    Theme.load(getClass().getResourceAsStream("/Resources/dark.xml")).apply(codeEditor);
+                case 1: //Light
+                    Theme.load(getClass().getResourceAsStream("/Resources/light.xml")).apply(codeEditor);
                     codeEditor.setFont(new Font("Consolas", Font.PLAIN, 14));
                     break;
             }
@@ -737,6 +753,7 @@ public class MainForm extends JFrame
         newCMenu = new javax.swing.JMenuItem();
         renameMenu = new javax.swing.JMenuItem();
         deleteMenu = new javax.swing.JMenuItem();
+        refreshMenu = new javax.swing.JMenuItem();
         topPanel = new javax.swing.JPanel();
         registrationNoLabel = new javax.swing.JLabel();
         logoutButton = new javax.swing.JButton();
@@ -771,12 +788,12 @@ public class MainForm extends JFrame
         jScrollPane2 = new javax.swing.JScrollPane();
         explorerTree = new javax.swing.JTree();
         jPanel10 = new javax.swing.JPanel();
-        newFolderToolButton = new javax.swing.JButton();
         deleteToolButton = new javax.swing.JButton();
+        refreshViewButton = new javax.swing.JButton();
+        newFolderToolButton = new javax.swing.JButton();
         newJavaToolButton = new javax.swing.JButton();
         newCPPToolButton = new javax.swing.JButton();
         newCToolButton = new javax.swing.JButton();
-        newFileToolButton = new javax.swing.JButton();
         codeSplitPane = new javax.swing.JSplitPane();
         consoleContainer = new javax.swing.JPanel();
         jScrollPane4 = new javax.swing.JScrollPane();
@@ -786,7 +803,9 @@ public class MainForm extends JFrame
         codeEditor = new org.fife.ui.rsyntaxtextarea.RSyntaxTextArea();
 
         newFolderMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/folder.png"))); // NOI18N
+        newFolderMenu.setMnemonic('N');
         newFolderMenu.setText("New Folder");
+        newFolderMenu.setToolTipText("Create a new folder inside selected folder");
         newFolderMenu.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -796,7 +815,9 @@ public class MainForm extends JFrame
         });
 
         newFileMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/file.png"))); // NOI18N
+        newFileMenu.setMnemonic('F');
         newFileMenu.setText("New File");
+        newFileMenu.setToolTipText("Create a new text file inside selected folder");
         newFileMenu.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -806,7 +827,9 @@ public class MainForm extends JFrame
         });
 
         newCPPMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/cpp.png"))); // NOI18N
+        newCPPMenu.setMnemonic('C');
         newCPPMenu.setText("New C++ File");
+        newCPPMenu.setToolTipText("Create a new C++ file inside selected folder");
         newCPPMenu.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -816,7 +839,9 @@ public class MainForm extends JFrame
         });
 
         newJavaMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/java.png"))); // NOI18N
+        newJavaMenu.setMnemonic('J');
         newJavaMenu.setText("New Java File");
+        newJavaMenu.setToolTipText("Create a new Java file inside selected folder");
         newJavaMenu.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -826,7 +851,9 @@ public class MainForm extends JFrame
         });
 
         newCMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/ansi_c.png"))); // NOI18N
+        newCMenu.setMnemonic('A');
         newCMenu.setText("New Ansi C File");
+        newCMenu.setToolTipText("Create a new C file inside selected folder");
         newCMenu.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -836,7 +863,9 @@ public class MainForm extends JFrame
         });
 
         renameMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/rename.png"))); // NOI18N
+        renameMenu.setMnemonic('E');
         renameMenu.setText("Rename");
+        renameMenu.setToolTipText("Rename selected node");
         renameMenu.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -846,12 +875,26 @@ public class MainForm extends JFrame
         });
 
         deleteMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/delete.png"))); // NOI18N
+        deleteMenu.setMnemonic('D');
         deleteMenu.setText("Delete");
+        deleteMenu.setToolTipText("Delete selected node");
         deleteMenu.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
                 deleteMenuActionPerformed(evt);
+            }
+        });
+
+        refreshMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/reload.png"))); // NOI18N
+        refreshMenu.setMnemonic('R');
+        refreshMenu.setText("Refresh");
+        refreshMenu.setToolTipText("Reload the folder explorer");
+        refreshMenu.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                refreshMenuActionPerformed(evt);
             }
         });
 
@@ -861,16 +904,6 @@ public class MainForm extends JFrame
         setBackground(new java.awt.Color(0, 204, 204));
         setUndecorated(true);
         setResizable(false);
-        addWindowFocusListener(new java.awt.event.WindowFocusListener()
-        {
-            public void windowGainedFocus(java.awt.event.WindowEvent evt)
-            {
-            }
-            public void windowLostFocus(java.awt.event.WindowEvent evt)
-            {
-                formWindowLostFocus(evt);
-            }
-        });
         addWindowListener(new java.awt.event.WindowAdapter()
         {
             public void windowClosing(java.awt.event.WindowEvent evt)
@@ -1080,7 +1113,8 @@ public class MainForm extends JFrame
         markValueBox.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 255)));
 
         fullscreenButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/fullscreen.png"))); // NOI18N
-        fullscreenButton.setText("Extend");
+        fullscreenButton.setText("Full Screen");
+        fullscreenButton.setToolTipText("Hides the problem descriptions.");
         fullscreenButton.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -1152,7 +1186,7 @@ public class MainForm extends JFrame
         themeLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         themeLabel.setText("Theme :");
 
-        themeChooser.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Light", "Dark" }));
+        themeChooser.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Dark", "Light" }));
         themeChooser.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -1203,6 +1237,7 @@ public class MainForm extends JFrame
         explorerTree.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
         explorerTree.setToolTipText("");
         explorerTree.setAutoscrolls(true);
+        explorerTree.setDoubleBuffered(true);
         explorerTree.setRowHeight(22);
         explorerTree.setShowsRootHandles(true);
         explorerTree.addMouseListener(new java.awt.event.MouseAdapter()
@@ -1219,22 +1254,16 @@ public class MainForm extends JFrame
                 explorerTreeValueChanged(evt);
             }
         });
+        explorerTree.addKeyListener(new java.awt.event.KeyAdapter()
+        {
+            public void keyReleased(java.awt.event.KeyEvent evt)
+            {
+                explorerTreeKeyReleased(evt);
+            }
+        });
         jScrollPane2.setViewportView(explorerTree);
 
         jPanel10.setLayout(new java.awt.GridLayout(3, 0, 1, 1));
-
-        newFolderToolButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/folder.png"))); // NOI18N
-        newFolderToolButton.setText("Folder");
-        newFolderToolButton.setToolTipText("Create a new folder under selected folder");
-        newFolderToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
-        newFolderToolButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                newFolderToolButtonActionPerformed(evt);
-            }
-        });
-        jPanel10.add(newFolderToolButton);
 
         deleteToolButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/delete.png"))); // NOI18N
         deleteToolButton.setText("Delete");
@@ -1249,9 +1278,35 @@ public class MainForm extends JFrame
         });
         jPanel10.add(deleteToolButton);
 
+        refreshViewButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/reload.png"))); // NOI18N
+        refreshViewButton.setText("Refresh");
+        refreshViewButton.setToolTipText("Reload the folder explorer");
+        refreshViewButton.setPreferredSize(new java.awt.Dimension(110, 25));
+        refreshViewButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                refreshViewButtonActionPerformed(evt);
+            }
+        });
+        jPanel10.add(refreshViewButton);
+
+        newFolderToolButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/folder.png"))); // NOI18N
+        newFolderToolButton.setText("Folder");
+        newFolderToolButton.setToolTipText("Create a new folder inside selected folder");
+        newFolderToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
+        newFolderToolButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                newFolderToolButtonActionPerformed(evt);
+            }
+        });
+        jPanel10.add(newFolderToolButton);
+
         newJavaToolButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/java.png"))); // NOI18N
         newJavaToolButton.setText("Java");
-        newJavaToolButton.setToolTipText("Create a new Java file under selected folder");
+        newJavaToolButton.setToolTipText("Create a new Java file inside selected folder");
         newJavaToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
         newJavaToolButton.addActionListener(new java.awt.event.ActionListener()
         {
@@ -1264,7 +1319,7 @@ public class MainForm extends JFrame
 
         newCPPToolButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/cpp.png"))); // NOI18N
         newCPPToolButton.setText("C++");
-        newCPPToolButton.setToolTipText("Create a new C++ file under selected folder");
+        newCPPToolButton.setToolTipText("Create a new C++ file inside selected folder");
         newCPPToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
         newCPPToolButton.addActionListener(new java.awt.event.ActionListener()
         {
@@ -1277,7 +1332,7 @@ public class MainForm extends JFrame
 
         newCToolButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/ansi_c.png"))); // NOI18N
         newCToolButton.setText("Ansi C");
-        newCToolButton.setToolTipText("Create a new C file under selected folder");
+        newCToolButton.setToolTipText("Create a new C file inside selected folder");
         newCToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
         newCToolButton.addActionListener(new java.awt.event.ActionListener()
         {
@@ -1287,19 +1342,6 @@ public class MainForm extends JFrame
             }
         });
         jPanel10.add(newCToolButton);
-
-        newFileToolButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/file.png"))); // NOI18N
-        newFileToolButton.setText("Text");
-        newFileToolButton.setToolTipText("Create a new text file under selected folder");
-        newFileToolButton.setPreferredSize(new java.awt.Dimension(110, 25));
-        newFileToolButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                newFileToolButtonActionPerformed(evt);
-            }
-        });
-        jPanel10.add(newFileToolButton);
 
         javax.swing.GroupLayout explorerContainerLayout = new javax.swing.GroupLayout(explorerContainer);
         explorerContainer.setLayout(explorerContainerLayout);
@@ -1473,11 +1515,6 @@ public class MainForm extends JFrame
         loadQuestion(questionList.getSelectedValue());
     }//GEN-LAST:event_questionListValueChanged
 
-    private void formWindowLostFocus(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowLostFocus
-    {//GEN-HEADEREND:event_formWindowLostFocus
-        this.setToFullFocus();
-    }//GEN-LAST:event_formWindowLostFocus
-
     private void saveCodeButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_saveCodeButtonActionPerformed
     {//GEN-HEADEREND:event_saveCodeButtonActionPerformed
         saveFileFromEditor();
@@ -1560,11 +1597,15 @@ public class MainForm extends JFrame
     private void fullscreenButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_fullscreenButtonActionPerformed
     {//GEN-HEADEREND:event_fullscreenButtonActionPerformed
         if (fullscreenButton.isSelected()) {
-            mainSplitterPane.setDividerLocation(0); //hide
+            mainSplitterPane.setDividerLocation(0);
+            mainSplitterPane.setDividerSize(0);
+            fullscreenButton.setText("Reset View");
         }
         else {
             double dsz = mainSplitterPane.getResizeWeight() * mainSplitterPane.getWidth();
             mainSplitterPane.setDividerLocation((int) dsz); //show
+            mainSplitterPane.setDividerSize(10);
+            fullscreenButton.setText("Full Screen");
         }
     }//GEN-LAST:event_fullscreenButtonActionPerformed
 
@@ -1573,10 +1614,10 @@ public class MainForm extends JFrame
         createNewFolder();
     }//GEN-LAST:event_newFolderToolButtonActionPerformed
 
-    private void newFileToolButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_newFileToolButtonActionPerformed
-    {//GEN-HEADEREND:event_newFileToolButtonActionPerformed
-        createNewFile(null);
-    }//GEN-LAST:event_newFileToolButtonActionPerformed
+    private void refreshViewButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_refreshViewButtonActionPerformed
+    {//GEN-HEADEREND:event_refreshViewButtonActionPerformed
+        loadFileExplorer();
+    }//GEN-LAST:event_refreshViewButtonActionPerformed
 
     private void newJavaToolButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_newJavaToolButtonActionPerformed
     {//GEN-HEADEREND:event_newJavaToolButtonActionPerformed
@@ -1602,6 +1643,27 @@ public class MainForm extends JFrame
     {//GEN-HEADEREND:event_codeEditorKeyTyped
         saveFileFromEditor();
     }//GEN-LAST:event_codeEditorKeyTyped
+
+    private void refreshMenuActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_refreshMenuActionPerformed
+    {//GEN-HEADEREND:event_refreshMenuActionPerformed
+        loadFileExplorer();
+    }//GEN-LAST:event_refreshMenuActionPerformed
+
+    private void explorerTreeKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_explorerTreeKeyReleased
+    {//GEN-HEADEREND:event_explorerTreeKeyReleased
+        switch (evt.getKeyCode()) {
+            case KeyEvent.VK_F2:
+                if (!explorerTree.isSelectionEmpty())
+                    renameSelectedFile();
+            case KeyEvent.VK_F5:
+                loadFileExplorer();
+            case KeyEvent.VK_N:
+                if (evt.isControlDown() && !evt.isShiftDown() && !evt.isAltDown()
+                        && !explorerTree.isSelectionEmpty())
+                    createNewFolder();
+                break;
+        }
+    }//GEN-LAST:event_explorerTreeKeyReleased
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel answerHeaderPanel;
@@ -1636,7 +1698,6 @@ public class MainForm extends JFrame
     private javax.swing.JButton newCPPToolButton;
     private javax.swing.JButton newCToolButton;
     private javax.swing.JMenuItem newFileMenu;
-    private javax.swing.JButton newFileToolButton;
     private javax.swing.JMenuItem newFolderMenu;
     private javax.swing.JButton newFolderToolButton;
     private javax.swing.JMenuItem newJavaMenu;
@@ -1649,6 +1710,8 @@ public class MainForm extends JFrame
     private javax.swing.JList questionList;
     private javax.swing.JSplitPane questionSplitterPane;
     private javax.swing.JLabel questionTitleBox;
+    private javax.swing.JMenuItem refreshMenu;
+    private javax.swing.JButton refreshViewButton;
     private javax.swing.JLabel registrationNoLabel;
     private javax.swing.JLabel remainingTimeLabel;
     private javax.swing.JMenuItem renameMenu;
