@@ -21,44 +21,73 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
+import javax.swing.SwingUtilities;
 
 /**
  * Console frame to run and test a program.
  */
 public class ConsoleFrame extends javax.swing.JDialog
 {
+    //commands to process
+    private final String mCommands;
+    //executing thread
+    private Thread mExecThread;
 
-    public String commands;
-
-    public ConsoleFrame(String args)
+    public ConsoleFrame(final String args)
     {
         initComponents();
-        commands = args;
-        showOutput("", false);
+        mCommands = args;
+        mExecThread = null;
+        showOutput("", true);
     }
 
-    private void showOutput(String input, boolean showError)
+    private void showOutput(final String input, final boolean showError)
+    {
+        if (mExecThread == null) {
+            mExecThread = new Thread(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    executeProgram(input, showError);
+                }
+            });
+            mExecThread.start();
+        }
+    }
+
+    void executeProgram(final String input, final boolean showError)
     {
         try {
-            Process p = Runtime.getRuntime().exec(commands);
+            clearOutput();
 
-            OutputStream out;
-            out = p.getOutputStream();
-            out.write(input.getBytes());
-            out.flush();
-            out.close();
-            p.waitFor();
+            //execute process
+            Process p = Runtime.getRuntime().exec(mCommands);
+            appendText(">> Process started...\n");
 
-            outputBox.setText("");
+            //give inputs
+            appendText(">> Giving input...\n");
+            try (OutputStream out = p.getOutputStream()) {
+                out.write(input.getBytes());
+            }
+            appendText(">> Waiting to finish...\n");
+            p.waitFor(); //wait till finish            
+
+            //get outputs
+            appendText(">> Getting output...\n");
+
             String inn = Functions.readFully(p.getInputStream(), "UTF-8");
-            if (inn.length() > 0)
-                outputBox.append(inn + "\n");
+            if (inn.length() > 0) {
+                appendText(inn + "\n");
+            }
             if (showError || p.exitValue() != 0) {
                 String err = Functions.readFully(p.getErrorStream(), "UTF-8");
-                if (err.length() > 0)
-                    outputBox.append(err + "\n");
+                if (err.length() > 0) {
+                    appendText(err + "\n");
+                }
             }
-            outputBox.append("Process exited with code: " + p.exitValue() + "\n");
+            appendText(">> Process exited with code: " + p.exitValue() + "\n");
         }
         catch (Exception ex) {
             final StringWriter sw = new StringWriter();
@@ -70,9 +99,45 @@ public class ConsoleFrame extends javax.swing.JDialog
                     sw.write(i);
                 }
             });
-            ex.printStackTrace(ps);
-            outputBox.append(sw.toString() + "\n");
+            appendText(">> " + sw.toString() + "\n");
+
+            ex.printStackTrace();
         }
+        mExecThread = null;
+    }
+
+    private void stopExecution()
+    {
+        try {
+            mExecThread.interrupt();
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void appendText(final String text)
+    {
+        SwingUtilities.invokeLater(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                outputBox.append(text);
+            }
+        });
+    }
+
+    private void clearOutput()
+    {
+        SwingUtilities.invokeLater(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                outputBox.setText("");
+            }
+        });
     }
 
     /**
@@ -98,7 +163,15 @@ public class ConsoleFrame extends javax.swing.JDialog
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Console Window");
         setAlwaysOnTop(true);
+        setMinimumSize(new java.awt.Dimension(735, 300));
         setModal(true);
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosing(java.awt.event.WindowEvent evt)
+            {
+                formWindowClosing(evt);
+            }
+        });
 
         jSplitPane1.setDividerLocation(350);
         jSplitPane1.setDividerSize(8);
@@ -144,7 +217,7 @@ public class ConsoleFrame extends javax.swing.JDialog
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 361, Short.MAX_VALUE)
+            .addGap(0, 373, Short.MAX_VALUE)
             .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING))
         );
@@ -190,10 +263,10 @@ public class ConsoleFrame extends javax.swing.JDialog
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 388, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 51, Short.MAX_VALUE)
                 .addComponent(testCodeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(closeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -230,14 +303,18 @@ public class ConsoleFrame extends javax.swing.JDialog
 
     private void testCodeButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_testCodeButtonActionPerformed
     {//GEN-HEADEREND:event_testCodeButtonActionPerformed
-        String input = inputBox.getText();
-        showOutput(input, false);
+        showOutput(inputBox.getText(), false);
     }//GEN-LAST:event_testCodeButtonActionPerformed
 
     private void closeButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_closeButtonActionPerformed
     {//GEN-HEADEREND:event_closeButtonActionPerformed
         this.dispose();
     }//GEN-LAST:event_closeButtonActionPerformed
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
+    {//GEN-HEADEREND:event_formWindowClosing
+        stopExecution();
+    }//GEN-LAST:event_formWindowClosing
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton closeButton;

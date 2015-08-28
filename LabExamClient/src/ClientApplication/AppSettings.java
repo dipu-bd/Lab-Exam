@@ -16,10 +16,7 @@
  */
 package ClientApplication;
 
-import java.io.File;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.prefs.BackingStoreException;
+import java.io.File; 
 import java.util.prefs.Preferences;
 import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.WinReg;
@@ -37,8 +34,7 @@ public abstract class AppSettings
             = "SYSTEM\\CurrentControlSet\\Control\\Keyboard Layout";
 
     //object to store and get preferences
-    private static final Preferences mPreferences
-            = Preferences.userRoot().node("lab_exam");
+    private static Preferences mPreferences;
 
     // Preference keys for this package
     private static final String JAVAC_PATH = "javac_path";
@@ -53,6 +49,16 @@ public abstract class AppSettings
     private static final String KEYLAYOUT_ENABLED = "keylayout_enabled";
     private static final String KEYLAYOUT_BACKUP = "keylayout_backup";
     private static final String SCANCODE_MAP = "Scancode Map";
+
+    public static void initialize()
+    {
+        try {
+            mPreferences = Preferences.userRoot().node("lab_exam");
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 
     /* Experimental
      public static void flush()

@@ -22,7 +22,7 @@ import javax.swing.JOptionPane;
 /**
  * To modify and change settings
  */
-public class SettingsForm extends javax.swing.JFrame
+public class SettingsForm extends javax.swing.JDialog
 {
 
     /**
@@ -77,36 +77,42 @@ public class SettingsForm extends javax.swing.JFrame
      */
     public boolean disableShortcutKeys()
     {
-        //first check if already disabled
-        if (!AppSettings.getKeyLayoutEnabled()) {
+        try {
+            //first check if already disabled
+            if (!AppSettings.getKeyLayoutEnabled()) {
+                return false;
+            }
+
+            //backup current configs
+            byte[] backup = AppSettings.getScanCodeMap();
+            AppSettings.setKeyLayoutBackup(backup);
+
+            //create new config
+        /*DataFormat: http://www.northcode.com/blog.php/2007/07/25/Securing-Windows-For-Use-As-A-Kiosk */
+            /*Scan Codes: http://www.quadibloc.com/comp/scan.htm */
+            byte[] data = new byte[]{
+                (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, //Header: Version. Set to all zeroes.
+                (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, //Header: Flags. Set to all zeroes.
+                (byte) 0x06, (byte) 0x00, (byte) 0x00, (byte) 0x00, //Number of entries in the map (including null entry).
+                (byte) 0x00, (byte) 0x00, (byte) 0x5B, (byte) 0xE0, //Left  Windows Key (0xE05B) -> Disable (0x0000).
+                (byte) 0x00, (byte) 0x00, (byte) 0x5C, (byte) 0xE0, //Right Windows Key (0xE05C) -> Disable (0x0000).
+                (byte) 0x00, (byte) 0x00, (byte) 0x5D, (byte) 0xE0, //Windows  Menu Key (0xE05D) -> Disable (0x0000).
+                (byte) 0x2A, (byte) 0x00, (byte) 0x38, (byte) 0x00, //Left  ALT Key (0x0038) -> Left Shift Key (0x002A).
+                (byte) 0x36, (byte) 0x00, (byte) 0x38, (byte) 0xE0, //Right ALT Key (0xE038) -> Right Shift Key (0x0036).
+                //(byte)0x00, (byte)0x00, (byte)0x1D, (byte)0x00, //Left  Control Key (0x001D) -> Disable (0x0000).
+                //(byte)0x00, (byte)0x00, (byte)0x1D, (byte)0xE0, //Right Control Key (0xE01D) -> Disable (0x0000).
+                (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 //Null entry.
+            };
+
+            //store new configs
+            AppSettings.setScanCodeMap(data);
+
+            return true;
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
             return false;
         }
-
-        //backup current configs
-        byte[] backup = AppSettings.getScanCodeMap();
-        AppSettings.setKeyLayoutBackup(backup);
-
-        //create new config
-        /*DataFormat: http://www.northcode.com/blog.php/2007/07/25/Securing-Windows-For-Use-As-A-Kiosk */
-        /*Scan Codes: http://www.quadibloc.com/comp/scan.htm */
-        byte[] data = new byte[]{
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, //Header: Version. Set to all zeroes.
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, //Header: Flags. Set to all zeroes.
-            (byte)0x06, (byte)0x00, (byte)0x00, (byte)0x00, //Number of entries in the map (including null entry).
-            (byte)0x00, (byte)0x00, (byte)0x5B, (byte)0xE0, //Left  Windows Key (0xE05B) -> Disable (0x0000).
-            (byte)0x00, (byte)0x00, (byte)0x5C, (byte)0xE0, //Right Windows Key (0xE05C) -> Disable (0x0000).
-            (byte)0x00, (byte)0x00, (byte)0x5D, (byte)0xE0, //Windows  Menu Key (0xE05D) -> Disable (0x0000).
-            (byte)0x2A, (byte)0x00, (byte)0x38, (byte)0x00, //Left  ALT Key (0x0038) -> Left Shift Key (0x002A).
-            (byte)0x36, (byte)0x00, (byte)0x38, (byte)0xE0, //Right ALT Key (0xE038) -> Right Shift Key (0x0036).
-            //(byte)0x00, (byte)0x00, (byte)0x1D, (byte)0x00, //Left  Control Key (0x001D) -> Disable (0x0000).
-            //(byte)0x00, (byte)0x00, (byte)0x1D, (byte)0xE0, //Right Control Key (0xE01D) -> Disable (0x0000).
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 //Null entry.
-        };
-
-        //store new configs
-        AppSettings.setScanCodeMap(data);
-
-        return true;
     }
 
     /**
@@ -117,16 +123,22 @@ public class SettingsForm extends javax.swing.JFrame
      */
     public boolean enableShortcutKeys()
     {
-        //first check if keys are disabled
-        if (AppSettings.getKeyLayoutEnabled()) {
+        try {
+            //first check if keys are disabled
+            if (AppSettings.getKeyLayoutEnabled()) {
+                return false;
+            }
+
+            //restore scan code configs
+            byte[] backup = AppSettings.getKeyLayoutBackup();
+            AppSettings.setScanCodeMap(backup);
+
+            return true;
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
             return false;
         }
-
-        //restore scan code configs
-        byte[] backup = AppSettings.getKeyLayoutBackup();
-        AppSettings.setScanCodeMap(backup);
-
-        return true;
     }
 
     /**
@@ -171,10 +183,10 @@ public class SettingsForm extends javax.swing.JFrame
         disableKeysButton = new javax.swing.JButton();
         enableKeysButton = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Settings");
         setAlwaysOnTop(true);
         setBackground(new java.awt.Color(220, 210, 230));
+        setModal(true);
         setResizable(false);
 
         jPanel1.setBackground(new java.awt.Color(217, 229, 241));
@@ -638,18 +650,31 @@ public class SettingsForm extends javax.swing.JFrame
     private void disableKeysButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_disableKeysButtonActionPerformed
     {//GEN-HEADEREND:event_disableKeysButtonActionPerformed
         if (disableShortcutKeys()) {
-            JOptionPane.showMessageDialog(this,
-                    "Disabled the windows shortcut keys.\r\n"
-                    + "Please RESTART the computer to make it working.");
+            JOptionPane.showMessageDialog(this, String.format(
+                    "Disabled the windows shortcut keys.%n"
+                    + "Please RESTART the computer to make it working."));
+        }
+        else
+        {  
+            JOptionPane.showMessageDialog(this, String.format(
+                    "Failed to disable the windows shortcut keys.%n"
+                    + "Make sure this application has Administrator privilege."));
+            
         }
     }//GEN-LAST:event_disableKeysButtonActionPerformed
 
     private void enableKeysButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_enableKeysButtonActionPerformed
     {//GEN-HEADEREND:event_enableKeysButtonActionPerformed
         if (enableShortcutKeys()) {
-            JOptionPane.showMessageDialog(this,
-                    "Enabled the windows shortcut keys.\r\n"
-                    + "Please RESTART the computer to make it working.");
+            JOptionPane.showMessageDialog(this, String.format(
+                    "Enabled the windows shortcut keys.%n"
+                    + "Please RESTART the computer to make it working."));
+        }
+        else 
+        {
+             JOptionPane.showMessageDialog(this, String.format(
+                    "Failed to enable the windows shortcut keys.%n"
+                    + "Make sure this application has Administrator privilege."));
         }
     }//GEN-LAST:event_enableKeysButtonActionPerformed
 

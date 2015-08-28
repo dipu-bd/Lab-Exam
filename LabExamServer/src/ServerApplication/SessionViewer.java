@@ -43,26 +43,29 @@ import javax.swing.text.DefaultCaret;
  *
  * @author Dipu
  */
-public class SessionViewer extends javax.swing.JFrame
-{
+public class SessionViewer extends javax.swing.JFrame {
+
+    //number of predefined headers
+
+    private final int PRE_HEADER_SIZE = 6;
+
     /**
      * Constructor for current class
      *
      * @param parent Parent frame to set
      * @param curExam Current Exam object to work with
      */
-    public SessionViewer(JFrame parent, CurrentExam curExam)
-    {
+    public SessionViewer(JFrame parent, CurrentExam curExam) {
         mParentForm = parent;
         mCurrentExam = curExam;
         mExam = curExam.getExamination();
         mTimer = new Timer();
         mLogger = Logger.getLogger("LabExam");
         mLabExamServer = new LabExamServer();
-        
-        initComponents();        
+
+        initComponents();
         setToFullFocus();
-        
+
         initiateOthers();
         loadValues();
     }
@@ -86,14 +89,11 @@ public class SessionViewer extends javax.swing.JFrame
      *
      * Also various other initialization task is performed from here.
      */
-    private void initiateOthers()
-    {
+    private void initiateOthers() {
         //initialize logger           
-        mLogger.addHandler(new StreamHandler(System.out, new Formatter()
-        {
+        mLogger.addHandler(new StreamHandler(System.out, new Formatter() {
             @Override
-            public String format(LogRecord lr)
-            {
+            public String format(LogRecord lr) {
                 String msg = (new Date(lr.getMillis())).toString() + " : ";
                 msg += lr.getLevel().getName() + " : ";
                 msg += lr.getMessage() + "\n";
@@ -103,11 +103,9 @@ public class SessionViewer extends javax.swing.JFrame
         }));
 
         //initialize timer
-        TimerTask tt = new TimerTask()
-        {
+        TimerTask tt = new TimerTask() {
             @Override
-            public void run()
-            {
+            public void run() {
                 setRemainingTime();
             }
         };
@@ -120,17 +118,14 @@ public class SessionViewer extends javax.swing.JFrame
         loadCandidateList();
 
         //add user changed lister
-        mCurrentExam.addUserChangedHandler(new UserChangedHandler()
-        {
+        mCurrentExam.addUserChangedHandler(new UserChangedHandler() {
             @Override
-            public void userChanged(UserChangeEvent ae)
-            {
+            public void userChanged(UserChangeEvent ae) {
                 loadCandidateList();
             }
-            
+
             @Override
-            public void userSubmitted(UserChangeEvent ae)
-            {
+            public void userSubmitted(UserChangeEvent ae) {
                 loadCandidateList();
             }
         });
@@ -139,8 +134,7 @@ public class SessionViewer extends javax.swing.JFrame
     /**
      * Load the exam information and show them to the user.
      */
-    public final void loadValues()
-    {
+    public final void loadValues() {
         titleBox.setText(mExam.getExamTitle());
         questionCountBox.setText(Integer.toString(mExam.getQuestionCount()));
         startTimeBox.setText(Functions.formatTime(mExam.getStartTime()));
@@ -152,26 +146,21 @@ public class SessionViewer extends javax.swing.JFrame
      * This method is called periodically. It will update the remaining
      * time/refresh the exam status.
      */
-    private void setRemainingTime()
-    {
+    private void setRemainingTime() {
         try {
             long now = System.currentTimeMillis();
             long start = mExam.getStartTime().getTime();
             long stop = start + mExam.getDuration() * 60000;
-            
+
             String msg;
-            if (now < start) //exam waiting
-            {
+            if (mExam.isWaiting()) {
                 msg = "Exam will start in ";
                 msg += Functions.formatTimeSpan(start - now);
                 remainingTimeBox.setText(msg);
-                endExamButton.setText("Exit");
             }
-            else if (now > stop) //exam finished
-            {
+            else if (mExam.isOver()) {
                 msg = "Exam is finished.";
                 remainingTimeBox.setText(msg);
-                endExamButton.setText("Exit");
             }
             else //exam is running
             {
@@ -179,7 +168,18 @@ public class SessionViewer extends javax.swing.JFrame
                 msg += Functions.formatTimeSpan(stop - now);
                 msg += " remaining.";
                 remainingTimeBox.setText(msg);
+            }
+
+            if (mLabExamServer.isBusy()) {
                 endExamButton.setText("Stop Exam");
+            }
+            else {
+                if (mExam.isRunning()) {
+                    endExamButton.setText("Start Exam");
+                }
+                else {
+                    endExamButton.setText("Exit");
+                }
             }
         }
         catch (Exception ex) {
@@ -191,39 +191,36 @@ public class SessionViewer extends javax.swing.JFrame
      * Make this SessionCreator frame visible as a modal. This enables editing
      * exam information.
      */
-    private void showSessionCreator()
-    {
-        javax.swing.SwingUtilities.invokeLater(new Runnable()
-        {
+    private void showSessionCreator() {
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
             @Override
-            public void run()
-            {
+            public void run() {
                 (new SessionCreator(null, mCurrentExam)).setVisible(true);
             }
         });
     }
 
     /**
-     * Process messages by logger.
+     * Process messages by logger. Display and save to log file.
      *
      * @param msg Log message to process.
      */
-    private void processLogs(String msg)
-    {
-        statusBox.append(msg);        
+    private void processLogs(String msg) {
+        statusBox.append(msg);
     }
 
     /**
      * This list will show the candidates status and problems they submitted
      */
-    private void loadCandidateList()
-    {
-        //number of predefined headers
-        final int PRE_HEADER = 6;
+    private void loadCandidateList() {
+        /* If any changes occurs here, values inside 
+         *      openSubmissionFolder()
+         * should be updated.
+         */
 
         //add headers
         int qcount = mExam.getQuestionCount();
-        String[] header = new String[qcount + PRE_HEADER];
+        String[] header = new String[qcount + PRE_HEADER_SIZE];
         header[0] = "ID";
         header[1] = "Name";
         header[2] = "Reg No";
@@ -231,14 +228,14 @@ public class SessionViewer extends javax.swing.JFrame
         header[4] = "Status";
         header[5] = "Login \r\nAttempts";
         //add questions as headers
-        int row = PRE_HEADER;
+        int row = PRE_HEADER_SIZE;
         for (Question ques : mExam.getAllQuestion()) {
             header[row++] = String.format("Question %02d", ques.getId());
         }
 
         //add items
         int siz = mExam.getCandidateCount();
-        Object data[][] = new Object[siz][qcount + PRE_HEADER];
+        Object data[][] = new Object[siz][qcount + PRE_HEADER_SIZE];
         row = 0;
         for (Candidate cd : mExam.getAllCandidate()) {
             //set general data
@@ -259,7 +256,7 @@ public class SessionViewer extends javax.swing.JFrame
             }
 
             //set question data
-            int col = PRE_HEADER;
+            int col = PRE_HEADER_SIZE;
             for (Question qt : mExam.getAllQuestion()) {
                 File subPath = mCurrentExam.getSubmissionPath(cd.getRegNo(), qt.getId());
                 data[row][col++] = subPath.exists() ? "Submitted" : "-";
@@ -269,79 +266,90 @@ public class SessionViewer extends javax.swing.JFrame
 
         //set the table model
         submissionTable.setModel(
-                new DefaultTableModel(data, header)
-                {
+                new DefaultTableModel(data, header) {
                     @Override
-                    public boolean isCellEditable(int rowIndex, int columnIndex)
-                    {
+                    public boolean isCellEditable(int rowIndex, int columnIndex) {
                         return false;
                     }
                 }
         );
-        
+
     }
 
     /**
      * Open the folder in which the submissions of candidates are saved.
      */
-    private void openSubmissionFolder()
-    {
+    private void openSubmissionFolder() {
         try {
             int r = submissionTable.getSelectedRow();
             int c = submissionTable.getSelectedColumn();
-            
-            File path = mExam.getSubmissionPath();
-            if (r >= 0 && c > 2) {
-                String regno = (String) submissionTable.getValueAt(r, 2);
-                String name = submissionTable.getColumnName(c);
-                name = name.substring(name.lastIndexOf(" "));
-                int qid = Integer.parseInt(name.trim());
-                path = mCurrentExam.getSubmissionPath(regno, qid);
+
+            if (r >= 0 && c >= PRE_HEADER_SIZE) //on question list 
+            {
+                String reg = (String) submissionTable.getValueAt(r, 2); //reg no
+                String ques = submissionTable.getColumnName(c);
+                ques = ques.substring(ques.lastIndexOf(" "));
+                int qid = Integer.parseInt(ques.trim());
+                File path = mCurrentExam.getSubmissionPath(reg, qid);
+                if (path.exists()) {
+                    Desktop.getDesktop().open(path);
+                }
             }
-            else if (r >= 0) {
-                String regno = (String) submissionTable.getValueAt(r, 2);
-                path = mCurrentExam.getSubmissionPath(regno, 1);
-                path = path.getParentFile();
-            }
-            if (path.exists()) {
-                Desktop.getDesktop().open(path);
+            else if (r >= 0 && c == 5) //login attempts
+            {
+                int id = (int) submissionTable.getValueAt(r, 0); //id
+                String msg = "IP(s) used by this candidate:";
+                for (String ip : mCurrentExam.getCandidateStatus(id).getIpList()) {
+                    msg = msg + System.lineSeparator() + "    " + ip;
+                }
+                JOptionPane.showMessageDialog(this, msg);
             }
         }
         catch (NumberFormatException | IOException ex) {
+            ex.printStackTrace();
         }
     }
 
     /**
      * Maximize the current window and bring it into focus.
      */
-    private void setToFullFocus()
-    {
+    private void setToFullFocus() {
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
         this.setFocusableWindowState(true);
+    }
+
+    /**
+     * Stops the server in the middle of an examination.
+     */
+    private void StopExamination() {
+        if (mLabExamServer.isBusy()) {
+            //stop exam             
+            if (mExam.isRunning()) {
+                int result = JOptionPane.showConfirmDialog(this,
+                        "Are you going to stop the current examination?",
+                        "Exit Application", JOptionPane.YES_NO_OPTION);
+                if (result != JOptionPane.YES_OPTION) {
+                    return;
+                }
+            }
+            mLabExamServer.StopListening();
+        }
     }
 
     /**
      * This will close the current application with a warning message. It will
      * make the parent form visible after closing
      */
-    private void exitApplication()
-    {
-        int result = JOptionPane.YES_OPTION;
-        if (mExam.isRunning()) {
-            result = JOptionPane.showConfirmDialog(this,
-                    "Are you going to stop the current examination?",
-                    "Exit Application", JOptionPane.YES_NO_OPTION);
-        }
-        if (result == JOptionPane.YES_OPTION) {
-            mLabExamServer.StopListening();
+    private void exitApplication() {
+        StopExamination();
+        if (!mLabExamServer.isBusy()) {
             mTimer.cancel();
             this.dispose();
             mParentForm.setVisible(true);
         }
     }
-    
-    void addExtraFiveMinutes()
-    {
+
+    void addExtraFiveMinutes() {
         final int MIN_TO_ADD = 5;
         try {
             long time = mExam.getStartTime().getTime();
@@ -377,16 +385,17 @@ public class SessionViewer extends javax.swing.JFrame
         endExamButton = new javax.swing.JButton();
         editorButton = new javax.swing.JButton();
         mainTabPane = new javax.swing.JTabbedPane();
-        jPanel1 = new javax.swing.JPanel();
+        tabPage1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         statusBox = new javax.swing.JTextArea();
-        jPanel3 = new javax.swing.JPanel();
+        tabPage2 = new javax.swing.JPanel();
         jScrollPane6 = new javax.swing.JScrollPane();
         submissionTable = new javax.swing.JTable();
         jPanel11 = new javax.swing.JPanel();
         refreshSubmissionButton = new javax.swing.JButton();
         openSubFolderButton = new javax.swing.JButton();
         candidateCount = new javax.swing.JLabel();
+        tabPage3 = new javax.swing.JPanel();
         jPanel5 = new javax.swing.JPanel();
         titleBox = new javax.swing.JLabel();
         questionCountBox = new javax.swing.JLabel();
@@ -454,6 +463,7 @@ public class SessionViewer extends javax.swing.JFrame
         );
 
         mainTabPane.setBackground(new java.awt.Color(195, 210, 221));
+        mainTabPane.setDoubleBuffered(true);
         mainTabPane.setOpaque(true);
 
         statusBox.setEditable(false);
@@ -468,18 +478,18 @@ public class SessionViewer extends javax.swing.JFrame
         statusBox.getCaret().setVisible(true);
         ((DefaultCaret)statusBox.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout tabPage1Layout = new javax.swing.GroupLayout(tabPage1);
+        tabPage1.setLayout(tabPage1Layout);
+        tabPage1Layout.setHorizontalGroup(
+            tabPage1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 740, Short.MAX_VALUE)
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        tabPage1Layout.setVerticalGroup(
+            tabPage1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 337, Short.MAX_VALUE)
         );
 
-        mainTabPane.addTab("Exam Status", jPanel1);
+        mainTabPane.addTab("Exam Status", tabPage1);
 
         submissionTable.setAutoCreateRowSorter(true);
         submissionTable.setBackground(new java.awt.Color(223, 255, 255));
@@ -556,26 +566,39 @@ public class SessionViewer extends javax.swing.JFrame
                 .addGap(3, 3, 3))
         );
 
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
+        javax.swing.GroupLayout tabPage2Layout = new javax.swing.GroupLayout(tabPage2);
+        tabPage2.setLayout(tabPage2Layout);
+        tabPage2Layout.setHorizontalGroup(
+            tabPage2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(tabPage2Layout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(tabPage2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel11, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 740, Short.MAX_VALUE)))
         );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
+        tabPage2Layout.setVerticalGroup(
+            tabPage2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(tabPage2Layout.createSequentialGroup()
                 .addComponent(jPanel11, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
                 .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 299, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
 
-        mainTabPane.addTab("Candidate Status", jPanel3);
+        mainTabPane.addTab("Candidate Status", tabPage2);
+
+        javax.swing.GroupLayout tabPage3Layout = new javax.swing.GroupLayout(tabPage3);
+        tabPage3.setLayout(tabPage3Layout);
+        tabPage3Layout.setHorizontalGroup(
+            tabPage3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 740, Short.MAX_VALUE)
+        );
+        tabPage3Layout.setVerticalGroup(
+            tabPage3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 337, Short.MAX_VALUE)
+        );
+
+        mainTabPane.addTab("Exam Overview", tabPage3);
 
         jPanel5.setBackground(new java.awt.Color(163, 236, 239));
         jPanel5.setLayout(new java.awt.GridBagLayout());
@@ -699,7 +722,6 @@ public class SessionViewer extends javax.swing.JFrame
         ipAddressBox.setBackground(new java.awt.Color(230, 245, 243));
         ipAddressBox.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
         ipAddressBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        ipAddressBox.setText("10.100.32.116:1661");
         ipAddressBox.setToolTipText("IP Address of the server.");
         ipAddressBox.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 102, 102)));
         ipAddressBox.setOpaque(true);
@@ -735,7 +757,15 @@ public class SessionViewer extends javax.swing.JFrame
     }// </editor-fold>//GEN-END:initComponents
 
     private void endExamButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_endExamButtonActionPerformed
-        exitApplication();
+        if (endExamButton.getText().equalsIgnoreCase("exit")) {
+            exitApplication();
+        }
+        else if (mLabExamServer.isBusy()) {
+            StopExamination();
+        }
+        else {
+            mLabExamServer.StartListening();
+        }
     }//GEN-LAST:event_endExamButtonActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
@@ -785,9 +815,7 @@ public class SessionViewer extends javax.swing.JFrame
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel11;
-    private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
@@ -800,6 +828,9 @@ public class SessionViewer extends javax.swing.JFrame
     private javax.swing.JLabel startTimeBox;
     private javax.swing.JTextArea statusBox;
     private javax.swing.JTable submissionTable;
+    private javax.swing.JPanel tabPage1;
+    private javax.swing.JPanel tabPage2;
+    private javax.swing.JPanel tabPage3;
     private javax.swing.JLabel titleBox;
     // End of variables declaration//GEN-END:variables
 }

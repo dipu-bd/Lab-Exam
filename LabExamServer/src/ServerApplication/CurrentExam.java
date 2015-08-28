@@ -31,7 +31,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap; 
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,10 +40,9 @@ import java.util.logging.Logger;
  *
  * @author Dipu
  */
-public class CurrentExam
-{
-    CurrentExam()
-    {
+public class CurrentExam {
+
+    CurrentExam() {
         mClients = new HashMap<>();
         mCurExam = new Examination();
         userChangeListener = new ArrayList<>();
@@ -63,8 +62,7 @@ public class CurrentExam
      *
      * @return File in which this object is stored.
      */
-    public File getExamPath()
-    {
+    public File getExamPath() {
         return mExamPath;
     }
 
@@ -73,8 +71,7 @@ public class CurrentExam
      *
      * @param path File in which this object is stored.
      */
-    public void setExamPath(File path)
-    {
+    public void setExamPath(File path) {
         mExamPath = path;
     }
 
@@ -83,8 +80,7 @@ public class CurrentExam
      *
      * @return Examination object.
      */
-    public Examination getExamination()
-    {
+    public Examination getExamination() {
         return mCurExam;
     }
 
@@ -93,8 +89,7 @@ public class CurrentExam
      *
      * @param exam Examination object.
      */
-    public void setExamination(Examination exam)
-    {
+    public void setExamination(Examination exam) {
         mCurExam = exam;
     }
 
@@ -103,8 +98,7 @@ public class CurrentExam
      *
      * @return HasSet of the connected candidates.
      */
-    public HashMap<Integer, CandidateStatus> getAllClients()
-    {
+    public HashMap<Integer, CandidateStatus> getAllClients() {
         return mClients;
     }
 
@@ -114,8 +108,7 @@ public class CurrentExam
      * @param candidateId Candidate id to check.
      * @return True if the candidate logged in once before; False otherwise.
      */
-    public boolean isAvaiable(int candidateId)
-    {
+    public boolean isAvaiable(int candidateId) {
         return mClients != null && mClients.containsKey(candidateId);
     }
 
@@ -125,8 +118,7 @@ public class CurrentExam
      * @param candidateId Candidate id to check.
      * @return True if the candidate logged in now; False otherwise.
      */
-    public boolean isLoggedIn(int candidateId)
-    {
+    public boolean isLoggedIn(int candidateId) {
         return isAvaiable(candidateId) && mClients.get(candidateId).isConnected();
     }
 
@@ -136,8 +128,7 @@ public class CurrentExam
      * @param candidateId Candidate id to check.
      * @return CandidateStatus object.
      */
-    public CandidateStatus getCandidateStatus(int candidateId)
-    {
+    public CandidateStatus getCandidateStatus(int candidateId) {
         return mClients.get(candidateId);
     }
 
@@ -151,13 +142,12 @@ public class CurrentExam
      * format.
      */
     public void LoadFromFile(File file)
-            throws FileNotFoundException, IOException, ClassNotFoundException
-    {
+            throws FileNotFoundException, IOException, ClassNotFoundException {
         //a little clean up
         mClients.clear();
         //load data from file
         try (FileInputStream fin = new FileInputStream(file);
-             ObjectInputStream ois = new ObjectInputStream(fin)) {
+                ObjectInputStream ois = new ObjectInputStream(fin)) {
             mCurExam = (Examination) ois.readObject();
             mCurExam.recycleLastIDs();
             mExamPath = file;
@@ -171,10 +161,9 @@ public class CurrentExam
      * @throws IOException When writing to file is failed due to some reason
      */
     public void SaveToFile()
-            throws FileNotFoundException, IOException
-    {
+            throws FileNotFoundException, IOException {
         try (FileOutputStream fos = new FileOutputStream(mExamPath);
-             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+                ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(mCurExam);
             oos.flush();
         }
@@ -186,8 +175,7 @@ public class CurrentExam
      *
      * @return Candidate list in CSV format.
      */
-    public String getCandidateCSV()
-    {
+    public String getCandidateCSV() {
         String output = "";
         for (Candidate c : mCurExam.getAllCandidate()) {
             output += String.format("%s,%s,%s\n",
@@ -202,16 +190,17 @@ public class CurrentExam
      *
      * @param input CSV in this format: Name, RegNo.
      */
-    public void setCandidateCSV(String input)
-    {
+    public void setCandidateCSV(String input) {
         mCurExam.getAllCandidate().clear();
         for (String line : input.split("\n")) {
-            if (line.trim().isEmpty())
+            if (line.trim().isEmpty()) {
                 continue;
+            }
             String[] val = line.split(",");
             Candidate c = mCurExam.addCandidate(val[0].trim(), val[1].trim());
-            if (val.length == 3)
+            if (val.length == 3) {
                 c.setPassword(val[2].trim());
+            }
         }
     }
 
@@ -223,12 +212,12 @@ public class CurrentExam
      * @param ip IP Address of client.
      * @return True on success.
      */
-    public boolean assignUser(String regNo, String pass, String ip)
-    {
+    public boolean assignUser(String regNo, String pass, String ip) {
         //check if candidate exist
         int uid = mCurExam.getCandidateID(regNo);
-        if (!mCurExam.isCandidateExist(uid))
+        if (!mCurExam.isCandidateExist(uid)) {
             return false;
+        }
 
         //check the candidates password
         Candidate candy = mCurExam.getCandidate(uid);
@@ -247,14 +236,12 @@ public class CurrentExam
             return false;
         }
 
-        //add to connected client list and raise user change event
-        if (mClients.containsKey(uid)) {
-            mClients.get(uid).increaseLoginCount();
-            System.out.println(mClients.get(uid).getLoginCount());
+        //update connected client list and raise user change event
+        if (!mClients.containsKey(uid)) {
+            mClients.put(uid, new CandidateStatus(uid));
         }
-        else {
-            mClients.put(uid, new CandidateStatus(uid, true));
-        }
+        mClients.get(uid).increaseLoginCount();
+        mClients.get(uid).addIp(ip);
         invokeUserChanged(new UserChangeEvent(uid, true));
 
         Logger.getLogger("LabExam").log(Level.INFO,
@@ -270,12 +257,12 @@ public class CurrentExam
      * @param ip IP Address of the client.
      * @return True if success, False otherwise.
      */
-    public boolean removeUser(String regNo, String ip)
-    {
+    public boolean removeUser(String regNo, String ip) {
         //check if candidate exist
         int uid = mCurExam.getCandidateID(regNo);
-        if (!mCurExam.isCandidateExist(uid))
+        if (!mCurExam.isCandidateExist(uid)) {
             return false;
+        }
 
         String name = mCurExam.getCandidate(uid).getName();
         if (mClients.containsKey(uid)) {
@@ -304,8 +291,7 @@ public class CurrentExam
      * @param regno Registration number of the candidate.
      * @return Path to save candidate's submissions.
      */
-    public File getSubmissionPath(String regno)
-    {
+    public File getSubmissionPath(String regno) {
         Path par = mCurExam.getSubmissionPath().toPath();
         par = par.resolve(regno);
         return par.toFile();
@@ -318,8 +304,7 @@ public class CurrentExam
      * @param qid ID of the question involved.
      * @return Path to save submission to the question.
      */
-    public File getSubmissionPath(String regno, int qid)
-    {
+    public File getSubmissionPath(String regno, int qid) {
         Path par = mCurExam.getSubmissionPath().toPath();
         par = par.resolve(regno);
         par = par.resolve("Question_" + qid);
@@ -335,8 +320,7 @@ public class CurrentExam
      * @param answers Answer data of the submission.
      * @return True on success False otherwise.
      */
-    public boolean receiveAnswer(String regNo, int quesId, Object[] answers)
-    {
+    public boolean receiveAnswer(String regNo, int quesId, Object[] answers) {
         // do not take submission if exam is not running
         if (!mCurExam.isRunning()) {
             return false;
@@ -344,8 +328,9 @@ public class CurrentExam
 
         //convert registration number to id
         int uid = mCurExam.getCandidateID(regNo);
-        if (!mCurExam.isCandidateExist(uid))
+        if (!mCurExam.isCandidateExist(uid)) {
             return false;
+        }
         String name = mCurExam.getCandidate(uid).getName();
 
         //get path to save answer
@@ -382,6 +367,7 @@ public class CurrentExam
                             name, regNo, quesId, success, answers.length));
         }
 
+        getCandidateStatus(uid).addSubmission(quesId, mCurExam.getQuestion(quesId).getMark());
         return (success == answers.length);
     }
 
@@ -391,8 +377,7 @@ public class CurrentExam
      * @param handler Event handler to add.
      * @return True if successfully added; False otherwise.
      */
-    public boolean addUserChangedHandler(UserChangedHandler handler)
-    {
+    public boolean addUserChangedHandler(UserChangedHandler handler) {
         return userChangeListener.add(handler);
     }
 
@@ -402,8 +387,7 @@ public class CurrentExam
      * @param handler Event handler to remove.
      * @return True if successfully removed; False otherwise.
      */
-    public boolean removeUserChangedHandler(UserChangedHandler handler)
-    {
+    public boolean removeUserChangedHandler(UserChangedHandler handler) {
         return userChangeListener.remove(handler);
     }
 
@@ -412,8 +396,7 @@ public class CurrentExam
      *
      * @param uce User Change Event to invoke.
      */
-    public void invokeUserChanged(UserChangeEvent uce)
-    {
+    public void invokeUserChanged(UserChangeEvent uce) {
         // Notify everybody who are connected
         for (UserChangedHandler handler : userChangeListener) {
             handler.userChanged(uce);
@@ -425,8 +408,7 @@ public class CurrentExam
      *
      * @param uce User Change Event to invoke.
      */
-    public void invokeUserSubmitted(UserChangeEvent uce)
-    {
+    public void invokeUserSubmitted(UserChangeEvent uce) {
         // Notify everybody who are connected
         for (UserChangedHandler handler : userChangeListener) {
             handler.userSubmitted(uce);

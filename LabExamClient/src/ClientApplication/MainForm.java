@@ -29,8 +29,12 @@ import java.util.TimerTask;
 import javax.swing.JOptionPane;
 import javax.swing.text.DefaultCaret;
 import Utilities.Question;
-import java.awt.Font;
+import java.awt.Color;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.HeadlessException;
+import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -67,24 +71,27 @@ public class MainForm extends JFrame
     private final SwingController mPdfViewer;
 
     //current server time
-    private long mTimeDiff = 0;
-    ;
+    private long mTimeOffset = 0;
     //stop time of the examination
     private long mStopTime = -1;
-    //all question data of the examination
-    private ArrayList<Question> mAllQuestion;
     //selected question data of the examination
     private Question mSelectedQues = null;
     //selected folder node on editor
     private DefaultMutableTreeNode mSelectedNode = null;
+    //opened file
+    private File mOpenedFile = null;
 
     /**
      * Creates a new MazinForm
      *
      * @param parent Parent object to this form
      * @param serverLink ServerLink to use for communication.
+     * @param quesList Question list for this exam. If none a null reference
+     * should be sent.
      */
-    public MainForm(JFrame parent, ServerLink serverLink)
+    public MainForm(
+            JFrame parent,
+            ServerLink serverLink)
     {
         mParentForm = parent;
         mServerLink = serverLink;
@@ -96,6 +103,7 @@ public class MainForm extends JFrame
         initPdfControl();
         initFileExplorer();
 
+        Utilities.Clipboard.ClearAll();
         Functions.setToFullFocus(this);
 
         //load default values
@@ -112,43 +120,13 @@ public class MainForm extends JFrame
     public void endExam()
     {
         mStopTime = mServerLink.getStopTime();
-        long now = System.currentTimeMillis() + mTimeDiff;
+        long now = System.currentTimeMillis() + mTimeOffset;
         if (mStopTime < now) {
             mTimer.cancel();
-            this.dispose();
-
-            JOptionPane.showMessageDialog(this, "Exam is over.");
             mServerLink.logoutUser();
-            mParentForm.setVisible(true);
+            (new OverviewForm(mServerLink)).setVisible(true);
+            this.dispose();
         }
-    }
-
-    /**
-     * Initialize periodic tasks
-     */
-    private void initTimerTasks()
-    {
-        //update data in display 
-        TimerTask updateTask = new TimerTask()
-        {
-            @Override
-            public void run()
-            {
-                updateValues();
-            }
-        };
-        mTimer.scheduleAtFixedRate(updateTask, 0, SERVER_UPDATE_INTERVAL);
-
-        //download data periodically
-        TimerTask refreshTask = new TimerTask()
-        {
-            @Override
-            public void run()
-            {
-                refreshValues();
-            }
-        };
-        mTimer.scheduleAtFixedRate(refreshTask, 0, FORM_DATA_REFRESH_INTERVAL);
     }
 
     /**
@@ -181,21 +159,26 @@ public class MainForm extends JFrame
      */
     private void initFileExplorer()
     {
+        //setup explorer tree
         explorerTree.setModel(new DefaultTreeModel(null));
         explorerTree.setCellRenderer(new MyTreeRenderer());
         explorerTree.putClientProperty("JTree.lineStyle", "Angled");
-        explorerTree.getSelectionModel().setSelectionMode(1); //javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION        
-        //explorerTree.setComponentPopupMenu(explorerPopup);
+        explorerTree.getSelectionModel().setSelectionMode(1); //javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION                
 
-        //build up popup menu 
-        explorerPopup.add(newFolderMenu);
-        explorerPopup.add(new JPopupMenu.Separator());
-        explorerPopup.add(newFileMenu);
-        explorerPopup.add(newJavaMenu);
-        explorerPopup.add(newCPPMenu);
-        explorerPopup.add(newCMenu);
+        //build up add new popup
+        addNewMenu.add(newFolderMenu);
+        addNewMenu.add(new JPopupMenu.Separator());
+        addNewMenu.add(newFileMenu);
+        addNewMenu.add(newJavaMenu);
+        addNewMenu.add(newCPPMenu);
+        addNewMenu.add(newCMenu);
+
+        //build up exploerer popup
+        explorerPopup.add(addNewMenu);
         explorerPopup.add(new JPopupMenu.Separator());
         explorerPopup.add(renameMenu);
+        explorerPopup.add(copyMenu);
+        explorerPopup.add(pasteMenu);
         explorerPopup.add(deleteMenu);
         explorerPopup.add(new JPopupMenu.Separator());
         explorerPopup.add(refreshMenu);
@@ -206,10 +189,16 @@ public class MainForm extends JFrame
      */
     private void loadValues()
     {
+        //display data
         registrationNoLabel.setText("   " + mServerLink.getRegistrationNo() + "   ");
         examTitleLabel.setText(mServerLink.getExamTitle());
-        downloadQuestions();
+        this.setTitle(examTitleLabel.getText());
+        questionList.setListData(mServerLink.getAllQuestions().toArray());
+        if (mServerLink.getQuestionCount() > 0) {
+            questionList.setSelectedIndex(0);
+        }
 
+        //set predefined splitter size
         double dsz = codeSplitPane.getResizeWeight() * codeSplitPane.getHeight();
         codeSplitPane.setDividerLocation((int) dsz);
         dsz = mainSplitterPane.getResizeWeight() * mainSplitterPane.getWidth();
@@ -217,15 +206,31 @@ public class MainForm extends JFrame
     }
 
     /**
-     * Download and set all questions of this examination.
+     * Initialize periodic tasks
      */
-    private void downloadQuestions()
+    private void initTimerTasks()
     {
-        mAllQuestion = mServerLink.getAllQuestions();
-        questionList.setListData(mAllQuestion.toArray());
-        if (!mAllQuestion.isEmpty()) {
-            questionList.setSelectedIndex(0);
-        }
+        //update data in display 
+        TimerTask updateTask = new TimerTask()
+        {
+            @Override
+            public void run()
+            {
+                updateValues();
+            }
+        };
+        mTimer.scheduleAtFixedRate(updateTask, 0, SERVER_UPDATE_INTERVAL);
+
+        //download data periodically
+        TimerTask refreshTask = new TimerTask()
+        {
+            @Override
+            public void run()
+            {
+                refreshValues();
+            }
+        };
+        mTimer.scheduleAtFixedRate(refreshTask, 100, FORM_DATA_REFRESH_INTERVAL);
     }
 
     /**
@@ -234,7 +239,7 @@ public class MainForm extends JFrame
     public void updateValues()
     {
         mStopTime = mServerLink.getStopTime();
-        mTimeDiff = mServerLink.getServerTime() - System.currentTimeMillis();
+        mTimeOffset = mServerLink.getServerTime() - System.currentTimeMillis();
     }
 
     /**
@@ -242,7 +247,7 @@ public class MainForm extends JFrame
      */
     void refreshValues()
     {
-        long now = System.currentTimeMillis() + mTimeDiff;
+        long now = System.currentTimeMillis() + mTimeOffset;
         if (mStopTime < now) {
             endExam();
             return;
@@ -272,7 +277,7 @@ public class MainForm extends JFrame
      *
      * @param selected Selected Question type object.
      */
-    void loadQuestion(Object selected)
+    private void loadQuestion(Object selected)
     {
         try {
             mSelectedQues = (Question) selected;
@@ -303,7 +308,7 @@ public class MainForm extends JFrame
     /**
      * Loads file explorer folders and files.
      */
-    void loadFileExplorer()
+    private void loadFileExplorer()
     {
         if (mSelectedQues == null) {
             return;
@@ -331,9 +336,11 @@ public class MainForm extends JFrame
      * @param node Parent node to add file nodes.
      * @param dir Parent directory to look into.
      */
-    void loadFileList(DefaultMutableTreeNode node, File dir)
+    private void loadFileList(DefaultMutableTreeNode node, File dir)
     {
-        if (!dir.isDirectory()) return;
+        if (!dir.isDirectory()) {
+            return;
+        }
 
         node.setAllowsChildren(true);
         for (File f : dir.listFiles()) {
@@ -356,12 +363,26 @@ public class MainForm extends JFrame
     }
 
     /**
+     * Closes a opened file from editing.
+     */
+    private void closeOpenedFile()
+    {
+        mOpenedFile = null;
+        codeEditor.setText("");
+        codeEditor.setEditable(false);
+        questionTitleBox.setText(mSelectedQues.getTitle());
+    }
+
+    /**
      * Opens the selected file from file explorer into editor to edit.
      *
      * @param file File path that has been selected.
      */
-    void openFileInEditor(File file)
+    private void openFileInEditor(File file)
     {
+        if (!file.isFile()) {
+            return;
+        }
         try {
             //set highlighting style
             String nam = file.getName().toLowerCase();
@@ -391,6 +412,7 @@ public class MainForm extends JFrame
             sw.close();
 
             //set data to view  
+            mOpenedFile = file;
             codeEditor.setEditable(true);
             codeEditor.setText(sw.toString());
             paneForCodeEditor.setLineNumbersEnabled(true);
@@ -398,9 +420,11 @@ public class MainForm extends JFrame
                     mSelectedQues.getTitle() + " >> " + file.getName());
         }
         catch (Exception ex) {
+            mOpenedFile = null;
             codeEditor.setText("Create a new file and select it to edit.");
             codeEditor.setEditable(false);
             questionTitleBox.setText(mSelectedQues.getTitle());
+
             ex.printStackTrace();
         }
     }
@@ -408,15 +432,15 @@ public class MainForm extends JFrame
     /**
      * Saves the edited data to the file.
      */
-    void saveFileFromEditor()
+    private void saveFileFromEditor()
     {
         try {
-            if (mSelectedNode == null) return;
-            File file = ((TreeNodeData) mSelectedNode.getUserObject()).getFile();
-            if (!file.isFile()) return;
+            if (mOpenedFile == null) {
+                return;
+            }
 
             String source = codeEditor.getText();
-            try (FileOutputStream fos = new FileOutputStream(file)) {
+            try (FileOutputStream fos = new FileOutputStream(mOpenedFile)) {
                 fos.write(source.getBytes());
             }
         }
@@ -426,23 +450,13 @@ public class MainForm extends JFrame
     }
 
     /**
-     * Closes a opened file from editing.
-     */
-    void closeOpenedFile()
-    {
-        codeEditor.setText("");
-        codeEditor.setEditable(false);
-        questionTitleBox.setText(mSelectedQues.getTitle());
-    }
-
-    /**
      * Compile and run code
      */
-    void compileAndRun()
+    private void compileAndRun()
     {
-        if (mSelectedNode == null) return;
-        File file = ((TreeNodeData) mSelectedNode.getUserObject()).getFile();
-        if (!file.isFile()) return;
+        if (mOpenedFile == null) {
+            return;
+        }
 
         saveFileFromEditor();
         consolePane.setText("");
@@ -454,6 +468,12 @@ public class MainForm extends JFrame
                 Writer writer = new Writer()
                 {
                     @Override
+                    public void write(char[] value, int offset, int count) throws IOException
+                    {
+                        consolePane.append(new String(value, offset, count));
+                    }
+
+                    @Override
                     public void close() throws IOException
                     {
                     }
@@ -462,15 +482,9 @@ public class MainForm extends JFrame
                     public void flush() throws IOException
                     {
                     }
-
-                    @Override
-                    public void write(char[] value, int offset, int count) throws IOException
-                    {
-                        consolePane.append(new String(value, offset, count));
-                    }
                 }) {
 
-            result = CompileAndRun.CompileCode(file, writer);
+            result = CompileAndRun.CompileCode(mOpenedFile, writer);
             if (!result) {
                 JOptionPane.showMessageDialog(this, "Compilation Failed.");
                 return;
@@ -480,7 +494,7 @@ public class MainForm extends JFrame
             ex.printStackTrace();
         }
 
-        result = CompileAndRun.RunProgram(file);
+        result = CompileAndRun.RunProgram(mOpenedFile);
         String status = (result ? "[OK]" : "[Failed]");
         consolePane.append("\nRun Report : " + status + "\n");
     }
@@ -523,6 +537,32 @@ public class MainForm extends JFrame
     }
 
     /**
+     * Load theme for code editor.
+     *
+     * @param index Index of the theme (0 = LIGHT, 1 = BLACK).
+     */
+    private void loadEditorTheme(int index)
+    {
+        //load theme for editor from file
+        try {
+            java.awt.Font f = new java.awt.Font("Consolas", java.awt.Font.PLAIN, 14);
+            switch (index) {
+                case 0: //Dark
+                    Theme.load(getClass().getResourceAsStream("/Resources/dark.xml")).apply(codeEditor);
+                    codeEditor.setFont(f);
+                    break;
+                case 1: //Light
+                    Theme.load(getClass().getResourceAsStream("/Resources/light.xml")).apply(codeEditor);
+                    codeEditor.setFont(f);
+                    break;
+            }
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    /**
      * Gets a list of all files inside a folder using a heuristic search.
      *
      * @param f Path to folder.
@@ -532,7 +572,9 @@ public class MainForm extends JFrame
     private void listAllFiles(File f, ArrayList<AnswerData> answers)
             throws IOException
     {
-        if (!f.exists()) return;
+        if (!f.exists()) {
+            return;
+        }
 
         //add data if file
         if (f.isFile()) {
@@ -569,7 +611,9 @@ public class MainForm extends JFrame
             }
 
             File file = ((TreeNodeData) mSelectedNode.getUserObject()).getFile();
-            if (!file.isDirectory()) return;
+            if (!file.isDirectory()) {
+                return;
+            }
 
             //create new folder
             String name = JOptionPane.showInputDialog(this, "Name of the folder to create", "New Folder");
@@ -606,13 +650,19 @@ public class MainForm extends JFrame
             }
 
             File file = ((TreeNodeData) mSelectedNode.getUserObject()).getFile();
-            if (!file.isDirectory()) return;
+            if (!file.isDirectory()) {
+                return;
+            }
 
             //get name of the file
-            if (ext == null || ext.isEmpty()) ext = ".txt";
+            if (ext == null || ext.isEmpty()) {
+                ext = ".txt";
+            }
             String name = JOptionPane.showInputDialog(this, "Name of the file to create", "New File" + ext);
             name = name.replaceAll("[\\\\/:*?\\\"<>|]", "").trim();
-            if (!name.endsWith(ext)) name += ext;
+            if (!name.endsWith(ext)) {
+                name += ext;
+            }
 
             //create new file
             File f = (file.toPath().resolve(name)).toFile();
@@ -620,7 +670,9 @@ public class MainForm extends JFrame
                 JOptionPane.showMessageDialog(this, "Another file with name \"" + name + "\" already exists!");
                 return;
             }
-            if (!f.createNewFile()) throw new FileNotFoundException();
+            if (!f.createNewFile()) {
+                throw new FileNotFoundException();
+            }
 
             //add node to display
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(new TreeNodeData(f), true);
@@ -655,7 +707,6 @@ public class MainForm extends JFrame
 
             //rename file
             File newFile = file.toPath().resolveSibling(name).toFile();
-            closeOpenedFile();
             if (!file.renameTo(newFile)) {
                 JOptionPane.showMessageDialog(this, "Couldn't rename from \"" + file.getName() + "\" to \"" + newFile.getName() + "\"!");
                 return;
@@ -664,9 +715,14 @@ public class MainForm extends JFrame
             //reload the view
             mSelectedNode.setUserObject(new TreeNodeData(newFile));
             if (newFile.isDirectory()) {
+                closeOpenedFile();
                 mSelectedNode.removeAllChildren();
                 loadFileList(mSelectedNode, newFile);
             }
+            else {
+                mOpenedFile = newFile;
+            }
+
             ((DefaultTreeModel) explorerTree.getModel()).reload(mSelectedNode);
         }
         catch (Exception ex) {
@@ -711,25 +767,36 @@ public class MainForm extends JFrame
         }
     }
 
-    /**
-     * Load theme for code editor.
-     *
-     * @param index Index of the theme (0 = LIGHT, 1 = BLACK).
-     */
-    private void loadEditorTheme(int index)
+    private void copySelectedFile()
     {
-        //load theme for editor from file        
         try {
-            switch (index) {
-                case 0: //Dark
-                    Theme.load(getClass().getResourceAsStream("/Resources/dark.xml")).apply(codeEditor);
-                    codeEditor.setFont(new Font("Consolas", Font.PLAIN, 14));
-                    break;
-                case 1: //Light
-                    Theme.load(getClass().getResourceAsStream("/Resources/light.xml")).apply(codeEditor);
-                    codeEditor.setFont(new Font("Consolas", Font.PLAIN, 14));
-                    break;
+            if (mSelectedNode == null) {
+                JOptionPane.showMessageDialog(this, "Select a file/folder first.");
+                return;
             }
+            if (mSelectedNode.getLevel() == 0) {
+                JOptionPane.showMessageDialog(this, "You can not copy this folder.");
+                return;
+            }
+
+            ArrayList<File> files = new ArrayList<>();
+            files.add(((TreeNodeData) mSelectedNode.getUserObject()).getFile());
+            Utilities.Clipboard.setFileList(files);
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void pasteIntoSelectedFile()
+    {
+        try {
+            if (mSelectedNode == null) {
+                JOptionPane.showMessageDialog(this, "Select a folder first.");
+                return;
+            }
+
+            File file = ((TreeNodeData) mSelectedNode.getUserObject()).getFile();
         }
         catch (Exception ex) {
             ex.printStackTrace();
@@ -754,7 +821,26 @@ public class MainForm extends JFrame
         renameMenu = new javax.swing.JMenuItem();
         deleteMenu = new javax.swing.JMenuItem();
         refreshMenu = new javax.swing.JMenuItem();
-        topPanel = new javax.swing.JPanel();
+        copyMenu = new javax.swing.JMenuItem();
+        pasteMenu = new javax.swing.JMenuItem();
+        addNewMenu = new javax.swing.JMenu();
+        topPanel = new javax.swing.JPanel()
+        {
+            @Override
+            protected void paintComponent(Graphics g)
+            {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                int w = getWidth();
+                int h = getHeight();
+                Color color1 = getForeground();
+                Color color2 = getBackground();
+                GradientPaint gp = new GradientPaint(0, 0, color1, 0, h, color2);
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, w, h);
+            }
+        };
         registrationNoLabel = new javax.swing.JLabel();
         logoutButton = new javax.swing.JButton();
         examTitleLabel = new javax.swing.JLabel();
@@ -776,13 +862,13 @@ public class MainForm extends JFrame
         questionTitleBox = new javax.swing.JLabel();
         markLabel = new javax.swing.JLabel();
         markValueBox = new javax.swing.JLabel();
-        fullscreenButton = new javax.swing.JToggleButton();
-        submitToolBar = new javax.swing.JPanel();
         submitAnswerButton = new javax.swing.JButton();
+        submitToolBar = new javax.swing.JPanel();
         compileAndRunButton = new javax.swing.JButton();
         saveCodeButton = new javax.swing.JButton();
         themeLabel = new javax.swing.JLabel();
         themeChooser = new javax.swing.JComboBox();
+        fullscreenButton = new javax.swing.JToggleButton();
         answerSplitterPane = new javax.swing.JSplitPane();
         explorerContainer = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -798,6 +884,11 @@ public class MainForm extends JFrame
         consoleContainer = new javax.swing.JPanel();
         jScrollPane4 = new javax.swing.JScrollPane();
         consolePane = new javax.swing.JTextArea();
+        jPanel2 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jComboBox1 = new javax.swing.JComboBox();
+        jTextField1 = new javax.swing.JTextField();
+        jButton1 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         paneForCodeEditor = new org.fife.ui.rtextarea.RTextScrollPane();
         codeEditor = new org.fife.ui.rsyntaxtextarea.RSyntaxTextArea();
@@ -898,6 +989,28 @@ public class MainForm extends JFrame
             }
         });
 
+        copyMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/copy.png"))); // NOI18N
+        copyMenu.setText("Copy");
+        copyMenu.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                copyMenuActionPerformed(evt);
+            }
+        });
+
+        pasteMenu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/paste.png"))); // NOI18N
+        pasteMenu.setText("Paste");
+        pasteMenu.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                pasteMenuActionPerformed(evt);
+            }
+        });
+
+        addNewMenu.setText("Add New");
+
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Lab Exam");
         setAlwaysOnTop(true);
@@ -914,6 +1027,7 @@ public class MainForm extends JFrame
 
         topPanel.setBackground(new java.awt.Color(0, 102, 102));
         topPanel.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(60, 102, 122), 4, true));
+        topPanel.setForeground(new java.awt.Color(90, 115, 150));
         topPanel.setAutoscrolls(true);
 
         registrationNoLabel.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
@@ -925,6 +1039,7 @@ public class MainForm extends JFrame
         logoutButton.setFont(logoutButton.getFont().deriveFont(logoutButton.getFont().getSize()+2f));
         logoutButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/logout.png"))); // NOI18N
         logoutButton.setText("Logout");
+        logoutButton.setToolTipText("Logout from the examination");
         logoutButton.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -939,7 +1054,7 @@ public class MainForm extends JFrame
         examTitleLabel.setText("Exam Title");
 
         remainingTimeLabel.setBackground(new java.awt.Color(240, 218, 235));
-        remainingTimeLabel.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        remainingTimeLabel.setFont(new java.awt.Font("Segoe UI Semibold", 0, 14)); // NOI18N
         remainingTimeLabel.setText("  Remaining Time  ");
         remainingTimeLabel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(174, 213, 224)));
         remainingTimeLabel.setOpaque(true);
@@ -950,7 +1065,7 @@ public class MainForm extends JFrame
             topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(topPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(examTitleLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 367, Short.MAX_VALUE)
+                .addComponent(examTitleLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 442, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(remainingTimeLabel)
                 .addGap(10, 10, 10)
@@ -975,14 +1090,14 @@ public class MainForm extends JFrame
         mainSplitterPane.setBorder(javax.swing.BorderFactory.createMatteBorder(1, 5, 5, 5, new java.awt.Color(0, 153, 153)));
         mainSplitterPane.setDividerLocation(240);
         mainSplitterPane.setDividerSize(10);
-        mainSplitterPane.setResizeWeight(0.38);
+        mainSplitterPane.setResizeWeight(0.4);
         mainSplitterPane.setContinuousLayout(true);
         mainSplitterPane.setDoubleBuffered(true);
         mainSplitterPane.setOneTouchExpandable(true);
         mainSplitterPane.setOpaque(false);
         mainSplitterPane.setPreferredSize(new java.awt.Dimension(0, 0));
 
-        questionHeader.setBackground(java.awt.Color.cyan);
+        questionHeader.setBackground(new java.awt.Color(0, 231, 231));
         questionHeader.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new java.awt.Color(0, 204, 255)));
         questionHeader.setAutoscrolls(true);
 
@@ -1027,9 +1142,11 @@ public class MainForm extends JFrame
         questionSplitterPane.setDoubleBuffered(true);
         questionSplitterPane.setOneTouchExpandable(true);
 
-        questionList.setBackground(new java.awt.Color(255, 249, 255));
+        questionList.setBackground(new java.awt.Color(0, 87, 91));
         questionList.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 3, 3, 3));
         questionList.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        questionList.setForeground(new java.awt.Color(204, 255, 255));
+        questionList.setSelectionBackground(new java.awt.Color(0, 102, 102));
         questionList.addListSelectionListener(new javax.swing.event.ListSelectionListener()
         {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt)
@@ -1045,7 +1162,7 @@ public class MainForm extends JFrame
             quesListPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(quesListPanelLayout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(queslistPane, javax.swing.GroupLayout.DEFAULT_SIZE, 232, Short.MAX_VALUE)
+                .addComponent(queslistPane, javax.swing.GroupLayout.DEFAULT_SIZE, 243, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
         quesListPanelLayout.setVerticalGroup(
@@ -1058,6 +1175,7 @@ public class MainForm extends JFrame
 
         questionSplitterPane.setTopComponent(quesListPanel);
 
+        descToolBar.setBackground(new java.awt.Color(0, 204, 204));
         descToolBar.setFloatable(false);
         descToolBar.setRollover(true);
 
@@ -1065,7 +1183,7 @@ public class MainForm extends JFrame
         descPanel.setLayout(descPanelLayout);
         descPanelLayout.setHorizontalGroup(
             descPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(descToolBar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 235, Short.MAX_VALUE)
+            .addComponent(descToolBar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 243, Short.MAX_VALUE)
             .addComponent(pdfPanel, javax.swing.GroupLayout.Alignment.TRAILING)
         );
         descPanelLayout.setVerticalGroup(
@@ -1096,30 +1214,34 @@ public class MainForm extends JFrame
 
         mainSplitterPane.setLeftComponent(mainLeftPanel);
 
-        answerHeaderPanel.setBackground(java.awt.Color.cyan);
+        answerHeaderPanel.setBackground(new java.awt.Color(0, 208, 220));
         answerHeaderPanel.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new java.awt.Color(0, 204, 255)));
         answerHeaderPanel.setAutoscrolls(true);
 
         questionTitleBox.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         questionTitleBox.setText("No Question");
+        questionTitleBox.setToolTipText("Path to selected file");
         questionTitleBox.setPreferredSize(new java.awt.Dimension(0, 0));
 
         markLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         markLabel.setText("Mark :");
 
+        markValueBox.setBackground(new java.awt.Color(204, 255, 255));
         markValueBox.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
         markValueBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         markValueBox.setText("0");
+        markValueBox.setToolTipText("Total mark of the selected question.");
         markValueBox.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 255)));
+        markValueBox.setOpaque(true);
 
-        fullscreenButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/fullscreen.png"))); // NOI18N
-        fullscreenButton.setText("Full Screen");
-        fullscreenButton.setToolTipText("Hides the problem descriptions.");
-        fullscreenButton.addActionListener(new java.awt.event.ActionListener()
+        submitAnswerButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/submit.png"))); // NOI18N
+        submitAnswerButton.setText("Submit");
+        submitAnswerButton.setToolTipText("Submit the answer files to server");
+        submitAnswerButton.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                fullscreenButtonActionPerformed(evt);
+                submitAnswerButtonActionPerformed(evt);
             }
         });
 
@@ -1134,8 +1256,8 @@ public class MainForm extends JFrame
                 .addComponent(markLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(markValueBox, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(fullscreenButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(submitAnswerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         answerHeaderPanelLayout.setVerticalGroup(
@@ -1145,26 +1267,18 @@ public class MainForm extends JFrame
                 .addGroup(answerHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(markLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(markValueBox, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(fullscreenButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(questionTitleBox, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(5, 5, 5))
+                    .addComponent(questionTitleBox, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(submitAnswerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(3, 3, 3))
         );
 
-        submitToolBar.setBackground(new java.awt.Color(0, 233, 242));
+        submitToolBar.setBackground(new java.awt.Color(35, 86, 98));
+        submitToolBar.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         submitToolBar.setAutoscrolls(true);
-
-        submitAnswerButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/submit.png"))); // NOI18N
-        submitAnswerButton.setText("Submit");
-        submitAnswerButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                submitAnswerButtonActionPerformed(evt);
-            }
-        });
 
         compileAndRunButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/runtest.png"))); // NOI18N
         compileAndRunButton.setText("Compile and Run");
+        compileAndRunButton.setToolTipText("Compile opened code and test input-output.");
         compileAndRunButton.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -1175,6 +1289,7 @@ public class MainForm extends JFrame
 
         saveCodeButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/save.png"))); // NOI18N
         saveCodeButton.setText("Save");
+        saveCodeButton.setToolTipText("Codes are automatically saved. But to be sure click this before you submit.");
         saveCodeButton.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -1183,6 +1298,7 @@ public class MainForm extends JFrame
             }
         });
 
+        themeLabel.setForeground(new java.awt.Color(51, 255, 255));
         themeLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         themeLabel.setText("Theme :");
 
@@ -1195,43 +1311,56 @@ public class MainForm extends JFrame
             }
         });
 
+        fullscreenButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/fullscreen.png"))); // NOI18N
+        fullscreenButton.setText("Full Screen");
+        fullscreenButton.setToolTipText("Hides the problem descriptions.");
+        fullscreenButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                fullscreenButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout submitToolBarLayout = new javax.swing.GroupLayout(submitToolBar);
         submitToolBar.setLayout(submitToolBarLayout);
         submitToolBarLayout.setHorizontalGroup(
             submitToolBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(submitToolBarLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap()
+                .addComponent(fullscreenButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(themeLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(themeChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(saveCodeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(compileAndRunButton, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(submitAnswerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addComponent(compileAndRunButton, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(8, 8, 8))
         );
         submitToolBarLayout.setVerticalGroup(
             submitToolBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, submitToolBarLayout.createSequentialGroup()
-                .addGap(5, 5, 5)
+                .addGap(3, 3, 3)
                 .addGroup(submitToolBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(submitAnswerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(compileAndRunButton, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(saveCodeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(themeLabel)
-                    .addComponent(themeChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(5, 5, 5))
+                    .addComponent(themeChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(fullscreenButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(3, 3, 3))
         );
 
         answerSplitterPane.setBorder(null);
         answerSplitterPane.setDividerLocation(220);
         answerSplitterPane.setDividerSize(6);
+        answerSplitterPane.setResizeWeight(0.15);
         answerSplitterPane.setContinuousLayout(true);
         answerSplitterPane.setOneTouchExpandable(true);
 
-        explorerContainer.setBorder(javax.swing.BorderFactory.createTitledBorder("File Explorer"));
+        explorerContainer.setBackground(new java.awt.Color(0, 102, 102));
+        explorerContainer.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "File Explorer", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, null, new java.awt.Color(204, 255, 255)));
         explorerContainer.setPreferredSize(new java.awt.Dimension(0, 0));
 
         explorerTree.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
@@ -1263,6 +1392,7 @@ public class MainForm extends JFrame
         });
         jScrollPane2.setViewportView(explorerTree);
 
+        jPanel10.setBackground(new java.awt.Color(0, 102, 102));
         jPanel10.setLayout(new java.awt.GridLayout(3, 0, 1, 1));
 
         deleteToolButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Resources/delete.png"))); // NOI18N
@@ -1357,7 +1487,7 @@ public class MainForm extends JFrame
         explorerContainerLayout.setVerticalGroup(
             explorerContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(explorerContainerLayout.createSequentialGroup()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 235, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 234, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
                 .addComponent(jPanel10, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0))
@@ -1368,36 +1498,84 @@ public class MainForm extends JFrame
         codeSplitPane.setDividerLocation(200);
         codeSplitPane.setDividerSize(6);
         codeSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        codeSplitPane.setResizeWeight(0.7);
+        codeSplitPane.setResizeWeight(0.8);
+        codeSplitPane.setToolTipText("");
         codeSplitPane.setOneTouchExpandable(true);
 
-        consoleContainer.setBorder(javax.swing.BorderFactory.createTitledBorder("Compile and Run Report"));
+        consoleContainer.setBackground(new java.awt.Color(11, 105, 109));
+        consoleContainer.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Console Panel", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, null, new java.awt.Color(204, 255, 255)));
+        consoleContainer.setToolTipText("Compiler outputs");
 
         consolePane.setEditable(false);
         consolePane.setBackground(new java.awt.Color(0, 45, 50));
         consolePane.setColumns(20);
         consolePane.setForeground(new java.awt.Color(99, 255, 52));
         consolePane.setRows(5);
-        consolePane.setText("Test console");
+        consolePane.setText("Console output");
         consolePane.setCaretColor(new java.awt.Color(99, 255, 52));
         jScrollPane4.setViewportView(consolePane);
         (consolePane.getCaret()).setVisible(true);
         ((DefaultCaret)consolePane.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 
+        jPanel2.setBackground(new java.awt.Color(28, 102, 127));
+
+        jLabel1.setForeground(new java.awt.Color(51, 255, 255));
+        jLabel1.setText("Command :");
+
+        jComboBox1.setFont(new java.awt.Font("Monospaced", 0, 14)); // NOI18N
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "javac", "java", "g++", "gcc", "exec" }));
+        jComboBox1.setToolTipText("Choose program to send commad.\njavac : Compile .java files; \njava : Run compiled java class; \ng++ : Compile C++ programs; \ngcc : Compile Ansi C programs; \nexec :  Run exe files; ");
+
+        jTextField1.setBackground(new java.awt.Color(0, 45, 50));
+        jTextField1.setFont(new java.awt.Font("Monospaced", 0, 14)); // NOI18N
+        jTextField1.setForeground(new java.awt.Color(99, 255, 52));
+        jTextField1.setText("file.java");
+
+        jButton1.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
+        jButton1.setText("RUN");
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(5, 5, 5)
+                .addComponent(jLabel1)
+                .addGap(3, 3, 3)
+                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(jTextField1)
+                .addGap(1, 1, 1)
+                .addComponent(jButton1)
+                .addGap(5, 5, 5))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(2, 2, 2)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton1))
+                .addGap(5, 5, 5))
+        );
+
         javax.swing.GroupLayout consoleContainerLayout = new javax.swing.GroupLayout(consoleContainer);
         consoleContainer.setLayout(consoleContainerLayout);
         consoleContainerLayout.setHorizontalGroup(
             consoleContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(consoleContainerLayout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 310, Short.MAX_VALUE)
-                .addGap(0, 0, 0))
+            .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 385, Short.MAX_VALUE)
+            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         consoleContainerLayout.setVerticalGroup(
             consoleContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, consoleContainerLayout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 111, Short.MAX_VALUE))
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 76, Short.MAX_VALUE)
+                .addGap(0, 0, 0))
         );
 
         codeSplitPane.setRightComponent(consoleContainer);
@@ -1407,6 +1585,7 @@ public class MainForm extends JFrame
         codeEditor.setEditable(false);
         codeEditor.setColumns(20);
         codeEditor.setRows(5);
+        codeEditor.setText("Create a new file and select it to start.");
         codeEditor.setCodeFoldingEnabled(true);
         codeEditor.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
         codeEditor.setPaintMarkOccurrencesBorder(true);
@@ -1490,6 +1669,7 @@ public class MainForm extends JFrame
             mServerLink.logoutUser();
             mParentForm.setLocationRelativeTo(null);
             mParentForm.setVisible(true);
+            mTimer.cancel();
             this.dispose();
         }
     }//GEN-LAST:event_logoutButtonActionPerformed
@@ -1497,7 +1677,7 @@ public class MainForm extends JFrame
     private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
     {//GEN-HEADEREND:event_formWindowClosing
         mStopTime = mServerLink.getStopTime();
-        long now = System.currentTimeMillis() + mTimeDiff;
+        long now = System.currentTimeMillis() + mTimeOffset;
         if (now < mStopTime) {
             JOptionPane.showMessageDialog(this,
                     "Don't try to exit. Otherwise you will be marked as suspicious.",
@@ -1527,7 +1707,11 @@ public class MainForm extends JFrame
 
     private void submitAnswerButton1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_submitAnswerButton1ActionPerformed
     {//GEN-HEADEREND:event_submitAnswerButton1ActionPerformed
-        downloadQuestions();
+        mServerLink.downloadAllQuestions();
+        questionList.setListData(mServerLink.getAllQuestions().toArray());
+        if (mServerLink.getQuestionCount() > 0) {
+            questionList.setSelectedIndex(0);
+        }
     }//GEN-LAST:event_submitAnswerButton1ActionPerformed
 
     private void themeChooserActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_themeChooserActionPerformed
@@ -1542,10 +1726,7 @@ public class MainForm extends JFrame
         //open selected file if valid
         if (mSelectedQues != null && explorerTree.getSelectionPath() != null) {
             mSelectedNode = (DefaultMutableTreeNode) explorerTree.getLastSelectedPathComponent();
-            File file = ((TreeNodeData) mSelectedNode.getUserObject()).getFile();
-            if (file.isFile()) {
-                openFileInEditor(file);
-            }
+            openFileInEditor(((TreeNodeData) mSelectedNode.getUserObject()).getFile());
         }
     }//GEN-LAST:event_explorerTreeValueChanged
 
@@ -1651,21 +1832,36 @@ public class MainForm extends JFrame
 
     private void explorerTreeKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_explorerTreeKeyReleased
     {//GEN-HEADEREND:event_explorerTreeKeyReleased
+        //explorer shortcuts
         switch (evt.getKeyCode()) {
             case KeyEvent.VK_F2:
-                if (!explorerTree.isSelectionEmpty())
+                if (!explorerTree.isSelectionEmpty()) {
                     renameSelectedFile();
+                }
             case KeyEvent.VK_F5:
                 loadFileExplorer();
             case KeyEvent.VK_N:
                 if (evt.isControlDown() && !evt.isShiftDown() && !evt.isAltDown()
-                        && !explorerTree.isSelectionEmpty())
+                        && !explorerTree.isSelectionEmpty()) {
                     createNewFolder();
+                }
                 break;
         }
     }//GEN-LAST:event_explorerTreeKeyReleased
 
+    private void pasteMenuActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_pasteMenuActionPerformed
+    {//GEN-HEADEREND:event_pasteMenuActionPerformed
+        pasteIntoSelectedFile();
+    }//GEN-LAST:event_pasteMenuActionPerformed
+
+    private void copyMenuActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_copyMenuActionPerformed
+    {//GEN-HEADEREND:event_copyMenuActionPerformed
+        copySelectedFile();
+    }//GEN-LAST:event_copyMenuActionPerformed
+
+//<editor-fold defaultstate="collapsed" desc="Variable declarations">    
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenu addNewMenu;
     private javax.swing.JPanel answerHeaderPanel;
     private javax.swing.JSplitPane answerSplitterPane;
     private org.fife.ui.rsyntaxtextarea.RSyntaxTextArea codeEditor;
@@ -1673,6 +1869,7 @@ public class MainForm extends JFrame
     private javax.swing.JButton compileAndRunButton;
     private javax.swing.JPanel consoleContainer;
     private javax.swing.JTextArea consolePane;
+    private javax.swing.JMenuItem copyMenu;
     private javax.swing.JMenuItem deleteMenu;
     private javax.swing.JButton deleteToolButton;
     private javax.swing.JPanel descPanel;
@@ -1682,10 +1879,15 @@ public class MainForm extends JFrame
     private final javax.swing.JPopupMenu explorerPopup = new javax.swing.JPopupMenu();
     private javax.swing.JTree explorerTree;
     private javax.swing.JToggleButton fullscreenButton;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JComboBox jComboBox1;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel10;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JTextField jTextField1;
     private javax.swing.JLabel listOfQuesLabel;
     private javax.swing.JButton logoutButton;
     private javax.swing.JPanel mainLeftPanel;
@@ -1703,6 +1905,7 @@ public class MainForm extends JFrame
     private javax.swing.JMenuItem newJavaMenu;
     private javax.swing.JButton newJavaToolButton;
     private org.fife.ui.rtextarea.RTextScrollPane paneForCodeEditor;
+    private javax.swing.JMenuItem pasteMenu;
     private javax.swing.JScrollPane pdfPanel;
     private javax.swing.JPanel quesListPanel;
     private javax.swing.JScrollPane queslistPane;
@@ -1723,4 +1926,6 @@ public class MainForm extends JFrame
     private javax.swing.JLabel themeLabel;
     private javax.swing.JPanel topPanel;
     // End of variables declaration//GEN-END:variables
+//</editor-fold>
+
 }

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package ServerApplication;
- 
+
 import Utilities.Command;
 import Utilities.Examination;
 import Utilities.Question;
@@ -35,16 +35,15 @@ import java.util.logging.Logger;
  *
  * @author Dipu
  */
-public class LabExamServer
-{
+public class LabExamServer {
+
     private static final int DEFAULT_PORT = 1661;
     private static final int MAX_SIMULTANEOUS_CONNECTION = 25;
 
-    public LabExamServer()
-    {
+    public LabExamServer() {
         mCurExam = null;
-        mStopListening = false;
         mServerSocket = null;
+        mStopListening = false;
     }
 
     private CurrentExam mCurExam;
@@ -58,8 +57,7 @@ public class LabExamServer
      *
      * @param curExam Current exam to begin.
      */
-    public void setCurrentExam(CurrentExam curExam)
-    {
+    public void setCurrentExam(CurrentExam curExam) {
         this.StopListening();
         mCurExam = curExam;
         this.initialize(); //initialize server
@@ -70,8 +68,7 @@ public class LabExamServer
      *
      * @return IP address of the server machine.
      */
-    public static String getServerIPAddress()
-    {
+    public static String getServerIPAddress() {
         try {
             InetAddress IP = InetAddress.getLocalHost();
             return IP.getHostAddress();
@@ -87,8 +84,7 @@ public class LabExamServer
      * @param clientSocket Socket to get IP address.
      * @return IP address of the client socket.
      */
-    public static String getClientIP(Socket clientSocket)
-    {
+    public static String getClientIP(Socket clientSocket) {
         String ip = clientSocket.getRemoteSocketAddress().toString();
         if (ip.startsWith("/")) {
             return ip.substring(1);
@@ -101,20 +97,38 @@ public class LabExamServer
      *
      * @return Port address of the server.
      */
-    public int getPort()
-    {
-        if (mServerSocket != null && mServerSocket.isBound())
+    public int getPort() {
+        if (mServerSocket != null && mServerSocket.isBound()) {
             return mServerSocket.getLocalPort();
+        }
         return 0;
+    }
+
+    /**
+     * Checks whether the exam server is up and running.
+     *
+     * @return True if server is busy; False otherwise.
+     */
+    public boolean isBusy() {
+        return (mServerSocket != null && !mServerSocket.isClosed());
+    }
+
+    /**
+     * Starts the server and wait for the clients to connect.
+     */
+    public void StartListening() {
+        if (!isBusy()) {
+            mServerSocket = null;
+            initialize();
+        }
     }
 
     /**
      * Stops the server from waiting for clients.
      */
-    public void StopListening()
-    {
+    public void StopListening() {
         try {
-            if (mServerSocket != null && mServerSocket.isBound()) {
+            if (isBusy()) {
                 mStopListening = true;
                 mServerSocket.close();
             }
@@ -125,10 +139,29 @@ public class LabExamServer
     }
 
     /**
+     * Creates a new server socket.
+     *
+     * @param port Port address to use.
+     * @param siz Number of client socket to receive simultaneously.
+     * @return True on success; False otherwise.
+     */
+    private boolean createSocket(int port, int siz) {
+        try {
+            if (mServerSocket != null) {
+                mServerSocket.close();
+            }
+            mServerSocket = new ServerSocket(port, siz);
+            return true;
+        }
+        catch (Exception ex) {
+            return false;
+        }
+    }
+
+    /**
      * Initializes a server to run an exam
      */
-    private void initialize()
-    {
+    private void initialize() {
         //try to create socket with default port
         //   on failure use socket's own choice
         if (!createSocket(DEFAULT_PORT, MAX_SIMULTANEOUS_CONNECTION)) {
@@ -137,11 +170,9 @@ public class LabExamServer
 
         // run on a separate thread
         mStopListening = false;
-        (new Thread(new Runnable()
-        {
+        (new Thread(new Runnable() {
             @Override
-            public void run()
-            {
+            public void run() {
                 beginListening();
             }
         })).start();
@@ -151,44 +182,20 @@ public class LabExamServer
     }
 
     /**
-     * Creates a new server socket.
-     *
-     * @param port Port address to use.
-     * @param siz Number of client socket to receive simultaneously.
-     * @return True on success; False otherwise.
-     */
-    private boolean createSocket(int port, int siz)
-    {
-        try {
-            if (mServerSocket != null) {
-                mServerSocket.close();
-            }
-            mServerSocket = new ServerSocket(port, siz);
-            mServerSocket.setReuseAddress(true);
-            return true;
-        }
-        catch (Exception ex) {
-            return false;
-        }
-    }
-
-    /**
      * Start the server and wait for clients indefinitely.
      */
-    private void beginListening()
-    {
+    private void beginListening() {
         // Waiting for clients in port -> serverSocket.getLocalPort()                  
         Logger.getLogger("LabExam").log(Level.INFO,
                 String.format("Waitinig on %s on port %d.",
                         getServerIPAddress(), mServerSocket.getLocalPort()));
 
         while (!mStopListening) {
-            try {
-                try (Socket clientSocket = mServerSocket.accept()) {
-                    ProcessCommand(clientSocket);
-                }
+            try (Socket clientSocket = mServerSocket.accept()) {
+                ProcessCommand(clientSocket);
+                Thread.sleep(15);
             }
-            catch (IOException | ClassNotFoundException ex) { 
+            catch (IOException | InterruptedException | ClassNotFoundException ex) {
                 //ex.printStackTrace();
                 if (!mStopListening) {
                     Logger.getLogger("LabExam").log(Level.SEVERE,
@@ -197,6 +204,7 @@ public class LabExamServer
             }
         }
 
+        mStopListening = false;
         Logger.getLogger("LabExam").log(Level.INFO, "Exam server stopped.");
     }
 
@@ -206,10 +214,9 @@ public class LabExamServer
      * @param client Client socket to work with.
      */
     private void ProcessCommand(Socket client)
-            throws IOException, ClassNotFoundException
-    {
-        int qid;
-        boolean result;
+            throws IOException, ClassNotFoundException {
+
+        int id;
         String regNo, pass;
         Examination exam = mCurExam.getExamination();
 
@@ -218,63 +225,97 @@ public class LabExamServer
         ObjectOutputStream output = new ObjectOutputStream(client.getOutputStream());
         Command command = (Command) input.readObject();
 
+        //Logger.getLogger("LabExam").log(Level.INFO,
+        //      String.format("Received %s packet from %s", command, getClientIP(client)));
         //process commands        
         switch (command) {
             case EMPTY:
                 output.writeObject(true);
                 break;
-                
+
             case START_TIME:
                 output.writeObject(exam.getStartTime().getTime());
                 break;
-                
+
             case STOP_TIME:
                 output.writeObject(exam.getStopTime().getTime());
                 break;
-                
+
             case CURRENT_TIME:
                 output.writeObject(System.currentTimeMillis());
                 break;
-                
+
             case EXAM_TITLE:
                 output.writeObject(exam.getExamTitle());
                 break;
-                
+
             case LOGOUT:
                 regNo = (String) input.readObject();
                 output.writeObject(mCurExam.removeUser(regNo, getClientIP(client)));
                 break;
-                
+
             case LOGIN:
                 regNo = (String) input.readObject();
                 pass = (String) input.readObject();
-                result = mCurExam.assignUser(regNo, pass, getClientIP(client));
-                output.writeObject(result);
+                output.writeObject(mCurExam.assignUser(regNo, pass, getClientIP(client)));
                 break;
-                
+
             case ALL_QUESTION:
-                if (exam.isRunning()) {
-                    output.writeObject(exam.getAllQuestion().toArray());
-                }
-                else {
-                    output.writeObject((new ArrayList<Question>()).toArray());
-                }
+                output.writeObject(exam.getAllQuestion().toArray());
                 break;
-                
+
             case SUBMIT:
                 regNo = (String) input.readObject();
-                qid = (int) input.readObject();
-                Object[] data = (Object[]) input.readObject();                
-                boolean res = mCurExam.receiveAnswer(regNo, qid, data);
-                output.writeObject(res);
+                id = (int) input.readObject();
+                Object[] data = (Object[]) input.readObject();
+                output.writeObject(mCurExam.receiveAnswer(regNo, id, data));
+                break;
+
+            case CANDIDATE_NAME:
+                regNo = (String) input.readObject();
+                id = exam.getCandidateID(regNo);
+                if (id >= 0) {
+                    output.writeObject(exam.getCandidate(id).getName());
+                }
+                break;
+
+            case LOGIN_ATTEMPT:
+                regNo = (String) input.readObject();
+                id = exam.getCandidateID(regNo);
+                if (id >= 0) {
+                    output.writeObject(mCurExam.getCandidateStatus(id).getLoginCount());
+                }
                 break;
                 
+            case TOTAL_SUBMISSION:
+                regNo = (String) input.readObject();
+                id = exam.getCandidateID(regNo);
+                if (id >= 0) {
+                    output.writeObject(mCurExam.getCandidateStatus(id).getTotalSubmissions());
+                }
+                break;
+
+            case MARK_SUBMITTED:
+                regNo = (String) input.readObject();
+                id = exam.getCandidateID(regNo);
+                if (id >= 0) {
+                    output.writeObject(mCurExam.getCandidateStatus(id).getTotalMarkSubmitted());
+                }
+                break;
+
+            case QUES_SUBMITTED:
+                regNo = (String) input.readObject();
+                id = exam.getCandidateID(regNo);
+                if (id >= 0) {
+                    output.writeObject(mCurExam.getCandidateStatus(id).getQuestionSubmitted());
+                }
+                break;
+
             default:
                 output.writeObject(null);
                 break;
         }
 
-        output.flush();
         output.close();
         input.close();
     }

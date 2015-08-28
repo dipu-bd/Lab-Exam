@@ -38,6 +38,8 @@ public class ServerLink
     private String mServerIP;
     //registration number of candidate
     private String mRegNo;
+    //question list    
+    private final ArrayList<Question> mQuestions = new ArrayList<>();
 
     /**
      * Connect to the server, send some data, and receive some corresponding
@@ -96,9 +98,15 @@ public class ServerLink
     public int promptLogin(String pass)
     {
         Object result = getResponce(Command.LOGIN, mRegNo, pass);
-        if (result == null) return -1;
-        if ((boolean) result) return 0;
-        else return 1;
+        if (result == null) {
+            return -1;
+        }
+        if ((boolean) result) {
+            return 0;
+        }
+        else {
+            return 1;
+        }
     }
 
     /**
@@ -109,7 +117,9 @@ public class ServerLink
     public boolean logoutUser()
     {
         Object result = getResponce(Command.LOGOUT, mRegNo);
-        if (result == null) return false;
+        if (result == null) {
+            return false;
+        }
         return (boolean) result;
     }
 
@@ -121,7 +131,9 @@ public class ServerLink
     public long getStartTime()
     {
         Object result = getResponce(Command.START_TIME);
-        if (result == null) return -1;
+        if (result == null) {
+            return -1;
+        }
         return (long) result;
     }
 
@@ -133,18 +145,23 @@ public class ServerLink
     public long getStopTime()
     {
         Object result = getResponce(Command.STOP_TIME);
-        if (result == null) return -1;
+        if (result == null) {
+            return -1;
+        }
         return (long) result;
     }
-    
+
     /**
      * Gets the current time at server clock
+     *
      * @return Current time in milliseconds
      */
     public long getServerTime()
     {
         Object result = getResponce(Command.CURRENT_TIME);
-        if(result == null) return System.currentTimeMillis();
+        if (result == null) {
+            return System.currentTimeMillis();
+        }
         return (long) result;
     }
 
@@ -158,8 +175,10 @@ public class ServerLink
     public boolean submitAnswer(int qid, Object[] answers)
     {
         Object result = getResponce(Command.SUBMIT, mRegNo, qid, answers);
-        if (result == null) return false;
-        return (boolean) result;
+        if (result == null || !(boolean) result) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -170,8 +189,40 @@ public class ServerLink
     public String getExamTitle()
     {
         Object result = getResponce(Command.EXAM_TITLE);
-        if (result == null) return "-";
+        if (result == null) {
+            return "-";
+        }
         return (String) result;
+    }
+
+    /**
+     * Gets the name of the candidate that has logged in.
+     *
+     * @return Name of the candidate.
+     */
+    public String getCandidateName()
+    {
+        Object result = getResponce(Command.CANDIDATE_NAME, mRegNo);
+        if (result == null) {
+            return "-";
+        }
+        return (String) result;
+    }
+
+    /**
+     * Downloads and sets the list of all questions locally
+     */
+    @SuppressWarnings("unchecked")
+    public void downloadAllQuestions()
+    {
+        Object result = getResponce(Command.ALL_QUESTION);
+        if (result != null) {
+            //add all question
+            mQuestions.clear();
+            for (Object q : ((Object[]) result)) {
+                mQuestions.add(Question.class.cast(q));
+            }
+        }
     }
 
     /**
@@ -180,16 +231,92 @@ public class ServerLink
      * @return Empty string will return in case failed or exam is not running.
      */
     @SuppressWarnings("unchecked")
-    public ArrayList<Question> getAllQuestions()
+    public final ArrayList<Question> getAllQuestions()
     {
-        Object result = getResponce(Command.ALL_QUESTION);
-        ArrayList<Question> ret = new ArrayList<>();
-        if (result == null) return ret;
-        //add all question
-        for (Object q : ((Object[]) result)) {
-            ret.add(Question.class.cast(q));
+        if (mQuestions.isEmpty()) {
+            downloadAllQuestions();
         }
-        return ret;
+        return mQuestions;
+    }
+
+    /**
+     * Gets the number of questions.
+     *
+     * @return Number of questions.
+     */
+    public int getQuestionCount()
+    {
+        return getAllQuestions().size();
+    }
+
+    /**
+     * Gets the total mark of the examination.
+     *
+     * @return Total mark of the examination.
+     */
+    public int getTotalMarks()
+    {
+        int total = 0;
+        for (Question q : getAllQuestions()) {
+            total += q.getMark();
+        }
+        return total;
+    }
+
+    /**
+     * Gets the number of total submission in this session.
+     *
+     * @return Number of total submission in this session.
+     */
+    public int getTotalSubmission()
+    {
+        Object result = getResponce(Command.TOTAL_SUBMISSION, mRegNo);
+        if (result == null) {
+            return 0;
+        }
+        return (int) result;
+    }
+
+    /**
+     * Gets the number of question which answer has been submitted.
+     *
+     * @return Number of question which answer has been submitted.
+     */
+    public int getSubmittedQuestionCount()
+    {
+        Object result = getResponce(Command.QUES_SUBMITTED, mRegNo);
+        if (result == null) {
+            return 0;
+        }
+        return (int) result;
+    }
+
+    /**
+     * Gets the total marks that has been submitted by the user.
+     *
+     * @return The total marks that has been submitted by the user.
+     */
+    public int getSubmittedMarks()
+    {
+        Object result = getResponce(Command.MARK_SUBMITTED, mRegNo);
+        if (result == null) {
+            return 0;
+        }
+        return (int) result;
+    }
+
+    /**
+     * Gets the total number of login attempts made by this user.
+     *
+     * @return The total number of login attempts made by this user.
+     */
+    public int getLoginAttempts()
+    {
+        Object result = getResponce(Command.LOGIN_ATTEMPT, mRegNo);
+        if (result == null) {
+            return 0;
+        }
+        return (int) result;
     }
 
     /**
@@ -240,6 +367,9 @@ public class ServerLink
     public void setServerIP(String server)
     {
         mServerIP = server.trim();
+        if (mServerIP.isEmpty()) {
+            mServerIP = "127.0.0.1";
+        }
     }
 
     /**

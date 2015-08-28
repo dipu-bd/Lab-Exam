@@ -59,6 +59,8 @@ public class Program
         }
         //</editor-fold>
 
+        AppSettings.initialize();
+        
         SwingUtilities.invokeLater(new Runnable()
         {
             @Override

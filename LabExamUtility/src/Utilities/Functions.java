@@ -16,7 +16,6 @@
  */
 package Utilities;
 
-import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +41,6 @@ public abstract class Functions {
         frame.requestFocusInWindow();
         frame.setAlwaysOnTop(true);
         frame.setResizable(false);
-        frame.setUndecorated(true);
         frame.setSize(Toolkit.getDefaultToolkit().getScreenSize());
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
@@ -94,23 +92,7 @@ public abstract class Functions {
         }
         return baos.toByteArray();
     }
-
-    /**
-     * Write some text string into an output stream using a specific encoding
-     *
-     * @param outputStream Stream to write into
-     * @param text Text to write
-     * @param encoding Encoding used to write data. (Default is UTF-8).
-     * @throws IOException
-     */
-    public static void writeFully(java.io.OutputStream outputStream, String text, String encoding) throws IOException {
-        if (encoding == null || encoding.isEmpty()) {
-            encoding = "UTF-8";
-        }
-        outputStream.write(text.getBytes(encoding));
-        outputStream.flush();
-    }
-
+ 
     /**
      * Custom format a date variable using "EEE dd-MMM, yyyy hh:mm aa"
      *

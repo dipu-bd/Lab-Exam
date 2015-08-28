@@ -19,44 +19,62 @@ package Utilities;
 /**
  * Commands used for passing data between server and client computers.
  */
-public enum Command {
-
+public enum Command
+{
     /**
-     * Empty command
-     *//**
-     * Empty command
+     * Empty command to check connection.
      */
     EMPTY,
     /**
-     * Login to the server
+     * Login to the server.
      */
     LOGIN,
     /**
-     * Logout from the server
+     * Logout from the server.
      */
     LOGOUT,
     /**
-     * Get the examination start time
+     * Get the examination start time.
      */
     START_TIME,
     /**
-     * Get the examination class object
+     * Get the examination class object.
      */
     EXAM_TITLE,
     /**
-     * Submit answer to an specific question
+     * Submit answer to an specific question.
      */
-    SUBMIT, 
+    SUBMIT,
     /**
-     * Get the ending time of the exam
+     * Get the ending time of the exam.
      */
     STOP_TIME,
     /**
-     * Get the current time in server
+     * Get the current time in server.
      */
     CURRENT_TIME,
     /**
-     * Get list of all questions
+     * Get list of all questions.
      */
-    ALL_QUESTION
+    ALL_QUESTION,
+    /**
+     * Get the name of candidate.
+     */
+    CANDIDATE_NAME,
+    /**
+     * Number of total submissions on all question by a candidate.
+     */
+    TOTAL_SUBMISSION,
+    /**
+     * Total marks submitted by a candidate.
+     */
+    MARK_SUBMITTED,
+    /**
+     * Number of total question submitted by a candidate.
+     */
+    QUES_SUBMITTED,
+    /**
+     * Number of time user has logged in
+     */
+    LOGIN_ATTEMPT
 }
